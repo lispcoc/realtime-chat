@@ -34,6 +34,9 @@ export default function Chat() {
           }
         )
         .subscribe()
+
+      supabase
+        .channel(`users_${roomId}`)
         .on(
           "postgres_changes",
           {
@@ -55,7 +58,11 @@ export default function Chat() {
           }
         )
         .subscribe()
-      return () => supabase.channel(String(roomId)).unsubscribe()
+
+      return () => {
+        supabase.channel(String(roomId)).unsubscribe()
+        supabase.channel(`users_${roomId}`).unsubscribe()
+      }
     } catch (error) {
       console.error(error)
     }
