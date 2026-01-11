@@ -4,19 +4,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 
 export async function POST(request: NextRequest) {
+    const { action, roomId, username } = await request.json();
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
-    let action_
-    try {
-        const { action } = await request.json();
-        action_ = action
-    } catch (error) {
-        console.error(error)
-    }
 
-    if (action_ === 'enterRoom') {
+    if (action === 'enterRoom') {
         try {
-            const { roomId, username } = await request.json();
             const { data } = await supabase.from("Users").select("*").eq("id", ip)
             if (data) {
                 if (data.find(user => user.room_id == roomId)) {
