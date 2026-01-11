@@ -33,7 +33,7 @@ export default function Chat() {
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
               if (room_id === roomId) {
-                setMessageText((messageText) => [...messageText, { id, room_id, name, text, color, created_at, system }])
+                setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
               }
             }
           }
@@ -95,14 +95,14 @@ export default function Chat() {
 
       let allMessages = null
       try {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: true }).limit(10)
+        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(10)
 
         allMessages = data
       } catch (error) {
         console.error(error)
       }
       if (allMessages != null) {
-        setMessageText(allMessages.reverse())
+        setMessageText(allMessages)
       }
 
       let allUsers = null
@@ -278,7 +278,7 @@ export default function Chat() {
       </div>
 
       <div className="w-full max-w-3xl mb-10">
-        {messageText.reverse().map((item, index) => (
+        {messageText.map((item, index) => (
           <ChatLine message={item} index={index}></ChatLine>
         ))}
       </div>

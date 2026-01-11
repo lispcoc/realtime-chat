@@ -22,6 +22,7 @@ export default function CreateRoom() {
   useEffect(() => { }, [])
 
   const onSubmitAdmin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     try {
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
