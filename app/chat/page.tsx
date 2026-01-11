@@ -148,8 +148,8 @@ export default function Chat() {
       body: JSON.stringify(data),
     });
 
-    const responseData = await response.json();
-    console.log(responseData);
+    //const responseData = await response.json();
+    //console.log(responseData);
   }
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {

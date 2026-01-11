@@ -20,13 +20,13 @@ export async function POST(request: NextRequest) {
             await supabase.from("Users")
                 .delete()
                 .match({ "id": ip });
-            await supabase.from("Users").insert({
-                id: ip,
-                room_id: roomId,
-                username: username,
-                color: 0
-            })
         }
+        await supabase.from("Users").insert({
+            id: ip,
+            room_id: roomId,
+            username: username,
+            color: 0
+        })
     }
 
     return NextResponse.json({
