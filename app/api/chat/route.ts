@@ -33,13 +33,24 @@ export async function POST(request: NextRequest) {
 
     if (action === 'enterRoom') {
         try {
-            const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
+            const { data } = await supabase.from("Users").select("*").match({ "id": ip })
             if (data && data[0]) {
-                return NextResponse.json({
-                    ip: ip
-                }, {
-                    status: 200
-                });
+                if (data[0].room_id === roomId) {
+                    return NextResponse.json({
+                        ip: ip
+                    }, {
+                        status: 200
+                    });
+                } else {
+                    await supabase.from("Users").delete().match({ "id": ip })
+                    addMessage({
+                        color: 0,
+                        name: "system",
+                        room_id: data[0].room_id,
+                        system: true,
+                        text: `${data[0].name}さんが退室しました。`
+                    })
+                }
             }
             await supabase.from("Users").insert({
                 id: ip,
