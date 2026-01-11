@@ -56,7 +56,8 @@ export default function CreateRoom() {
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const special_keys: any = {}
       special_keys[inputRoomSpecialKey_1] = inputRoomSpecialText_1
-      await supabase.from("Rooms").insert({
+      await supabase.from("Rooms").upsert({
+        id: roomData?.id,
         title: inputTitle,
         description: inputDecsription,
         password: hashedPassword,
