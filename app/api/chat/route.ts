@@ -1,7 +1,12 @@
+import { Database } from "@/types/supabasetype"
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from "next/headers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
+
+async function addMessage(msg: Database["public"]["Tables"]["Messages"]["Row"]) {
+    await supabase.from("Messages").insert(msg)
+}
 
 export async function POST(request: NextRequest) {
     const { action, roomId, username } = await request.json();
@@ -23,6 +28,15 @@ export async function POST(request: NextRequest) {
                 room_id: roomId,
                 name: username,
                 color: 0
+            })
+            addMessage({
+                id: 0,
+                created_at: new Date(Date.now()).toISOString(),
+                color: 0,
+                name: "system",
+                room_id: parseInt(roomId),
+                system: true,
+                text: `${username}さんが入室しました。`
             })
         } catch (error) {
             console.error(error)
