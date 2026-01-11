@@ -33,16 +33,6 @@ export default function Chat() {
             }
           }
         )
-        .subscribe()
-
-      return () => supabase.channel(String(roomId)).unsubscribe()
-    } catch (error) {
-      console.error(error)
-    }
-
-    try {
-      supabase
-        .channel(`users_${roomId}`)
         .on(
           "postgres_changes",
           {
