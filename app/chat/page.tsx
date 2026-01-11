@@ -15,6 +15,7 @@ export default function Chat() {
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
   const [isEntered, setIsEntered] = useState(false)
+  const [username, setUsername] = useState("")
 
   const fetchRealtimeData = () => {
     try {
@@ -180,6 +181,7 @@ export default function Chat() {
     });
     const responseData = await response.json();
     setIsEntered(responseData.entered)
+    setUsername(responseData.username)
 
     return {
       username: responseData.username,
@@ -205,8 +207,8 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center p-2">
-      <h1 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h1>
+    <div className="flex-1 w-full flex flex-col p-2">
+      <h2 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
@@ -234,7 +236,7 @@ export default function Chat() {
 
         {isEntered && (
           <div className="mb-5">
-            <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900"></label>
+            <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900">username</label>
             <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
