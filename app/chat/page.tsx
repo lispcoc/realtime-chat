@@ -237,10 +237,10 @@ export default function Chat() {
         {isEntered && (
           <div className="mb-1">
             <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900">{username}</label>
-            <input style={{ whiteSpace: 'nowrap' }} type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+            <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
-            <button style={{ whiteSpace: 'nowrap' }} type="submit" disabled={inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button type="submit" disabled={inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               発言
             </button>
           </div>
@@ -248,9 +248,14 @@ export default function Chat() {
 
       </form>
 
-      <div className="mb-5">
+      <div className="mb-5 flex space-x-4">
+        <span className="font-medium">
+          現在の入室者:
+        </span>
         {users.map((user, index) => (
-          user.name
+          <span className="font-medium">
+            {user.name}
+          </span>
         ))}
       </div>
 
