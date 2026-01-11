@@ -213,7 +213,8 @@ export default function Chat() {
       {!isEntered && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
           <div className="mb-5">
-            <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900">名前</label>
+            <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
+            <span className="mb-2 text-sm font-medium text-gray-900">名前</span>
             <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
@@ -236,7 +237,8 @@ export default function Chat() {
 
         {isEntered && (
           <div className="mb-1">
-            <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900">{username}</label>
+            <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900"></label>
+            <span className="mb-2 text-sm font-medium text-gray-900">{username}</span>
             <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
@@ -260,7 +262,7 @@ export default function Chat() {
       </div>
 
       <div className="w-full max-w-3xl mb-10">
-        {messageText.map((item, index) => (
+        {messageText.reverse().map((item, index) => (
           <ChatLine message={item} index={index}></ChatLine>
         ))}
       </div>
