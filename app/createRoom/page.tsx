@@ -17,17 +17,8 @@ export default function CreateRoom() {
     if (inputTitle === "") return
     if (inputDecsription === "") return
     try {
-      let maxId = 0
-      const { data } = await supabase.from("Rooms").select("*")
-      if (data) {
-        data.forEach(room => {
-          if (maxId <= room.id) {
-            maxId = room.id + 1
-          }
-        })
-      }
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
-      await supabase.from("Rooms").insert({ id: maxId, title: inputTitle, description: inputDecsription, password: hashedPassword, options: {}, special_keys: {} })
+      await supabase.from("Rooms").insert({ title: inputTitle, description: inputDecsription, password: hashedPassword, options: {}, special_keys: {} })
       alert("部屋を作成しました。")
     } catch (error) {
       console.error(error)
