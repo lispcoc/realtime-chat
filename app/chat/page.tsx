@@ -33,6 +33,7 @@ export default function Chat() {
             }
           }
         )
+        .subscribe()
         .on(
           "postgres_changes",
           {
