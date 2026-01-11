@@ -13,7 +13,7 @@ export default function Index() {
     (async () => {
       let allRooms = null
       try {
-        const { data } = await supabase.from("Rooms").select("*").order("created_at")
+        const { data } = await supabase.from("Rooms").select("id,title,created_at").order("created_at")
         allRooms = data
         console.log(allRooms)
       } catch (error) {
@@ -30,7 +30,7 @@ export default function Index() {
       <h1 className="text-3xl font-bold pt-6 pb-10">リアルタイムチャットアプリ</h1>
       <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
         {rooms.map((item, index) => (
-          <ThreadLink channelName='thread1' linkName='スレッド1'></ThreadLink>
+          <a href={'/chat?roomId=' + item.id}>{item.title}</a>
         ))}
       </div>
       <ul>
