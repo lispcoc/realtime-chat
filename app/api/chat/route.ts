@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 
-async function addMessage(msg : any) {
+async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
 }
 
@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
                 color: 0
             })
             addMessage({
-                created_at: new Date(Date.now()).toISOString(),
                 color: 0,
                 name: "system",
                 room_id: parseInt(roomId),
