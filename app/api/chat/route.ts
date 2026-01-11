@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
             if (data.find(user => user.room_id == roomId)) {
                 return NextResponse.json({
                     ip: ip
+                }, {
+                    status: 200
                 });
             }
             await supabase.from("Users")
@@ -24,12 +26,14 @@ export async function POST(request: NextRequest) {
         await supabase.from("Users").insert({
             id: ip,
             room_id: roomId,
-            username: username,
+            name: username,
             color: 0
         })
     }
 
     return NextResponse.json({
         ip: ip
+    }, {
+        status: 200
     });
 }
