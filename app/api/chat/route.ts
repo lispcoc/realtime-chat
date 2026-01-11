@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
                 await supabase.from("Users")
                     .delete()
                     .match({ "id": ip, room_id: roomId })
+                addMessage({
+                    color: 0,
+                    name: "system",
+                    room_id: parseInt(roomId),
+                    system: true,
+                    text: `${data[0].name}さんが退室しました。`
+                })
             }
         } catch (error) {
             console.error(error)
