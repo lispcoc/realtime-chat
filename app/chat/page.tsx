@@ -119,6 +119,11 @@ export default function Chat() {
     event.preventDefault()
     if (inputName === "") return
     if (inputText === "") return
+    if (!checkEntered()) {
+      alert("入室していません。")
+      return
+    }
+
     try {
       let userID = localStorage.getItem("username")
       if (userID == undefined) {
@@ -180,6 +185,7 @@ export default function Chat() {
       setDisplayEnter(true)
       setDisplayExit(false)
     }
+    return responseData.entered
   }
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
