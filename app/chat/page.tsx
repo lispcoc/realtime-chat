@@ -4,6 +4,7 @@ import { Database } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
+import ChatLine from "@/components/chat/chatLine"
 
 export default function Chat() {
   const searchParams = useSearchParams()
@@ -253,7 +254,7 @@ export default function Chat() {
 
       <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
         {messageText.map((item, index) => (
-          item.text
+          <ChatLine message={item} index={index}></ChatLine>
         ))}
       </div>
 
