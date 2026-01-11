@@ -30,7 +30,7 @@ export default async function Index() {
       <h1 className="text-3xl font-bold pt-6 pb-10">リアルタイムチャットアプリ</h1>
       <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
         {rooms.map((item, index) => (
-          <a href={"?roomId=" + item.id}>{item.title}</a>
+          <a href={"chat?roomId=" + item.id}>{item.title}</a>
         ))}
       </div>
       <ul>
