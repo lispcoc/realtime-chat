@@ -6,7 +6,7 @@ import { supabase } from "@/utils/supabase/supabase"
 import ThreadLink from '@/components/threadLink'
 import ChatUI from "@/components/chats/chat"
 
-export default async function Index() {
+export default function Index() {
   const [rooms, appendRooms] = useState<Database["public"]["Tables"]["Rooms"]["Row"][]>([])
 
   useEffect(() => {
