@@ -14,7 +14,7 @@ export default function Chat() {
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
   const [displayEnter, setDisplayEnter] = useState(true)
-  const [displayExit, setDisplayExit] = useState(true)
+  const [displayExit, setDisplayExit] = useState(false)
 
   const fetchRealtimeData = () => {
     try {
@@ -57,6 +57,7 @@ export default function Chat() {
               setUsers(users.filter(user => user.id !== id))
             }
             console.log(users)
+            checkEntered()
           }
         )
         .subscribe()
@@ -172,7 +173,13 @@ export default function Chat() {
       body: JSON.stringify(data),
     });
     const responseData = await response.json();
-    console.log(responseData);
+    if (responseData.entered) {
+      setDisplayEnter(false)
+      setDisplayExit(true)
+    } else {
+      setDisplayEnter(true)
+      setDisplayExit(false)
+    }
   }
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
