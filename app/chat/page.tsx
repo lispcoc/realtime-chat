@@ -138,6 +138,22 @@ export default function Chat() {
         color: 0,
         system: false
       })
+
+      const rd: any = roomData
+      if (rd && rd.special_keys && rd.special_keys[inputText]) {
+        const special_text: String = rd.special_keys[inputText] || ""
+        const array = special_text.split("\n")
+        const specialText = array[Math.floor(Math.random() * array.length)]
+        if (specialText) {
+          await supabase.from("Messages").insert({
+            room_id: roomId,
+            name: chk.username,
+            text: specialText,
+            color: 0,
+            system: true
+          })
+        }
+      }
     } catch (error) {
       console.error(error)
     }
