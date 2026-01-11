@@ -29,7 +29,9 @@ export default async function Index() {
     <div className="flex-1 w-full flex flex-col items-center">
       <h1 className="text-3xl font-bold pt-6 pb-10">リアルタイムチャットアプリ</h1>
       <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
-        {rooms && rooms[0].id}
+        {rooms.map((item, index) => (
+          <ThreadLink channelName='thread1' linkName='スレッド1'></ThreadLink>
+        ))}
       </div>
       <ul>
         <ThreadLink channelName='thread1' linkName='スレッド1'></ThreadLink>
