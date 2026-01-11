@@ -25,6 +25,7 @@ export default function Chat() {
             table: "Messages",
           },
           (payload) => {
+            console.log(payload)
             if (payload.eventType === "INSERT") {
               const { room_id, name, text, color, created_at, system } = payload.new
               setMessageText((messageText) => [...messageText, { room_id, name, text, color, created_at, system }])
