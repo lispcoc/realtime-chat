@@ -3,11 +3,10 @@ import { headers } from "next/headers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 
-export async function GET() {
+export function POST(request: NextApiRequest) {
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for");
     return NextResponse.json({
-        response: 'ok',
         ip: ip
-    })
+    }, { status: 200 });
 }

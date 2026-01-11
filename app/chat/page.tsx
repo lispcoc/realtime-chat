@@ -12,6 +12,7 @@ export default function Chat() {
   const [inputName, setInputName] = useState("")
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
+  const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
 
   const fetchRealtimeData = () => {
     try {
@@ -38,6 +39,34 @@ export default function Chat() {
     } catch (error) {
       console.error(error)
     }
+
+    try {
+      supabase
+        .channel(`users_${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "Users",
+          },
+          (payload) => {
+            console.log(payload)
+            if (payload.eventType === "INSERT") {
+              const { id, last_activity, name, color } = payload.new
+              setUsers((users) => [...users, { id, last_activity, name, color }])
+            }
+            if (payload.eventType === "DELETE") {
+              const { id } = payload.old
+              setUsers(users.filter(user => user.id !== id))
+            }
+          }
+        )
+        .subscribe()
+      return () => supabase.channel(String(roomId)).unsubscribe()
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   // 初回のみ実行するために引数に空の配列を渡している
@@ -51,6 +80,7 @@ export default function Chat() {
         }
       } catch (error) {
         console.error(error)
+        alert("部屋データの取得に失敗しました。")
         return
       }
 
@@ -65,6 +95,19 @@ export default function Chat() {
       if (allMessages != null) {
         setMessageText(allMessages)
       }
+
+      let allUsers = null
+      try {
+        const { data } = await supabase.from("Users").select("*").eq('room_id', roomId).order("last_activity")
+
+        allUsers = data
+      } catch (error) {
+        console.error(error)
+      }
+      if (allUsers != null) {
+        setUsers(allUsers)
+      }
+
     })()
     fetchRealtimeData()
   }, [])
@@ -91,6 +134,16 @@ export default function Chat() {
     setInputText("")
   }
 
+  const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (inputName === "") return
+  }
+
+  const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (inputName === "") return
+  }
+
   return (
     <div className="flex-1 w-full flex flex-col items-center p-2">
       <h1 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h1>
@@ -99,6 +152,21 @@ export default function Chat() {
           item.text
         ))}
       </div>
+      <div className="mb-5">
+        {users.map((user, index) => (
+          user.name
+        ))}
+      </div>
+      <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
+        <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          入室
+        </button>
+      </form>
+      <form className="w-full max-w-md pb-10" onSubmit={onSubmitLeave}>
+        <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          退室
+        </button>
+      </form>
 
       <form className="w-full max-w-md pb-10" onSubmit={onSubmitNewMessage}>
         <div className="mb-5">
