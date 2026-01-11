@@ -119,7 +119,8 @@ export default function Chat() {
     event.preventDefault()
     if (inputName === "") return
     if (inputText === "") return
-    if (!checkEntered()) {
+    const entered = await !checkEntered()
+    if (!entered) {
       alert("入室していません。")
       return
     }
