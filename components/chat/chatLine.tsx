@@ -9,7 +9,7 @@ export default function ChatLine({ message, index }: Props) {
     return (
         <div>
             <hr style={{ height: 10 }}></hr>
-            <span style={{ fontWeight: 'bold' }} className="font-medium text-sm text-gray-900 truncate">{message.name} &gt; </span>
+            <span className="font-medium text-sm text-gray-900 truncate">{message.name} &gt; </span>
             <span className="text-sm text-gray-900 truncate">{message.text}</span>
         </div>
     )

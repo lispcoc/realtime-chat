@@ -213,9 +213,9 @@ export default function Chat() {
       {!isEntered && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
           <div className="mb-5">
-            <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900">名前</label>
+            <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900">名前</label>
             <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
           </div>
           <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
@@ -236,10 +236,9 @@ export default function Chat() {
 
         {isEntered && (
           <div className="mb-1">
-            <label style={{ whiteSpace: 'nowrap' }} htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900"></label>
-            <span>{username}</span>
+            <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900">{username}</label>
             <input style={{ whiteSpace: 'nowrap' }} type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
             <button style={{ whiteSpace: 'nowrap' }} type="submit" disabled={inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               発言
