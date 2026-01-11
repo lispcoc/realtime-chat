@@ -45,24 +45,27 @@ export type Database = {
         Row: {
           color: number | null
           created_at: string
-          name: string
-          room_id: number
+          id: number
+          name: string | null
+          room_id: number | null
           system: boolean | null
           text: string | null
         }
         Insert: {
           color?: number | null
           created_at?: string
-          name?: string
-          room_id?: number
+          id?: number
+          name?: string | null
+          room_id?: number | null
           system?: boolean | null
           text?: string | null
         }
         Update: {
           color?: number | null
           created_at?: string
-          name?: string
-          room_id?: number
+          id?: number
+          name?: string | null
+          room_id?: number | null
           system?: boolean | null
           text?: string | null
         }
@@ -104,18 +107,21 @@ export type Database = {
           id: string
           last_activity: string
           name: string | null
+          room_id: number | null
         }
         Insert: {
           color?: number | null
           id?: string
           last_activity?: string
           name?: string | null
+          room_id?: number | null
         }
         Update: {
           color?: number | null
           id?: string
           last_activity?: string
           name?: string | null
+          room_id?: number | null
         }
         Relationships: []
       }

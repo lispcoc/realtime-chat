@@ -28,8 +28,8 @@ export default function Chat() {
           (payload) => {
             console.log(payload)
             if (payload.eventType === "INSERT") {
-              const { room_id, name, text, color, created_at, system } = payload.new
-              setMessageText((messageText) => [...messageText, { room_id, name, text, color, created_at, system }])
+              const { id, room_id, name, text, color, created_at, system } = payload.new
+              setMessageText((messageText) => [...messageText, { id, room_id, name, text, color, created_at, system }])
             }
           }
         )
@@ -53,8 +53,8 @@ export default function Chat() {
           (payload) => {
             console.log(payload)
             if (payload.eventType === "INSERT") {
-              const { id, last_activity, name, color } = payload.new
-              setUsers((users) => [...users, { id, last_activity, name, color }])
+              const { id, room_id, last_activity, name, color } = payload.new
+              setUsers((users) => [...users, { id, room_id, last_activity, name, color }])
             }
             if (payload.eventType === "DELETE") {
               const { id } = payload.old
