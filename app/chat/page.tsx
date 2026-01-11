@@ -236,11 +236,11 @@ export default function Chat() {
 
         {isEntered && (
           <div className="mb-5">
-            <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900">{username}</label>
-            <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+            <label style={{ whiteSpace: 'nowrap' }} htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900">{username}</label>
+            <input style={{ whiteSpace: 'nowrap' }} type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
-            <button type="submit" disabled={inputName === "" || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button style={{ whiteSpace: 'nowrap' }} type="submit" disabled={inputName === "" || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               発言
             </button>
           </div>
