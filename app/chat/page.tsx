@@ -252,7 +252,7 @@ export default function Chat() {
         ))}
       </div>
 
-      <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
+      <div className="w-full max-w-3xl mb-10">
         {messageText.map((item, index) => (
           <ChatLine message={item} index={index}></ChatLine>
         ))}
