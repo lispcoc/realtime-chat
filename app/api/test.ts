@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { supabase } from "@/utils/supabase/supabase"
 
 export default async function handler(
     req: NextApiRequest,
@@ -10,6 +11,7 @@ export default async function handler(
     }
     if (req.method === "GET") {
         const { value } = req.body;
-        return res.status(200).json({ test: "ok" });
+        const { data } = await supabase.from("Rooms").select("*")
+        return res.status(200).json({ rooms: data });
     }
 }
