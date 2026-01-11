@@ -7,6 +7,9 @@ export default function Header() {
                 <li>
                     <Link className="text-gray-700 hover:text-blue-700" href="/">Home</Link>
                 </li>
+                <li>
+                    <Link className="text-gray-700 hover:text-blue-700" href="/createRoom">部屋の作成</Link>
+                </li>
             </ul>
         </header>
     )

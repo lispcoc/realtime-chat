@@ -1,25 +1,21 @@
 
 "use client"
-import { Database } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
-import { v4 } from "uuid"
-import { useSearchParams } from "next/navigation"
-import ChatUI from "@/components/chats/chat"
 import bcrypt from 'bcryptjs'
 
 export default function CreateRoom() {
-  const searchParams = useSearchParams()
   const [inputTitle, setInputTitle] = useState("")
-  const [inputDecription, setInputDecription] = useState("")
+  const [inputDecsription, setInputDescription] = useState("")
   const [inputPassword, setInputPassword] = useState("")
 
   // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => { }, [])
 
   const onSubmitCreateRoom = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     if (inputTitle === "") return
-    if (inputDecription === "") return
+    if (inputDecsription === "") return
     try {
       let maxId = 0
       const { data } = await supabase.from("Rooms").select("*")
@@ -29,7 +25,7 @@ export default function CreateRoom() {
         }
       })
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
-      await supabase.from("Rooms").insert({ id: maxId, title: inputTitle, description: inputDecription, password: hashedPassword, options: {}, special_keys: {} })
+      await supabase.from("Rooms").insert({ id: maxId, title: inputTitle, description: inputDecsription, password: hashedPassword, options: {}, special_keys: {} })
       alert("部屋を作成しました。")
     } catch (error) {
       console.error(error)
@@ -52,7 +48,7 @@ export default function CreateRoom() {
           <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900">ルーム説明</label>
           <textarea id="description" name="description" rows={4} className="block p-2.5 w-full text-sm text-gray-900
                  bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="投稿内容を入力" value={inputDecription} onChange={(event) => setInputDecription(() => event.target.value)}>
+            placeholder="投稿内容を入力" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
           </textarea>
         </div>
         <label htmlFor="roomPassword">パスワード (必須)</label>
