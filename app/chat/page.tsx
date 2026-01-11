@@ -13,6 +13,8 @@ export default function Chat() {
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
+  const [displayEnter, setDisplayEnter] = useState(true)
+  const [displayExit, setDisplayExit] = useState(true)
 
   const fetchRealtimeData = () => {
     try {
@@ -109,6 +111,7 @@ export default function Chat() {
 
     })()
     fetchRealtimeData()
+    checkEntered()
   }, [])
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -155,6 +158,23 @@ export default function Chat() {
     //console.log(responseData);
   }
 
+  const checkEntered = async () => {
+    const data = {
+      action: 'checkEntered',
+      roomId: roomId
+    };
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    console.log(responseData);
+  }
+
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
@@ -185,16 +205,22 @@ export default function Chat() {
           user.name
         ))}
       </div>
-      <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
-        <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-          入室
-        </button>
-      </form>
-      <form className="w-full max-w-md pb-10" onSubmit={onSubmitLeave}>
-        <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-          退室
-        </button>
-      </form>
+
+      {displayEnter && (
+        <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
+          <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            入室
+          </button>
+        </form>
+      )}
+
+      {displayExit && (
+        <form className="w-full max-w-md pb-10" onSubmit={onSubmitLeave}>
+          <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            退室
+          </button>
+        </form>
+      )}
 
       <form className="w-full max-w-md pb-10" onSubmit={onSubmitNewMessage}>
         <div className="mb-5">

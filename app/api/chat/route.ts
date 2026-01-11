@@ -13,6 +13,22 @@ export async function POST(request: NextRequest) {
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
 
+    if (action === 'checkEntered') {
+        const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
+        if (data && data[0]) {
+            return NextResponse.json({
+                entered: true
+            }, {
+                status: 200
+            });
+        }
+        return NextResponse.json({
+            entered: false
+        }, {
+            status: 200
+        });
+    }
+
     if (action === 'enterRoom') {
         try {
             const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
