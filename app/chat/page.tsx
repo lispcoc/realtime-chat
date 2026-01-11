@@ -267,6 +267,10 @@ export default function Chat() {
         ))}
       </div>
 
+      <div className="w-full max-w-3xl mb-10">
+        <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
+      </div>
+
     </div>
   )
 }

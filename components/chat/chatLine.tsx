@@ -6,10 +6,12 @@ type Props = {
 }
 
 export default function ChatLine({ message, index }: Props) {
+    const color = message.system ? "gray" : "black"
+    const dispName = message.system ? "[SYSTEM] " : `${message.name} &gt; `
     return (
         <div>
             <hr style={{ height: 10 }}></hr>
-            <span className="font-medium text-sm text-gray-900 truncate">{message.name} &gt; </span>
+            <span style={{ color: color }} className="font-medium text-sm text-gray-900 truncate">{dispName}</span>
             <span className="text-sm text-gray-900 truncate">{message.text}</span>
         </div>
     )
