@@ -60,6 +60,7 @@ export default function Chat() {
               const { id } = payload.old
               setUsers(users.filter(user => user.id !== id))
             }
+            console.log(users)
           }
         )
         .subscribe()
