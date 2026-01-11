@@ -54,7 +54,7 @@ export type Database = {
         Insert: {
           color?: number | null
           created_at?: string
-          id?: number
+          id: number
           name?: string | null
           room_id?: number | null
           system?: boolean | null
