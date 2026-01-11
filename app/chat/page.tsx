@@ -207,7 +207,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="">
+    <div className="w-full">
       <h2 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
