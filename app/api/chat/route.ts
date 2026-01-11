@@ -6,29 +6,39 @@ import { supabase } from "@/utils/supabase/supabase"
 export async function POST(request: NextRequest) {
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
-    const { action } = await request.json();
+    let action_
+    try {
+        const { action } = await request.json();
+        action_ = action
+    } catch (error) {
+        console.error(error)
+    }
 
-    if (action === 'enterRoom') {
-        const { roomId, username } = await request.json();
-        const { data } = await supabase.from("Users").select("*").eq("id", ip)
-        if (data) {
-            if (data.find(user => user.room_id == roomId)) {
-                return NextResponse.json({
-                    ip: ip
-                }, {
-                    status: 200
-                });
+    if (action_ === 'enterRoom') {
+        try {
+            const { roomId, username } = await request.json();
+            const { data } = await supabase.from("Users").select("*").eq("id", ip)
+            if (data) {
+                if (data.find(user => user.room_id == roomId)) {
+                    return NextResponse.json({
+                        ip: ip
+                    }, {
+                        status: 200
+                    });
+                }
+                await supabase.from("Users")
+                    .delete()
+                    .match({ "id": ip });
             }
-            await supabase.from("Users")
-                .delete()
-                .match({ "id": ip });
+            await supabase.from("Users").insert({
+                id: ip,
+                room_id: roomId,
+                name: username,
+                color: 0
+            })
+        } catch (error) {
+            console.error(error)
         }
-        await supabase.from("Users").insert({
-            id: ip,
-            room_id: roomId,
-            name: username,
-            color: 0
-        })
     }
 
     return NextResponse.json({
