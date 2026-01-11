@@ -16,6 +16,7 @@ export default async function Index() {
         const { data } = await supabase.from("Rooms").select("*").order("created_at")
 
         allRooms = data
+        console.log(allRooms)
       } catch (error) {
         console.error(error)
       }
