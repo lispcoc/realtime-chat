@@ -244,7 +244,7 @@ export default function Chat() {
       <h2 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
-        <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
+        <form className="w-full max-w-8/10 pb-10" onSubmit={onSubmitEnter}>
           <div className="mb-5">
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">名前</span>

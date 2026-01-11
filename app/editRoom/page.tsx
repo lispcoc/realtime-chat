@@ -14,6 +14,7 @@ export default function CreateRoom() {
   const [inputPassword, setInputPassword] = useState("")
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
+  const [inputPrivate, setInputPrivate] = useState(false)
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [login, setLogin] = useState(false)
 
@@ -36,10 +37,16 @@ export default function CreateRoom() {
           if (roomData?.description) {
             setInputDescription(roomData?.description)
           }
-          if (roomData?.options) {
-            setInputRoomSpecialKey_1(Object.keys((roomData?.options as Object))[0] || "")
-            setInputRoomSpecialText_1(Object.values((roomData?.options as Object))[0] || "")
+          if (roomData?.special_keys) {
+            setInputRoomSpecialKey_1(Object.keys((roomData?.special_keys as Object))[0] || "")
+            setInputRoomSpecialText_1(Object.values((roomData?.special_keys as Object))[0] || "")
           }
+          const opt: any = roomData?.options
+          if (opt.private) {
+            setInputPrivate(opt.private)
+          }
+        } else {
+          alert("パスワードが違います。")
         }
       }
     } catch (error) {
@@ -62,7 +69,9 @@ export default function CreateRoom() {
         title: inputTitle,
         description: inputDecsription,
         password: hashedPassword,
-        options: {},
+        options: {
+          private: inputPrivate
+        },
         special_keys: special_keys
       })
       alert("部屋を作成しました。")
@@ -120,6 +129,13 @@ export default function CreateRoom() {
             required
           />
 
+          <label htmlFor="private">未入室の閲覧を禁止する</label>
+          {inputPrivate && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} checked />
+          )}
+          {!inputPrivate && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
+          )}
           <label htmlFor="roomSpecialKey_1">特殊キーの設定</label>
           <input type="text" id="roomSpecialKey_1" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
