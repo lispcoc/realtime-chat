@@ -206,16 +206,6 @@ export default function Chat() {
   return (
     <div className="flex-1 w-full flex flex-col items-center p-2">
       <h1 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h1>
-      <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
-        {messageText.map((item, index) => (
-          item.text
-        ))}
-      </div>
-      <div className="mb-5">
-        {users.map((user, index) => (
-          user.name
-        ))}
-      </div>
 
       {!isEntered && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitEnter}>
@@ -247,16 +237,26 @@ export default function Chat() {
             <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
+            <button type="submit" disabled={inputName === "" || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+              発言
+            </button>
           </div>
         )}
 
-        {isEntered && (
-          <button type="submit" disabled={inputName === "" || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-            発言
-          </button>
-        )}
-
       </form>
+
+      <div className="mb-5">
+        {users.map((user, index) => (
+          user.name
+        ))}
+      </div>
+
+      <div className="w-full max-w-3xl mb-10 border-t-2 border-x-2">
+        {messageText.map((item, index) => (
+          item.text
+        ))}
+      </div>
+
     </div>
   )
 }
