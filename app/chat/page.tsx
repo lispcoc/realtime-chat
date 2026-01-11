@@ -32,7 +32,9 @@ export default function Chat() {
             console.log(payload)
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
-              setMessageText((messageText) => [...messageText, { id, room_id, name, text, color, created_at, system }])
+              if (room_id === roomId) {
+                setMessageText((messageText) => [...messageText, { id, room_id, name, text, color, created_at, system }])
+              }
             }
           }
         )
@@ -51,11 +53,15 @@ export default function Chat() {
             console.log(payload)
             if (payload.eventType === "INSERT") {
               const { id, room_id, last_activity, name, color } = payload.new
-              setUsers((users) => [...users, { id, room_id, last_activity, name, color }])
+              if (room_id === roomId) {
+                setUsers((users) => [...users, { id, room_id, last_activity, name, color }])
+              }
             }
             if (payload.eventType === "DELETE") {
-              const { id } = payload.old
-              setUsers(users.filter(user => user.id !== id))
+              const { id, room_id } = payload.old
+              if (room_id === roomId) {
+                setUsers(users.filter(user => user.id !== id))
+              }
             }
             console.log(users)
             checkEntered()
@@ -89,14 +95,14 @@ export default function Chat() {
 
       let allMessages = null
       try {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at")
+        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: true }).limit(10)
 
         allMessages = data
       } catch (error) {
         console.error(error)
       }
       if (allMessages != null) {
-        setMessageText(allMessages)
+        setMessageText(allMessages.reverse())
       }
 
       let allUsers = null
