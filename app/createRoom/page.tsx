@@ -20,7 +20,7 @@ export default function CreateRoom() {
       let maxId = 0
       const { data } = await supabase.from("Rooms").select("*")
       if (data) {
-        data?.forEach(room => {
+        data.forEach(room => {
           if (maxId <= room.id) {
             maxId = room.id + 1
           }
