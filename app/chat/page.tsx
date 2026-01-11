@@ -155,6 +155,18 @@ export default function Chat() {
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
+    const data = {
+      action: 'exitRoom',
+      roomId: roomId
+    };
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+
+    const responseData = await response.json();
+    console.log(responseData);
   }
 
   return (

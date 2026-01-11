@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
             if (data.find(user => user.room_id == roomId)) {
                 return NextResponse.json({
                     ip: ip
-                }, { status: 200 });
+                });
             }
             await supabase.from("Users")
                 .delete()
@@ -31,5 +31,5 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
         ip: ip
-    }, { status: 200 });
+    });
 }
