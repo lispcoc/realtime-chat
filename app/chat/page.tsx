@@ -145,6 +145,10 @@ export default function Chat() {
 
     const response = await fetch('/api/chat', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
       body: JSON.stringify(data),
     });
 
