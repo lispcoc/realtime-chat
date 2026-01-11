@@ -118,8 +118,8 @@ export default function Chat() {
     event.preventDefault()
     if (inputName === "") return
     if (inputText === "") return
-    const entered = await !checkEntered()
-    if (!entered) {
+    const chk = await checkEntered()
+    if (!chk.entered) {
       alert("入室していません。")
       return
     }
@@ -131,7 +131,7 @@ export default function Chat() {
       }
       await supabase.from("Messages").insert({
         room_id: roomId,
-        name: inputName,
+        name: chk.username,
         text: inputText,
         color: 0,
         system: false
@@ -180,7 +180,10 @@ export default function Chat() {
     const responseData = await response.json();
     setIsEntered(responseData.entered)
 
-    return responseData.entered
+    return {
+      username: responseData.username,
+      entered: responseData.entered
+    }
   }
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {

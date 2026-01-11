@@ -17,12 +17,14 @@ export async function POST(request: NextRequest) {
         const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
         if (data && data[0]) {
             return NextResponse.json({
+                username: data[0].name,
                 entered: true
             }, {
                 status: 200
             });
         }
         return NextResponse.json({
+            username: "",
             entered: false
         }, {
             status: 200
