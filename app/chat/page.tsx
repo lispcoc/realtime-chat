@@ -124,7 +124,6 @@ export default function Chat() {
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (inputName === "") return
     if (inputText === "") return
     const chk = await checkEntered()
     if (!chk.entered) {
@@ -133,10 +132,6 @@ export default function Chat() {
     }
 
     try {
-      let userID = localStorage.getItem("username")
-      if (userID == undefined) {
-        localStorage.setItem("username", inputName)
-      }
       await supabase.from("Messages").insert({
         room_id: roomId,
         name: chk.username,
@@ -213,7 +208,6 @@ export default function Chat() {
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (inputName === "") return
     const data = {
       action: 'exitRoom',
       roomId: roomId
