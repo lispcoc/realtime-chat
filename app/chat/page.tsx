@@ -16,6 +16,7 @@ export default function Chat() {
   const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
+  let fetchMessagesEnable = false
 
   const fetchRealtimeData = () => {
     try {
@@ -78,6 +79,23 @@ export default function Chat() {
     }
   }
 
+  const fetchMessages = async () => {
+    let allMessages = null
+    try {
+      const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(10)
+
+      allMessages = data
+    } catch (error) {
+      console.error(error)
+    }
+    if (allMessages != null) {
+      setMessageText(allMessages)
+    }
+
+    fetchMessagesEnable = true
+    fetchRealtimeData()
+  }
+
   // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => {
     (async () => {
@@ -93,18 +111,6 @@ export default function Chat() {
         return
       }
 
-      let allMessages = null
-      try {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(10)
-
-        allMessages = data
-      } catch (error) {
-        console.error(error)
-      }
-      if (allMessages != null) {
-        setMessageText(allMessages)
-      }
-
       let allUsers = null
       try {
         const { data } = await supabase.from("Users").select("*").eq('room_id', roomId).order("last_activity")
@@ -117,9 +123,16 @@ export default function Chat() {
         setUsers(allUsers)
       }
 
+      const opt: any = roomData?.options
+      if (opt.private) {
+        const chk = await checkEntered()
+        if (chk.entered) {
+          fetchMessages()
+        }
+      } else {
+        fetchMessages()
+      }
     })()
-    fetchRealtimeData()
-    checkEntered()
   }, [])
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -199,6 +212,10 @@ export default function Chat() {
     const responseData = await response.json();
     setIsEntered(responseData.entered)
     setUsername(responseData.username)
+
+    if (responseData.entered && !fetchMessagesEnable) {
+      fetchMessages()
+    }
 
     return {
       username: responseData.username,
