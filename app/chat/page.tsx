@@ -77,7 +77,7 @@ export default function Chat() {
           }
         )
         .subscribe()
-
+      console.log("自動更新の開始")
       return () => {
         supabase.channel(String(roomId)).unsubscribe()
         supabase.channel(`users_${roomId}`).unsubscribe()
@@ -178,7 +178,7 @@ export default function Chat() {
         const array = special_text.split("\n")
         const specialText = array[Math.floor(Math.random() * array.length)]
         if (specialText) {
-          supabase.from("Messages").insert({
+          await supabase.from("Messages").insert({
             room_id: roomId,
             name: chk.username,
             text: specialText,
@@ -294,9 +294,8 @@ export default function Chat() {
         </form>
       )}
 
-      <form className="w-full pb-10" onSubmit={onSubmitNewMessage}>
-
-        {isEntered && (
+      {isEntered && (
+        <form className="w-full pb-10" onSubmit={onSubmitNewMessage}>
           <div className="mb-1">
             <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">{username}</span>
@@ -307,9 +306,8 @@ export default function Chat() {
               発言
             </button>
           </div>
-        )}
-
-      </form>
+        </form>
+      )}
 
       <div className="mt-5 mb-5 flex space-x-4">
         <span className="font-medium">
@@ -334,7 +332,7 @@ export default function Chat() {
       </div>
 
       {roomData?.options && (roomData?.options as any).private && !isEntered && (
-        <div className="w-full">
+        <div className="w-full pb-10">
           未入室閲覧禁止設定です。
         </div>
       )}
