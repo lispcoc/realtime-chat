@@ -17,18 +17,22 @@ async function removeInactiveUser() {
         .select('*')
         .lte('last_activity', tenMinutesAgo.toISOString()) // last_activity <= tenMinutesAgo
     if (data) {
+        const reminder: any[] = []
         data.forEach(user => {
-            supabase.from("Users")
+            reminder.push({ "id": user.id, "name": user.name, "room_id": user.room_id })
+        })
+        for (const a of reminder) {
+            const res = await supabase.from("Users")
                 .delete()
-                .match({ "id": user.id, "room_id": user.room_id })
+                .match(a)
             addMessage({
                 color: 0,
                 name: "system",
-                room_id: user.room_id,
+                room_id: a.room_id,
                 system: true,
-                text: `${user.name}さんが非アクティブのため自動退室しました。`
+                text: `${a.name}さんが非アクティブのため自動退室しました。`
             })
-        })
+        }
     }
 }
 
@@ -122,9 +126,6 @@ export async function POST(request: NextRequest) {
     }, {
         status: 200
     });
-}
-
-const inactiveUsers = async () => {
 }
 
 export async function GET() {
