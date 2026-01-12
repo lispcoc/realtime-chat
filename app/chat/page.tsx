@@ -338,7 +338,7 @@ export default function Chat() {
   }
 
   const inputTextKeyPress = (event: React.KeyboardEvent<HTMLFormElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !buttonDisable) {
       onSubmitNewMessage(event)
     }
   }
