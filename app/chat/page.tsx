@@ -193,9 +193,17 @@ export default function Chat() {
         }
       }
 
-      const data = {
-        command: inputText
-      };
+      await fetch('/api/dice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: JSON.stringify({
+          roomId: roomId,
+          command: inputText
+        }),
+      });
     } catch (error) {
       console.error(error)
     }
