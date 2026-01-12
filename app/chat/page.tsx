@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import ChatLine from "@/components/chat/chatLine"
+import { Base as Dice } from 'bcdice';
 
 type RoomOption = {
   private: boolean | undefined,
@@ -184,6 +185,16 @@ export default function Chat() {
             system: true
           })
         }
+      }
+      const result = Dice.eval(inputText)
+      if (result && result.text) {
+        await supabase.from("Messages").insert({
+          room_id: roomId,
+          name: chk.username,
+          text: 'ダイスロール ' + result.text,
+          color: 0,
+          system: true
+        })
       }
     } catch (error) {
       console.error(error)
