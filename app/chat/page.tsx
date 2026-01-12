@@ -105,10 +105,12 @@ export default function Chat() {
   useEffect(() => {
     (async () => {
 
+      let tempRoomData = null
       try {
         const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
         if (data && data[0]) {
           setRoomData(data[0])
+          tempRoomData = data[0]
         }
       } catch (error) {
         console.error(error)
@@ -128,10 +130,14 @@ export default function Chat() {
         setUsers(allUsers)
       }
 
-      const opt: any = roomData?.options || {}
-      if (opt.private) {
-        const chk = await checkEntered()
-        if (chk.entered) {
+      if (tempRoomData) {
+        const opt: any = tempRoomData.options || {}
+        if (opt.privete) {
+          const chk = await checkEntered()
+          if (chk.entered) {
+            fetchMessages()
+          }
+        } else {
           fetchMessages()
         }
       } else {

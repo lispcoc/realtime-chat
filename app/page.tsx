@@ -33,7 +33,7 @@ export default function Index() {
   return (
     <div className="flex-1 w-full flex flex-col items-center">
       <div className="w-full max-w-3xl mb-10">
-        <h2 className="text-3xl font-bold pt-6 pb-10">ルーム一覧</h2>
+        <h2 className="text-xl font-bold pt-6 pb-10">ルーム一覧</h2>
         <ul>
           {rooms.map((item, index) => (
             <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"}></RoomLink>

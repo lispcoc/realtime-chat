@@ -30,17 +30,18 @@ export default function CreateRoom() {
         if (bcrypt.compareSync(inputPassword, data[0].password || "")) {
           setRoomData(data[0])
           setLogin(true)
-          if (roomData?.title) {
-            setInputTitle(roomData?.title)
+          let tempRoomData = data[0]
+          if (tempRoomData.title) {
+            setInputTitle(tempRoomData.title)
           }
-          if (roomData?.description) {
-            setInputDescription(roomData?.description)
+          if (tempRoomData.description) {
+            setInputDescription(tempRoomData.description)
           }
-          if (roomData?.special_keys) {
-            setInputRoomSpecialKey_1(Object.keys((roomData?.special_keys as Object))[0] || "")
-            setInputRoomSpecialText_1(Object.values((roomData?.special_keys as Object))[0] || "")
+          if (tempRoomData.special_keys) {
+            setInputRoomSpecialKey_1(Object.keys((tempRoomData.special_keys || {}))[0] || "")
+            setInputRoomSpecialText_1(Object.values((tempRoomData.special_keys || {}))[0] || "")
           }
-          const opt: any = roomData?.options || {}
+          const opt: any = tempRoomData.options || {}
           if (opt.private) {
             setInputPrivate(opt.private)
           }
@@ -136,7 +137,7 @@ export default function CreateRoom() {
           {!inputPrivate && (
             <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
           )}
-          <br/>
+          <br />
           <label htmlFor="roomSpecialKey_1">特殊キーの設定</label>
           <input type="text" id="roomSpecialKey_1" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
