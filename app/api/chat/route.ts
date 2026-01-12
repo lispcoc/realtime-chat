@@ -15,7 +15,7 @@ async function removeInactiveUser() {
 
     const { data } = await supabase.from('Users')
         .select('*')
-        .lte('last_activity', tenMinutesAgo) // last_activity <= tenMinutesAgo
+        .lte('last_activity', tenMinutesAgo.toISOString()) // last_activity <= tenMinutesAgo
     if (data) {
         data.forEach(user => {
             supabase.from("Users")
@@ -137,7 +137,7 @@ export async function GET() {
     tenMinutesAgo.toISOString()
     const { data } = await supabase.from('Users')
         .select('*')
-        .lte('last_activity', tenMinutesAgo)
+        .lte('last_activity', tenMinutesAgo.toISOString())
     if (data) {
         data.forEach(user => {
             users.push(user.id)
@@ -145,6 +145,7 @@ export async function GET() {
     }
     return NextResponse.json({
         response: 'ok',
-        users: users
+        users: users,
+        tenMinutesAgo: tenMinutesAgo.toISOString()
     })
 }
