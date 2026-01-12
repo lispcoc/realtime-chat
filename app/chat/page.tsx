@@ -262,6 +262,15 @@ export default function Chat() {
     setShowRoomDescription(!showRoomDescription)
   }
 
+  const linedDescription = (text: String) => {
+    const lines = text.split('\n').map((item, index) => {
+      return (
+        <div>{item}</div>
+      );
+    })
+    return lines
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
@@ -322,7 +331,11 @@ export default function Chat() {
           </a>
         </div>
         {showRoomDescription && (
-          <div className="text-xs">{roomData ? roomData.description?.replaceAll('\n', "<br>") : ""}</div>
+          <div className="text-xs">{
+            roomData
+              ? linedDescription(roomData.description || "")
+              : ""}
+          </div>
         )}
       </div>
 
