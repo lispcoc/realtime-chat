@@ -37,7 +37,7 @@ async function removeInactiveUser() {
 }
 
 export async function POST(request: NextRequest) {
-    const { action, roomId, username } = await request.json();
+    const { action, roomId, username, color } = await request.json();
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
 
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 username: data[0].name,
                 entered: true,
+                color: data[0].color,
                 id: ip
             }, {
                 status: 200
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
                 } else {
                     await supabase.from("Users").delete().match({ "id": ip })
                     addMessage({
-                        color: 0,
+                        color: parseInt(color),
                         name: "system",
                         room_id: data[0].room_id,
                         system: true,

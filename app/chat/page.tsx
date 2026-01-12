@@ -250,6 +250,7 @@ export default function Chat() {
     const data = {
       action: 'enterRoom',
       roomId: roomId,
+      color: colorCodeToInt(color),
       username: createTrip(inputName)
     };
 
@@ -287,6 +288,7 @@ export default function Chat() {
     const responseData = await response.json();
     setIsEntered(responseData.entered)
     setUsername(responseData.username)
+    setColor(responseData.color || 0)
 
     return {
       username: responseData.username,
