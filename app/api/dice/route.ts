@@ -78,10 +78,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const headersList = headers();
     const { roomId, command } = await request.json();
 
-    const result = roll(command);
+    const result = await roll(command);
     if (result) {
         await addMessage({
             color: 0,
