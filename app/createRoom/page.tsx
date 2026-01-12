@@ -38,7 +38,7 @@ export default function CreateRoom() {
       }).select('*')
       console.log(res)
       alert("部屋を作成しました。")
-      window.location.href = '/'
+      //window.location.href = '/'
     } catch (error) {
       console.error(error)
       alert("部屋の作成に失敗しました。")
