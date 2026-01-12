@@ -20,7 +20,7 @@ async function removeInactiveUser() {
         data.forEach(user => {
             supabase.from("Users")
                 .delete()
-                .match({ "id": user.id, room_id: user.room_id })
+                .match({ "id": user.id, "room_id": user.room_id })
             addMessage({
                 color: 0,
                 name: "system",
@@ -38,13 +38,14 @@ export async function POST(request: NextRequest) {
     const ip = headersList.get("x-forwarded-for") || "";
 
     if (action === 'checkEntered') {
-        removeInactiveUser()
+        await removeInactiveUser()
 
         const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
         if (data && data[0]) {
             return NextResponse.json({
                 username: data[0].name,
-                entered: true
+                entered: true,
+                id: ip
             }, {
                 status: 200
             });

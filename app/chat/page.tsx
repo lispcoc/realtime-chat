@@ -169,6 +169,10 @@ export default function Chat() {
         color: 0,
         system: false
       })
+      await supabase.from("Users").upsert({
+        id: chk.id,
+        last_activity: new Date().toISOString()
+      })
 
       const rd: any = roomData
       if (rd && rd.special_keys && rd.special_keys[inputText]) {
@@ -242,7 +246,8 @@ export default function Chat() {
 
     return {
       username: responseData.username,
-      entered: responseData.entered
+      entered: responseData.entered,
+      id: responseData.id
     }
   }
 
