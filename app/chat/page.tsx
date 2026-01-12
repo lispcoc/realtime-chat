@@ -132,15 +132,17 @@ export default function Chat() {
 
       if (tempRoomData) {
         const opt: any = tempRoomData.options || {}
-        if (opt.privete) {
+        if (opt.private) {
           const chk = await checkEntered()
           if (chk.entered) {
             fetchMessages()
           }
         } else {
+          await checkEntered()
           fetchMessages()
         }
       } else {
+        await checkEntered()
         fetchMessages()
       }
     })()
