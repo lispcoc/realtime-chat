@@ -15,6 +15,7 @@ export default function CreateRoom() {
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [buttonDisable, setButtonDisable] = useState(false)
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [login, setLogin] = useState(false)
 
@@ -60,6 +61,7 @@ export default function CreateRoom() {
     event.preventDefault()
     if (inputTitle === "") return
     if (inputDecsription === "") return
+    setButtonDisable(true)
     try {
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const special_keys: any = {}
@@ -74,10 +76,12 @@ export default function CreateRoom() {
         },
         special_keys: special_keys
       })
-      alert("部屋を作成しました。")
+      alert("部屋を更新しました。")
+      window.location.href = `/chat?roomId=${roomId}`
     } catch (error) {
       console.error(error)
-      alert("部屋の作成に失敗しました。")
+      alert("部屋の更新に失敗しました。")
+      setButtonDisable(false)
     }
   }
 
@@ -149,7 +153,7 @@ export default function CreateRoom() {
             placeholder="投稿内容を入力" value={inputRoomSpecialText_1} onChange={(event) => setInputRoomSpecialText_1(() => event.target.value)}>
           </textarea>
 
-          <button type="submit" disabled={inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             変更を反映
           </button>
         </form>
