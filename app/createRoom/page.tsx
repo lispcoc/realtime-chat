@@ -81,15 +81,22 @@ export default function CreateRoom() {
         )}
         <br />
         <label htmlFor="roomSpecialKey_1">特殊キーの設定</label>
-        <input type="text" id="roomSpecialKey_1" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-          name="roomSpecialKey_1" value={inputRoomSpecialKey_1} onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}></input>
+        <input type="text" id="roomSpecialKey_1" name="roomSpecialKey_1"
+          placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          value={inputRoomSpecialKey_1}
+          onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
+        />
 
         <label htmlFor="roomSpecialText_1">特殊テキストの設定</label>
-        <textarea id="roomSpecialText_1" name="roomSpecialText_1" rows={4} className="block p-2.5 w-full text-sm text-gray-900
-                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="投稿内容を入力" value={inputRoomSpecialText_1} onChange={(event) => setInputRoomSpecialText_1(() => event.target.value)}>
-        </textarea>
+        <textarea id="roomSpecialText_1" name="roomSpecialText_1" rows={4}
+          placeholder="大吉&#10;中吉&#10;吉&#10;末吉&#10;凶"
+          className="block p-2.5 w-full text-sm text-gray-900
+            bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          value={inputRoomSpecialText_1}
+          onChange={(event) => setInputRoomSpecialText_1(() => event.target.value)}
+        />
 
         <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
           部屋を作成

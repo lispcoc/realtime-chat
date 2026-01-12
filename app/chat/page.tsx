@@ -304,7 +304,7 @@ export default function Chat() {
         </form>
       )}
 
-      <div className="mt-5 mb-5 flex space-x-4">
+      <div className="p-2 border border-gray-300 rounded-lg flex space-x-4">
         <span className="font-medium">
           現在の入室者:
         </span>
@@ -315,24 +315,24 @@ export default function Chat() {
         ))}
       </div>
 
-      <div className="text-sm border border-gray-300 rounded-lg">
+      <div className="p-2 text-sm border border-gray-300 rounded-lg">
         <div className="text-sm">
           <a onClick={onClickRoomDescription} href="javascript:void(0);">
             ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
           </a>
         </div>
         {showRoomDescription && (
-          <div className="text-xs">{roomData ? roomData.description : ""}</div>
+          <div className="text-xs">{roomData ? roomData.description?.replaceAll('\n', "<br>") : ""}</div>
         )}
       </div>
 
       {roomData?.options && (roomData?.options as any).private && !isEntered && (
-        <div className="w-full pb-10">
+        <div className="p-2 w-full pb-10">
           未入室閲覧禁止設定です。
         </div>
       )}
 
-      <div className="w-full mb-10">
+      <div className="p-2 w-full mb-10">
         {messageText.map((item, index) => (
           <ChatLine message={item} index={index}></ChatLine>
         ))}
