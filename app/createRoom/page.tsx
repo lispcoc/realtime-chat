@@ -36,9 +36,12 @@ export default function CreateRoom() {
         },
         special_keys: special_keys
       }).select('*')
-      console.log(res)
       alert("部屋を作成しました。")
-      //window.location.href = '/'
+      if (res.data && res.data[0]) {
+        window.location.href = `/chat?roomId=${res.data[0].id}`
+      } else {
+        window.location.href = '/'
+      }
     } catch (error) {
       console.error(error)
       alert("部屋の作成に失敗しました。")
