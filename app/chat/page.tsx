@@ -374,7 +374,7 @@ export default function Chat() {
 
       {isEntered && (
         <form className="w-full p-2.5" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
-          <div className="mb-1 grid grid-cols-2">
+          <div className="mb-1 flex items-center grid grid-cols-2">
             <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
             <button type="submit" disabled={buttonDisable || inputText === ""}
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
