@@ -6,6 +6,11 @@ import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import ChatLine from "@/components/chat/chatLine"
 
+type RoomOption = {
+  private: boolean | undefined,
+  limit: number | undefined
+}
+
 export default function Chat() {
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -240,14 +245,14 @@ export default function Chat() {
   }
 
   return (
-    <div className="w-full">
-      <h2 className="text-3xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
+    <div className="w-full max-w-4xl">
+      <h2 className="text-xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
-        <form className="w-full max-w-8/10 pb-10" onSubmit={onSubmitEnter}>
+        <form className="w-full" onSubmit={onSubmitEnter}>
           <div className="mb-5">
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
-            <span className="mb-2 text-sm font-medium text-gray-900">名前</span>
+            <span className="mb-2 text-sm font-medium text-gray-900">お名前</span>
             <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
@@ -259,14 +264,14 @@ export default function Chat() {
       )}
 
       {isEntered && (
-        <form className="w-full max-w-md pb-10" onSubmit={onSubmitLeave}>
+        <form className="w-full" onSubmit={onSubmitLeave}>
           <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             退室
           </button>
         </form>
       )}
 
-      <form className="w-full max-w-md pb-10" onSubmit={onSubmitNewMessage}>
+      <form className="w-full pb-10" onSubmit={onSubmitNewMessage}>
 
         {isEntered && (
           <div className="mb-1">
@@ -283,7 +288,7 @@ export default function Chat() {
 
       </form>
 
-      <div className="mb-5 flex space-x-4">
+      <div className="mt-5 mb-5 flex space-x-4">
         <span className="font-medium">
           現在の入室者:
         </span>
@@ -294,13 +299,19 @@ export default function Chat() {
         ))}
       </div>
 
-      <div className="w-full max-w-3xl mb-10">
+      {(roomData?.options as RoomOption).private && !isEntered && (
+        <div className="w-full">
+          未入室閲覧禁止設定です。
+        </div>
+      )}
+
+      <div className="w-full mb-10">
         {messageText.map((item, index) => (
           <ChatLine message={item} index={index}></ChatLine>
         ))}
       </div>
 
-      <div className="w-full max-w-3xl mb-10">
+      <div className="w-full mb-10">
         <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
       </div>
 
