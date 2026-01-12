@@ -186,7 +186,7 @@ export default function Chat() {
           await supabase.from("Messages").insert({
             room_id: roomId,
             name: chk.username,
-            text: specialText,
+            text: inputText + " : " + specialText,
             color: 0,
             system: true
           })
@@ -283,6 +283,12 @@ export default function Chat() {
     return lines
   }
 
+  const inputTextKeyPress = (event: React.KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Enter') {
+      onSubmitNewMessage(event)
+    }
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
@@ -311,13 +317,15 @@ export default function Chat() {
       )}
 
       {isEntered && (
-        <form className="w-full pb-10" onSubmit={onSubmitNewMessage}>
+        <form className="w-full pb-10" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
           <div className="mb-1">
             <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">{username}</span>
-            <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-              name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
+            <textarea id="message" name="message" rows={1}
+              className="block p-2.5 w-full text-sm text-gray-900
+                bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              value={inputText} onChange={(event) => setInputText(() => event.target.value)}
+            />
             <button type="submit" disabled={buttonDisable || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               発言
             </button>

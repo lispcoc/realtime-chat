@@ -7,7 +7,7 @@ type Props = {
 
 export default function ChatLine({ message, index }: Props) {
     const color = message.system ? "gray" : "black"
-    const dispName = message.system ? "[SYSTEM] " : `${message.name} > `
+    const dispName = message.system ? "" : `${message.name} > `
     return (
         <div>
             <hr style={{ height: 10 }}></hr>

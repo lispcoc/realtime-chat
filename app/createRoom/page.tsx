@@ -91,7 +91,7 @@ export default function CreateRoom() {
 
         <label htmlFor="roomSpecialText_1">特殊テキストの設定</label>
         <textarea id="roomSpecialText_1" name="roomSpecialText_1" rows={4}
-          placeholder="大吉&#13;&#10;中吉&#13;&#10;吉&#13;&#10;末吉&#13;&#10;凶"
+          placeholder='大吉&#13;&#10;中吉&#13;&#10;吉&#13;&#10;末吉&#13;&#10;凶'
           className="block p-2.5 w-full text-sm text-gray-900
             bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
           value={inputRoomSpecialText_1}
