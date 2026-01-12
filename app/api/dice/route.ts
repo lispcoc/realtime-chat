@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from "next/headers";
-import { useSearchParams } from "next/navigation"
 import { supabase } from "@/utils/supabase/supabase"
 import {
     tokenize,
@@ -60,8 +59,8 @@ const roll = async (command: string) => {
     }
 }
 
-export async function GET() {
-    const searchParams = useSearchParams()
+export async function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams
     const command = searchParams.get("command") || ""
 
     const result = await roll(command);
