@@ -99,11 +99,6 @@ export default function Chat() {
     if (allMessages != null) {
       setMessageText(allMessages)
     }
-
-    if (!fetchMessagesEnable) {
-      fetchRealtimeData()
-    }
-    fetchMessagesEnable = true
   }
 
   // 初回のみ実行するために引数に空の配列を渡している
@@ -141,14 +136,17 @@ export default function Chat() {
           const chk = await checkEntered()
           if (chk.entered) {
             fetchMessages()
+            fetchRealtimeData()
           }
         } else {
           await checkEntered()
           fetchMessages()
+          fetchRealtimeData()
         }
       } else {
         await checkEntered()
         fetchMessages()
+        fetchRealtimeData()
       }
     })()
   }, [])
@@ -216,6 +214,7 @@ export default function Chat() {
       const chk = await checkEntered()
       if (chk.entered) {
         fetchMessages()
+        fetchRealtimeData()
       }
     }
   }
@@ -236,10 +235,6 @@ export default function Chat() {
     const responseData = await response.json();
     setIsEntered(responseData.entered)
     setUsername(responseData.username)
-
-    if (responseData.entered && !fetchMessagesEnable) {
-      fetchMessages()
-    }
 
     return {
       username: responseData.username,
