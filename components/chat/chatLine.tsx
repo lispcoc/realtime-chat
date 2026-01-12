@@ -11,7 +11,7 @@ export default function ChatLine({ message, index }: Props) {
     return (
         <div className="w-full">
             <hr style={{ height: 10 }} />
-            <div className="p-1 w-full flex flex-wrap">
+            <div className="p-1 mb-1 w-full flex flex-wrap">
                 <span style={{ color: color }} className="font-medium text-sm text-gray-900">{dispName}</span>
                 <span style={{ color: color }} className="text-sm text-gray-900">{message.text}</span>
             </div>
