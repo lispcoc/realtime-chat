@@ -27,7 +27,7 @@ export default function CreateRoom() {
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const special_keys: any = {}
       special_keys[inputRoomSpecialKey_1] = inputRoomSpecialText_1
-      await supabase.from("Rooms").insert({
+      const res = await supabase.from("Rooms").insert({
         title: inputTitle,
         description: inputDecsription,
         password: hashedPassword,
@@ -36,6 +36,7 @@ export default function CreateRoom() {
         },
         special_keys: special_keys
       })
+      console.log(res)
       alert("部屋を作成しました。")
       window.location.href = '/'
     } catch (error) {
