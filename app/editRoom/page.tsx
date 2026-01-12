@@ -25,10 +25,9 @@ export default function CreateRoom() {
   const onSubmitAdmin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     try {
-      const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
       if (data && data[0]) {
-        if (data[0].password === hashedPassword) {
+        if (bcrypt.compareSync(inputPassword, data[0].password || "")) {
           setRoomData(data[0])
           setLogin(true)
           if (roomData?.title) {
@@ -82,8 +81,8 @@ export default function CreateRoom() {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center p-2">
-      <h1 className="text-3xl font-bold pt-5 pb-10">ルームの作成</h1>
+    <div className="flex-1 w-full max-w-md flex flex-col p-2">
+      <h2 className="text-xl font-bold pt-5 pb-10">ルームの編集</h2>
 
       {!login && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitAdmin}>
@@ -96,6 +95,7 @@ export default function CreateRoom() {
               placeholder="パスワード"
               value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
               required
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
             <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               認証
@@ -108,25 +108,25 @@ export default function CreateRoom() {
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitCreateRoom}>
           <div className="mb-5">
             <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900">ルーム名</label>
-            <input type="text" id="title" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              name="title" value={inputTitle} onChange={(event) => setInputTitle(() => event.target.value)}></input>
+            <input type="text" id="title" name="title"
+              value={inputTitle} onChange={(event) => setInputTitle(() => event.target.value)}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            />
           </div>
           <div className="mb-5">
             <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900">ルーム説明</label>
-            <textarea id="description" name="description" rows={4} className="block p-2.5 w-full text-sm text-gray-900
-                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            <textarea id="description" name="description" rows={4}
+              className="block p-2.5 w-full text-sm text-gray-900
+              bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               placeholder="" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
             </textarea>
           </div>
           <label htmlFor="roomPassword">パスワード (必須)</label>
           <input
-            type="password"
-            id="roomPassword"
-            name="roomPassword"
-            placeholder="パスワード"
+            type="password" id="roomPassword" name="roomPassword" placeholder="パスワード"
             value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
             required
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           />
 
           <label htmlFor="private">未入室の閲覧を禁止する</label>
@@ -136,6 +136,7 @@ export default function CreateRoom() {
           {!inputPrivate && (
             <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
           )}
+          <br/>
           <label htmlFor="roomSpecialKey_1">特殊キーの設定</label>
           <input type="text" id="roomSpecialKey_1" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"

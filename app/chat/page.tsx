@@ -299,7 +299,7 @@ export default function Chat() {
         ))}
       </div>
 
-      {(roomData?.options as RoomOption).private && !isEntered && (
+      {roomData?.options && (roomData?.options as RoomOption).private && !isEntered && (
         <div className="w-full">
           未入室閲覧禁止設定です。
         </div>
