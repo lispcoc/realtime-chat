@@ -128,7 +128,7 @@ export default function Chat() {
         setUsers(allUsers)
       }
 
-      const opt: any = roomData?.options
+      const opt: any = roomData?.options || {}
       if (opt.private) {
         const chk = await checkEntered()
         if (chk.entered) {
@@ -299,7 +299,7 @@ export default function Chat() {
         ))}
       </div>
 
-      {roomData?.options && (roomData?.options as RoomOption).private && !isEntered && (
+      {roomData?.options && (roomData?.options as any).private && !isEntered && (
         <div className="w-full">
           未入室閲覧禁止設定です。
         </div>

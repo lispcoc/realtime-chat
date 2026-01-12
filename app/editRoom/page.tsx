@@ -40,7 +40,7 @@ export default function CreateRoom() {
             setInputRoomSpecialKey_1(Object.keys((roomData?.special_keys as Object))[0] || "")
             setInputRoomSpecialText_1(Object.values((roomData?.special_keys as Object))[0] || "")
           }
-          const opt: any = roomData?.options
+          const opt: any = roomData?.options || {}
           if (opt.private) {
             setInputPrivate(opt.private)
           }
