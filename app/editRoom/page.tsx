@@ -82,7 +82,7 @@ export default function CreateRoom() {
   const onSubmitCreateRoom = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputTitle === "") return
-    if (inputDecsription === "") return
+    if (inputPassword === "") return
     setButtonDisable(true)
     try {
       const password = inputNewPassword === "" ? inputPassword : inputNewPassword

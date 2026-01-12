@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
                 id: ip,
                 room_id: roomId,
                 name: username,
-                color: 0
+                color: parseInt(color),
             })
             addMessage({
                 color: 0,
