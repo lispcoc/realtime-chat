@@ -178,7 +178,7 @@ export default function Chat() {
         const array = special_text.split("\n")
         const specialText = array[Math.floor(Math.random() * array.length)]
         if (specialText) {
-          await supabase.from("Messages").insert({
+          supabase.from("Messages").insert({
             room_id: roomId,
             name: chk.username,
             text: specialText,
@@ -339,13 +339,11 @@ export default function Chat() {
         </div>
       )}
 
-      {isEntered || !(roomData?.options && (roomData?.options as any).private) && (
-        <div className="w-full mb-10">
-          {messageText.map((item, index) => (
-            <ChatLine message={item} index={index}></ChatLine>
-          ))}
-        </div>
-      )}
+      <div className="w-full mb-10">
+        {messageText.map((item, index) => (
+          <ChatLine message={item} index={index}></ChatLine>
+        ))}
+      </div>
 
       <div className="w-full mb-10">
         <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
