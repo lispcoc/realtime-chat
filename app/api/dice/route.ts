@@ -61,8 +61,6 @@ const roll = (command: string) => {
 }
 
 export async function GET() {
-    const headersList = headers();
-    const ip = headersList.get("x-forwarded-for");
     const searchParams = useSearchParams()
     const command = searchParams.get("command") || ""
 
@@ -75,13 +73,13 @@ export async function GET() {
     }
 
     return NextResponse.json({
-        response: 'ng'
+        response: 'ok',
+        result: result
     })
 }
 
 export async function POST(request: NextRequest) {
     const headersList = headers();
-    const ip = headersList.get("x-forwarded-for");
     const { roomId, command } = await request.json();
 
     const result = roll(command);
@@ -94,12 +92,11 @@ export async function POST(request: NextRequest) {
             text: `ダイスロール : ${command} > ${result}`
         })
         return NextResponse.json({
-            response: 'ok',
-            result: result
+            response: 'ok'
         })
     }
 
     return NextResponse.json({
-        response: 'not dice command'
+        response: 'ok'
     })
 }
