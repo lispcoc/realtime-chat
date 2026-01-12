@@ -6,13 +6,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@airjp73/dice-notation": "^2.2.2",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "autoprefixer": "10.4.15",
     "bcryptjs": "^3.0.3",
     "geist": "^1.0.0",
     "next": "latest",
-    "postcss": "8.4.29",
+    "postcss": "^8.5.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwindcss": "3.3.3",
