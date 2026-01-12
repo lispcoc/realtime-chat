@@ -206,7 +206,7 @@ export default function Chat() {
         id: chk.id,
         room_id: roomId,
         name: chk.username,
-        color: 0,
+        color: colorCodeToInt(color),
         last_activity: new Date().toISOString()
       })
 
