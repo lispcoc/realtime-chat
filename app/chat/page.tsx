@@ -4,6 +4,7 @@ import { Database } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
+import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
 
 type RoomOption = {
@@ -23,7 +24,31 @@ export default function Chat() {
   const [username, setUsername] = useState("")
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
+  const [color, setColor] = useState("#000000")
+  const [showColorPicker, setShowColorPicker] = useState(false)
   let fetchMessagesEnable = false
+
+  const colorCodeToInt = (code: string) => {
+    const shorthandRegex = /^#?([a-fA-F\d]+)$/i;
+    const result = shorthandRegex.exec(code) || []
+    if (result.length > 1) {
+      return parseInt(result[1], 16)
+    }
+    return 0
+  }
+
+  const colorPicker = () => {
+    return (
+      <ColorWheel.Root value={color} onValueChange={setColor}>
+        <ColorWheel.Wheel size={200} ringWidth={20}>
+          <ColorWheel.HueRing />
+          <ColorWheel.HueThumb />
+          <ColorWheel.Area />
+          <ColorWheel.AreaThumb />
+        </ColorWheel.Wheel>
+      </ColorWheel.Root>
+    )
+  }
 
   const fetchRealtimeData = () => {
     try {
@@ -166,7 +191,7 @@ export default function Chat() {
         room_id: roomId,
         name: chk.username,
         text: inputText,
-        color: 0,
+        color: colorCodeToInt(color),
         system: false
       })
       await supabase.from("Users").upsert({
@@ -306,6 +331,8 @@ export default function Chat() {
           <div className="mb-5">
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">お名前</span>
+            <span className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}> [文字色]</span>
+            {showColorPicker && colorPicker()}
             <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>

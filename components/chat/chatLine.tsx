@@ -5,8 +5,12 @@ type Props = {
     index: number
 }
 
+const intToColorCode = (num: number) => {
+    return '#' + num.toString(16).padStart(6, '0')
+}
+
 export default function ChatLine({ message, index }: Props) {
-    const color = message.system ? "gray" : "black"
+    const color = message.system ? "gray" : intToColorCode(message.color || 0)
     const dispName = message.system ? "" : `${message.name} > `
     return (
         <div className="w-full">
