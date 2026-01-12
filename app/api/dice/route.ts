@@ -13,7 +13,7 @@ async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
 }
 
-const roll = (command: string) => {
+const roll = async (command: string) => {
     try {
         const tokens = tokenize(command)
         const ops: string[] = []
@@ -64,7 +64,7 @@ export async function GET() {
     const searchParams = useSearchParams()
     const command = searchParams.get("command") || ""
 
-    const result = roll(command);
+    const result = await roll(command);
     if (result) {
         return NextResponse.json({
             response: 'ok',
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     const result = roll(command);
     if (result) {
-        addMessage({
+        await addMessage({
             color: 0,
             name: "system",
             room_id: roomId,
