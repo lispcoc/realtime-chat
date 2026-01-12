@@ -65,44 +65,52 @@ export default function CreateRoom() {
             placeholder="" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
           </textarea>
         </div>
-        <label htmlFor="roomPassword">パスワード (必須)</label>
-        <input
-          type="password" id="roomPassword" name="roomPassword" placeholder="パスワード"
-          value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
-          required
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-        />
+        <div className="mb-5">
+          <label htmlFor="roomPassword" className="block mb-2 text-sm font-medium text-gray-900">パスワード (必須)</label>
+          <input
+            type="password" id="roomPassword" name="roomPassword" placeholder="パスワード"
+            value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
+            required
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          />
+        </div>
 
-        <label htmlFor="private">未入室の閲覧を禁止する</label>
-        {inputPrivate && (
-          <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} checked />
-        )}
-        {!inputPrivate && (
-          <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
-        )}
-        <br />
-        <label htmlFor="roomSpecialKey_1">特殊キーの設定</label>
-        <input type="text" id="roomSpecialKey_1" name="roomSpecialKey_1"
-          placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+        <div className="mb-5">
+          <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">未入室の閲覧を禁止する</label>
+          {inputPrivate && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} checked />
+          )}
+          {!inputPrivate && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
+          )}
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="roomSpecialKey_1" className="block mb-2 text-sm font-medium text-gray-900">特殊キーの設定</label>
+          <input type="text" id="roomSpecialKey_1" name="roomSpecialKey_1"
+            placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
             focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-          value={inputRoomSpecialKey_1}
-          onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
-        />
+            value={inputRoomSpecialKey_1}
+            onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
+          />
+        </div>
 
-        <label htmlFor="roomSpecialText_1">特殊テキストの設定</label>
-        <textarea id="roomSpecialText_1" name="roomSpecialText_1" rows={4}
-          placeholder={roomSpecialTextPlaceHolder}
-          className="block p-2.5 w-full text-sm text-gray-900
+        <div className="mb-5">
+          <label htmlFor="roomSpecialText_1" className="block mb-2 text-sm font-medium text-gray-900">特殊テキストの設定</label>
+          <textarea id="roomSpecialText_1" name="roomSpecialText_1" rows={4}
+            placeholder={roomSpecialTextPlaceHolder}
+            className="block p-2.5 w-full text-sm text-gray-900
             bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-          value={inputRoomSpecialText_1}
-          onChange={(event) => setInputRoomSpecialText_1(() => event.target.value)}
-        />
+            value={inputRoomSpecialText_1}
+            onChange={(event) => setInputRoomSpecialText_1(() => event.target.value)}
+          />
+        </div>
 
         <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
           部屋を作成
         </button>
-      </form>
-    </div>
+      </form >
+    </div >
   )
 }
