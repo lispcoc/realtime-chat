@@ -227,16 +227,6 @@ export default function Chat() {
     }
   }
 
-  const inactiveUsers = async () => {
-    let tenMinutesAgo = new Date()
-    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
-    tenMinutesAgo.toISOString()
-    const { data } = await supabase.from('Users')
-      .select('*')
-      .lte('last_activity', tenMinutesAgo)
-    console.log(data)
-  }
-
   const checkEntered = async () => {
     const data = {
       action: 'checkEntered',
@@ -253,8 +243,6 @@ export default function Chat() {
     const responseData = await response.json();
     setIsEntered(responseData.entered)
     setUsername(responseData.username)
-
-    await inactiveUsers()
 
     return {
       username: responseData.username,

@@ -123,3 +123,28 @@ export async function POST(request: NextRequest) {
         status: 200
     });
 }
+
+const inactiveUsers = async () => {
+}
+
+export async function GET() {
+    const headersList = headers();
+    const ip = headersList.get("x-forwarded-for");
+
+    let users: String[] = []
+    let tenMinutesAgo = new Date()
+    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
+    tenMinutesAgo.toISOString()
+    const { data } = await supabase.from('Users')
+        .select('*')
+        .lte('last_activity', tenMinutesAgo)
+    if (data) {
+        data.forEach(user => {
+            users.push(user.id)
+        })
+    }
+    return NextResponse.json({
+        response: 'ok',
+        users: users
+    })
+}
