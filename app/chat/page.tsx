@@ -322,7 +322,7 @@ export default function Chat() {
             <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">{username}</span>
             <textarea id="message" name="message" rows={1}
-              className="block p-2.5 w-full text-sm text-gray-900
+              className="block p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               value={inputText} onChange={(event) => setInputText(() => event.target.value)}
             />
