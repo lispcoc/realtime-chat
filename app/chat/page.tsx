@@ -40,8 +40,10 @@ export default function Chat() {
             console.log(payload)
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
+              console.log(payload.new)
               if (room_id === roomId) {
                 setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
+                console.log({ id, room_id, name, text, color, created_at, system })
               }
             }
           }
@@ -58,7 +60,6 @@ export default function Chat() {
             table: "Users",
           },
           (payload) => {
-            console.log(payload)
             if (payload.eventType === "INSERT") {
               const { id, room_id, last_activity, name, color } = payload.new
               if (room_id === roomId) {
@@ -99,8 +100,10 @@ export default function Chat() {
       setMessageText(allMessages)
     }
 
+    if (!fetchMessagesEnable) {
+      fetchRealtimeData()
+    }
     fetchMessagesEnable = true
-    fetchRealtimeData()
   }
 
   // 初回のみ実行するために引数に空の配列を渡している
@@ -209,8 +212,12 @@ export default function Chat() {
       body: JSON.stringify(data),
     });
 
-    //const responseData = await response.json();
-    //console.log(responseData);
+    if (response.ok) {
+      const chk = await checkEntered()
+      if (chk.entered) {
+        fetchMessages()
+      }
+    }
   }
 
   const checkEntered = async () => {
@@ -262,18 +269,7 @@ export default function Chat() {
 
   return (
     <div className="w-full max-w-4xl">
-      <h2 className="text-xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
-
-      <div className="text-sm border border-gray-300 rounded-lg">
-        <div className="text-sm">
-          <a onClick={onClickRoomDescription} href="javascript:void(0);">
-            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
-          </a>
-        </div>
-        {showRoomDescription && (
-          <div className="text-xs">{roomData ? roomData.description : ""}</div>
-        )}
-      </div>
+      <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
         <form className="w-full" onSubmit={onSubmitEnter}>
@@ -326,17 +322,30 @@ export default function Chat() {
         ))}
       </div>
 
+      <div className="text-sm border border-gray-300 rounded-lg">
+        <div className="text-sm">
+          <a onClick={onClickRoomDescription} href="javascript:void(0);">
+            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+          </a>
+        </div>
+        {showRoomDescription && (
+          <div className="text-xs">{roomData ? roomData.description : ""}</div>
+        )}
+      </div>
+
       {roomData?.options && (roomData?.options as any).private && !isEntered && (
         <div className="w-full">
           未入室閲覧禁止設定です。
         </div>
       )}
 
-      <div className="w-full mb-10">
-        {messageText.map((item, index) => (
-          <ChatLine message={item} index={index}></ChatLine>
-        ))}
-      </div>
+      {isEntered || !(roomData?.options && (roomData?.options as any).private) && (
+        <div className="w-full mb-10">
+          {messageText.map((item, index) => (
+            <ChatLine message={item} index={index}></ChatLine>
+          ))}
+        </div>
+      )}
 
       <div className="w-full mb-10">
         <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
