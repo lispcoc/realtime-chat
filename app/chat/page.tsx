@@ -374,7 +374,7 @@ export default function Chat() {
               発言
             </button>
             <textarea id="message" name="message" rows={1}
-              className="block p-2.5 mb-2 w-full text-sm text-gray-900
+              className="block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               value={inputText} onChange={(event) => setInputText(() => event.target.value)}
             />
