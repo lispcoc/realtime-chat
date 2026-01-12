@@ -37,16 +37,23 @@ export default function Chat() {
     return 0
   }
 
-  const colorPicker = () => {
+  const intToColorCode = (num: number) => {
+    return '#' + num.toString(16).padStart(6, '0')
+  }
+
+  const colorPicker = (username: string) => {
     return (
-      <ColorWheel.Root value={color} onValueChange={setColor}>
-        <ColorWheel.Wheel size={200} ringWidth={20}>
-          <ColorWheel.HueRing />
-          <ColorWheel.HueThumb />
-          <ColorWheel.Area />
-          <ColorWheel.AreaThumb />
-        </ColorWheel.Wheel>
-      </ColorWheel.Root>
+      <div className="p-2">
+        <ColorWheel.Root value={color} onValueChange={setColor}>
+          <ColorWheel.Wheel size={200} ringWidth={20}>
+            <ColorWheel.HueRing />
+            <ColorWheel.HueThumb />
+            <ColorWheel.Area />
+            <ColorWheel.AreaThumb />
+          </ColorWheel.Wheel>
+        </ColorWheel.Root>
+        <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" >{username}</span>
+      </div>
     )
   }
 
@@ -329,10 +336,11 @@ export default function Chat() {
       {!isEntered && (
         <form className="w-full" onSubmit={onSubmitEnter}>
           <div className="mb-5">
+
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span className="mb-2 text-sm font-medium text-gray-900">お名前</span>
             <span className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}> [文字色]</span>
-            {showColorPicker && colorPicker()}
+            {showColorPicker && colorPicker(username)}
             <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
@@ -355,7 +363,7 @@ export default function Chat() {
         <form className="w-full pb-10" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
           <div className="mb-1">
             <label htmlFor="message" className="block inline-block mb-2 font-medium text-gray-900"></label>
-            <span className="mb-2 text-sm font-medium text-gray-900">{username}</span>
+            <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900">{username}</span>
             <textarea id="message" name="message" rows={1}
               className="block p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
