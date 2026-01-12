@@ -57,6 +57,26 @@ export default function CreateRoom() {
     }
   }
 
+  const onSubmitDeleteRoom = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    try {
+      const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
+      if (data && data[0]) {
+        if (bcrypt.compareSync(inputPassword, data[0].password || "")) {
+          await supabase.from("Rooms").delete().match({ "id": roomId })
+          alert("部屋を削除しました。")
+          window.location.href = `/`
+        } else {
+          alert("パスワードが違います。")
+        }
+      }
+    } catch (error) {
+      console.error(error)
+      alert("認証に失敗しました。")
+      return
+    }
+  }
+
   const onSubmitCreateRoom = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputTitle === "") return
@@ -162,6 +182,13 @@ export default function CreateRoom() {
 
           <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             変更を反映
+          </button>
+        </form>
+      )}
+      {login && (
+        <form className="w-full max-w-md pb-10" onSubmit={onSubmitDeleteRoom}>
+          <button type="submit" disabled={inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            部屋の削除
           </button>
         </form>
       )}

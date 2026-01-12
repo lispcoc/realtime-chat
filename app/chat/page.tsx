@@ -189,23 +189,6 @@ export default function Chat() {
       const data = {
         command: inputText
       };
-
-      const response = await fetch('https://bcdice.onlinesession.app/v2/game_system/DiceBot/roll', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      })
-      if (response.ok) {
-        const responseData = await response.json()
-        if (responseData.ok) {
-          await supabase.from("Messages").insert({
-            room_id: roomId,
-            name: chk.username,
-            text: 'ダイスロース ' + responseData.text,
-            color: 0,
-            system: true
-          })
-        }
-      }
     } catch (error) {
       console.error(error)
     }
