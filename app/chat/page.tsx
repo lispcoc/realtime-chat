@@ -38,8 +38,8 @@ export default function Chat() {
     return 0
   }
 
-  const intToColorCode = (num: number) => {
-    return '#' + num.toString(16).padStart(6, '0')
+  const intToColorCode = (num: number | null | undefined) => {
+    return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
   }
 
   const colorPicker = (username: string) => {
@@ -288,7 +288,7 @@ export default function Chat() {
     const responseData = await response.json()
     setIsEntered(responseData.entered)
     setUsername(responseData.username || "")
-    setColor(intToColorCode(responseData.color) || "#000000")
+    setColor(intToColorCode(responseData.color))
 
     return {
       username: responseData.username,
@@ -387,17 +387,15 @@ export default function Chat() {
           現在の入室者:
         </span>
         {users.map((user, index) => (
-          <span style={{ color: intToColorCode(user.color || 0) }} className="font-medium">
+          <span style={{ color: intToColorCode(user.color) }} className="font-medium">
             {user.name}
           </span>
         ))}
       </div>
 
-      <div className="p-2 text-sm border border-gray-300 rounded-lg">
+      <div className="p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
         <div className="text-sm">
-          <a onClick={onClickRoomDescription} href="javascript:void(0);">
-            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
-          </a>
+          ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
         </div>
         {showRoomDescription && (
           <div className="text-xs">{
