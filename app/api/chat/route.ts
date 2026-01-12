@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
                 } else {
                     await supabase.from("Users").delete().match({ "id": ip })
                     addMessage({
-                        color: parseInt(color),
+                        color: 0,
                         name: "system",
                         room_id: data[0].room_id,
                         system: true,
