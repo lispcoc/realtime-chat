@@ -8,12 +8,38 @@ async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
 }
 
+async function removeInactiveUser() {
+    let tenMinutesAgo = new Date()
+    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
+    tenMinutesAgo.toISOString()
+
+    const { data } = await supabase.from('Users')
+        .select('*')
+        .lte('last_activity', tenMinutesAgo) // last_activity <= tenMinutesAgo
+    if (data) {
+        data.forEach(user => {
+            supabase.from("Users")
+                .delete()
+                .match({ "id": user.id, room_id: user.room_id })
+            addMessage({
+                color: 0,
+                name: "system",
+                room_id: user.room_id,
+                system: true,
+                text: `${user.name}さんが非アクティブのため自動退室しました。`
+            })
+        })
+    }
+}
+
 export async function POST(request: NextRequest) {
     const { action, roomId, username } = await request.json();
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
 
     if (action === 'checkEntered') {
+        removeInactiveUser()
+
         const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
         if (data && data[0]) {
             return NextResponse.json({
