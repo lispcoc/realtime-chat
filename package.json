@@ -9,6 +9,7 @@
     "@airjp73/dice-notation": "^2.2.2",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "2ch-trip": "^4.0.0",
     "autoprefixer": "10.4.15",
     "bcryptjs": "^3.0.3",
     "geist": "^1.0.0",

@@ -6,6 +6,7 @@ import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
+import { createTrip } from "2ch-trip"
 
 type RoomOption = {
   private: boolean | undefined,
@@ -52,7 +53,7 @@ export default function Chat() {
             <ColorWheel.AreaThumb />
           </ColorWheel.Wheel>
         </ColorWheel.Root>
-        <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" >{username}</span>
+        <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" >{createTrip(username)}</span>
       </div>
     )
   }
@@ -249,7 +250,7 @@ export default function Chat() {
     const data = {
       action: 'enterRoom',
       roomId: roomId,
-      username: inputName
+      username: createTrip(inputName)
     };
 
     const response = await fetch('/api/chat', {
@@ -381,7 +382,7 @@ export default function Chat() {
           現在の入室者:
         </span>
         {users.map((user, index) => (
-          <span className="font-medium">
+          <span style={{ color: intToColorCode(user.color || 0) }} className="font-medium">
             {user.name}
           </span>
         ))}
