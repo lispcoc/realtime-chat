@@ -21,6 +21,8 @@ export default function Chat() {
   const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
+  const [buttonDisable, setButtonDisable] = useState(false)
+  const [showRoomDescription, setShowRoomDescription] = useState(true)
   let fetchMessagesEnable = false
 
   const fetchRealtimeData = () => {
@@ -156,6 +158,7 @@ export default function Chat() {
       alert("入室していません。")
       return
     }
+    setButtonDisable(true)
 
     try {
       await supabase.from("Messages").insert({
@@ -185,6 +188,7 @@ export default function Chat() {
       console.error(error)
     }
     setInputText("")
+    setButtonDisable(false)
   }
 
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -252,9 +256,24 @@ export default function Chat() {
     console.log(responseData);
   }
 
+  const onClickRoomDescription = async () => {
+    setShowRoomDescription(!showRoomDescription)
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-10">{roomData ? roomData.title : ""}</h2>
+
+      <div className="text-sm border border-gray-300 rounded-lg">
+        <div className="text-sm">
+          <a onClick={onClickRoomDescription} href="javascript:void(0);">
+            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+          </a>
+        </div>
+        {showRoomDescription && (
+          <div className="text-xs">{roomData ? roomData.description : ""}</div>
+        )}
+      </div>
 
       {!isEntered && (
         <form className="w-full" onSubmit={onSubmitEnter}>
@@ -265,7 +284,7 @@ export default function Chat() {
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
           </div>
-          <button type="submit" disabled={inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             入室
           </button>
         </form>
@@ -288,7 +307,7 @@ export default function Chat() {
             <input type="text" id="message" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="message" value={inputText} onChange={(event) => setInputText(() => event.target.value)}></input>
-            <button type="submit" disabled={inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button type="submit" disabled={buttonDisable || inputText === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               発言
             </button>
           </div>
