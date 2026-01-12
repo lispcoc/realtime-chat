@@ -35,7 +35,7 @@ export default function CreateRoom() {
           private: inputPrivate
         },
         special_keys: special_keys
-      })
+      }).select('*')
       console.log(res)
       alert("部屋を作成しました。")
       window.location.href = '/'

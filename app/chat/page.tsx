@@ -276,7 +276,7 @@ export default function Chat() {
     const data = {
       action: 'checkEntered',
       roomId: roomId
-    };
+    }
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -284,11 +284,11 @@ export default function Chat() {
         cache: 'no-store',
       },
       body: JSON.stringify(data),
-    });
-    const responseData = await response.json();
+    })
+    const responseData = await response.json()
     setIsEntered(responseData.entered)
-    setUsername(responseData.username)
-    setColor(responseData.color || 0)
+    setUsername(responseData.username || "")
+    setColor(intToColorCode(responseData.color) || "#000000")
 
     return {
       username: responseData.username,
