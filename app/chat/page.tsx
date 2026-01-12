@@ -171,6 +171,9 @@ export default function Chat() {
       })
       await supabase.from("Users").upsert({
         id: chk.id,
+        room_id: roomId,
+        name: chk.username,
+        color: 0,
         last_activity: new Date().toISOString()
       })
 

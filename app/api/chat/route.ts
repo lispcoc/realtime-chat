@@ -132,6 +132,7 @@ export async function GET() {
     const ip = headersList.get("x-forwarded-for");
 
     let users: String[] = []
+    let users2: String[] = []
     let tenMinutesAgo = new Date()
     tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
     tenMinutesAgo.toISOString()
@@ -139,13 +140,29 @@ export async function GET() {
         .select('*')
         .lte('last_activity', tenMinutesAgo.toISOString())
     if (data) {
+        const reminder: any[] = []
         data.forEach(user => {
             users.push(user.id)
+            reminder.push({ "id": user.id, "room_id": user.room_id })
         })
+        for (const a of reminder) {
+            const res = await supabase.from("Users")
+                .delete()
+                .match(a)
+            addMessage({
+                color: 0,
+                name: "system",
+                room_id: a.room_id,
+                system: true,
+                text: `${a.name}さんが非アクティブのため自動退室しました。`
+            })
+            users2.push(res.statusText)
+        }
     }
     return NextResponse.json({
         response: 'ok',
         users: users,
+        users2: users2,
         tenMinutesAgo: tenMinutesAgo.toISOString()
     })
 }
