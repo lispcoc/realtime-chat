@@ -193,12 +193,13 @@ export default function Chat() {
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputText === "") return
+    setButtonDisable(true)
     const chk = await checkEntered()
     if (!chk.entered) {
       alert("入室していません。")
+      setButtonDisable(false)
       return
     }
-    setButtonDisable(true)
 
     try {
       await supabase.from("Messages").insert({
