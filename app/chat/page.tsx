@@ -262,7 +262,8 @@ export default function Chat() {
     event.preventDefault()
     if (inputName === "") return
     if (handlingDb) return
-    if (getRoomOption().user_limit <= users.length) {
+    const opt = getRoomOption()
+    if (opt.user_limit <= users.length) {
       alert('これ以上入室できません。')
       return
     }
@@ -288,7 +289,7 @@ export default function Chat() {
 
     if (response.ok) {
       const chk = await checkEntered()
-      if (chk.entered) {
+      if (opt.private && chk.entered) {
         await fetchMessages()
         fetchRealtimeData()
       }
