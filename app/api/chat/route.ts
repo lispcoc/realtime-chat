@@ -5,13 +5,15 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 import { use } from "react";
 
+const INACTIVE_MINUTES = 10
+
 async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
 }
 
 async function removeInactiveUser() {
     let tenMinutesAgo = new Date()
-    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
+    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - INACTIVE_MINUTES)
     tenMinutesAgo.toISOString()
 
     const { data } = await supabase.from('Users')
@@ -163,38 +165,7 @@ export async function GET(request: NextRequest) {
         return getUsers(parseInt(roomId))
     }
 
-    let users: String[] = []
-    let users2: String[] = []
-    let tenMinutesAgo = new Date()
-    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10)
-    tenMinutesAgo.toISOString()
-    const { data } = await supabase.from('Users')
-        .select('*')
-        .lte('last_activity', tenMinutesAgo.toISOString())
-    if (data) {
-        const reminder: any[] = []
-        data.forEach(user => {
-            users.push(user.id)
-            reminder.push({ "id": user.id, "room_id": user.room_id })
-        })
-        for (const a of reminder) {
-            const res = await supabase.from("Users")
-                .delete()
-                .match(a)
-            addMessage({
-                color: 0,
-                name: "system",
-                room_id: a.room_id,
-                system: true,
-                text: `${a.name}さんが非アクティブのため自動退室しました。`
-            })
-            users2.push(res.statusText)
-        }
-    }
     return NextResponse.json({
-        response: 'ok',
-        users: users,
-        users2: users2,
-        tenMinutesAgo: tenMinutesAgo.toISOString()
+        response: 'ok'
     })
 }

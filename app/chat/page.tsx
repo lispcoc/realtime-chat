@@ -19,6 +19,8 @@ type User = {
 }
 
 export default function Chat() {
+  const NUM_MESSAGES = 20
+
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
   const [inputText, setInputText] = useState("")
@@ -33,7 +35,7 @@ export default function Chat() {
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
   let fetchMessagesEnable = false
-  const NUM_MESSAGES = 20
+  let initialized = false
 
   const colorCodeToInt = (code: string) => {
     const shorthandRegex = /^#?([a-fA-F\d]+)$/i;
@@ -98,12 +100,9 @@ export default function Chat() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               getUsers()
-            }
-            if (payload.eventType === "DELETE") {
+            } else if (payload.eventType === "DELETE") {
               getUsers()
             }
-            console.log(users)
-            checkEntered()
           }
         )
         .subscribe()
@@ -134,6 +133,8 @@ export default function Chat() {
   // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => {
     (async () => {
+      if (initialized) return
+      initialized = true
 
       let tempRoomData = null
       try {
@@ -157,7 +158,7 @@ export default function Chat() {
         console.error(error)
       }
       if (allUsers != null) {
-        getUsers()
+        await getUsers()
       }
 
       if (tempRoomData) {
@@ -184,6 +185,10 @@ export default function Chat() {
       if (localStorage.getItem('username_color')) {
         setColor(localStorage.getItem('username_color') || "#000000")
       }
+
+      const timer = setInterval(getUsers, 5 * 60 * 1000)
+
+      return () => clearInterval(timer)
     })()
   }, [])
 
@@ -273,10 +278,11 @@ export default function Chat() {
     if (response.ok) {
       const chk = await checkEntered()
       if (chk.entered) {
-        fetchMessages()
+        await fetchMessages()
         fetchRealtimeData()
       }
     }
+    await getUsers()
     setButtonDisable(false)
   }
 
@@ -295,6 +301,11 @@ export default function Chat() {
     if (response.ok) {
       const responseData = await response.json()
       setUsers(responseData.users)
+
+      if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
+        const chk = await checkEntered()
+        if (!chk.entered) alert("入室していません。")
+      }
     }
   }
 
