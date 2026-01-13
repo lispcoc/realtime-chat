@@ -1,10 +1,8 @@
 
 "use client"
-import { Database } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
-import ChatUI from "@/components/chats/chat"
 
 export default function Index() {
   type RoomData = {

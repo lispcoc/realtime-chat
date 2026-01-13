@@ -34,7 +34,7 @@ export default function Chat() {
   const [showRoomDescription, setShowRoomDescription] = useState(true)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
-  let fetchMessagesEnable = false
+  let handlingDb = false
   let initialized = false
 
   const colorCodeToInt = (code: string) => {
@@ -256,6 +256,8 @@ export default function Chat() {
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
+    if (handlingDb) return
+    handlingDb = true
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
@@ -284,6 +286,7 @@ export default function Chat() {
     }
     await getUsers()
     setButtonDisable(false)
+    handlingDb = false
   }
 
   const getUsers = async () => {
@@ -356,9 +359,8 @@ export default function Chat() {
 
   const linedDescription = (text: String) => {
     const lines = text.split('\n').map((item, index) => {
-      return (
-        <div>{item}</div>
-      );
+      if (item) return (<div>{item}</div>)
+      return (<div>&nbsp;</div>)
     })
     return lines
   }
