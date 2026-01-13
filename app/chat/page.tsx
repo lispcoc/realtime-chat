@@ -355,6 +355,7 @@ export default function Chat() {
 
     const responseData = await response.json();
     console.log(responseData);
+    setIsEntered(false)
   }
 
   const onClickRoomDescription = async () => {
