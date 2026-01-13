@@ -77,6 +77,7 @@ export default function Chat() {
             event: "*",
             schema: "public",
             table: "Messages",
+            filter: `room_id=eq.${roomId}`
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
@@ -100,6 +101,7 @@ export default function Chat() {
             event: "*",
             schema: "public",
             table: "Users",
+            filter: `room_id=eq.${roomId}`
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
