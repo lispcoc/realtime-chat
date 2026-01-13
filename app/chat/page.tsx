@@ -13,6 +13,11 @@ type RoomOption = {
   limit: number | undefined
 }
 
+type User = {
+  color: number;
+  name: string;
+}
+
 export default function Chat() {
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -20,7 +25,7 @@ export default function Chat() {
   const [inputName, setInputName] = useState("")
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
-  const [users, setUsers] = useState<Database["public"]["Tables"]["Users"]["Row"][]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
   const [buttonDisable, setButtonDisable] = useState(false)
@@ -28,6 +33,7 @@ export default function Chat() {
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
   let fetchMessagesEnable = false
+  const NUM_MESSAGES = 20
 
   const colorCodeToInt = (code: string) => {
     const shorthandRegex = /^#?([a-fA-F\d]+)$/i;
@@ -45,7 +51,7 @@ export default function Chat() {
   const colorPicker = (username: string) => {
     return (
       <div className="p-2">
-        <ColorWheel.Root value={color} onValueChange={setColor}>
+        <ColorWheel.Root value={color} onValueChange={(hex) => { setColor(hex); localStorage.setItem('username_color', hex) }}>
           <ColorWheel.Wheel size={200} ringWidth={20}>
             <ColorWheel.HueRing />
             <ColorWheel.HueThumb />
@@ -54,7 +60,7 @@ export default function Chat() {
           </ColorWheel.Wheel>
         </ColorWheel.Root>
         <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" >{createTrip(username)}</span>
-      </div>
+      </div >
     )
   }
 
@@ -70,13 +76,10 @@ export default function Chat() {
             table: "Messages",
           },
           (payload) => {
-            console.log(payload)
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
-              console.log(payload.new)
               if (room_id === roomId) {
                 setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
-                console.log({ id, room_id, name, text, color, created_at, system })
               }
             }
           }
@@ -94,16 +97,10 @@ export default function Chat() {
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
-              const { id, room_id, last_activity, name, color } = payload.new
-              if (room_id === roomId) {
-                setUsers((users) => [...users, { id, room_id, last_activity, name, color }])
-              }
+              getUsers()
             }
             if (payload.eventType === "DELETE") {
-              const { id, room_id } = payload.old
-              if (room_id === roomId) {
-                setUsers(users.filter(user => user.id !== id))
-              }
+              getUsers()
             }
             console.log(users)
             checkEntered()
@@ -123,7 +120,7 @@ export default function Chat() {
   const fetchMessages = async () => {
     let allMessages = null
     try {
-      const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(10)
+      const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
 
       allMessages = data
     } catch (error) {
@@ -160,7 +157,7 @@ export default function Chat() {
         console.error(error)
       }
       if (allUsers != null) {
-        setUsers(allUsers)
+        getUsers()
       }
 
       if (tempRoomData) {
@@ -283,6 +280,24 @@ export default function Chat() {
     setButtonDisable(false)
   }
 
+  const getUsers = async () => {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify({
+        action: 'getUsers',
+        roomId: roomId
+      }),
+    })
+    if (response.ok) {
+      const responseData = await response.json()
+      setUsers(responseData.users)
+    }
+  }
+
   const checkEntered = async () => {
     const data = {
       action: 'checkEntered',
@@ -348,17 +363,13 @@ export default function Chat() {
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
-        <form className="w-full" onSubmit={onSubmitEnter}>
-          <div className="mb-5">
-
-            <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
-            <span className="mb-2 text-sm font-medium text-gray-900">お名前</span>
-            <span className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}> [文字色]</span>
-            {showColorPicker && colorPicker(inputName)}
-            <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+        <form className="w-full m-2" onSubmit={onSubmitEnter}>
+          <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
+          <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
+          {showColorPicker && colorPicker(inputName)}
+          <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-              name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-          </div>
+            name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
           <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             入室
           </button>
@@ -366,15 +377,26 @@ export default function Chat() {
       )}
 
       {isEntered && (
-        <form className="w-full p-2.5" onSubmit={onSubmitLeave}>
+        <form className="w-full m-2" onSubmit={onSubmitLeave}>
           <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             退室
           </button>
         </form>
       )}
 
+      <div className="m-2 p-2 border border-gray-300 rounded-lg flex space-x-4">
+        <span className="font-medium">
+          現在の入室者:
+        </span>
+        {users.map((user, index) => (
+          <span style={{ color: intToColorCode(user.color) }} className="font-medium">
+            {user.name}
+          </span>
+        ))}
+      </div>
+
       {isEntered && (
-        <form className="w-full p-2.5" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
+        <form className="w-full m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
           <div className="mb-1 flex items-center grid grid-cols-2">
             <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
             <button type="submit" disabled={buttonDisable || inputText === ""}
@@ -392,18 +414,7 @@ export default function Chat() {
         </form>
       )}
 
-      <div className="p-2 border border-gray-300 rounded-lg flex space-x-4">
-        <span className="font-medium">
-          現在の入室者:
-        </span>
-        {users.map((user, index) => (
-          <span style={{ color: intToColorCode(user.color) }} className="font-medium">
-            {user.name}
-          </span>
-        ))}
-      </div>
-
-      <div className="p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
+      <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
         <div className="text-sm">
           ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
         </div>
