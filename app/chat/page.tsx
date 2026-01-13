@@ -36,6 +36,7 @@ export default function Chat() {
   const [showColorPicker, setShowColorPicker] = useState(false)
   let handlingDb = false
   let initialized = false
+  let recievedMessages: any[] = []
 
   const colorCodeToInt = (code: string) => {
     const shorthandRegex = /^#?([a-fA-F\d]+)$/i;
@@ -81,7 +82,10 @@ export default function Chat() {
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
               if (room_id === roomId) {
-                setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
+                if (!recievedMessages.includes(id)) {
+                  setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
+                  recievedMessages.push(id)
+                }
               }
             }
           }
