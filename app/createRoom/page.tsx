@@ -4,6 +4,11 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import bcrypt from 'bcryptjs'
 
+interface Option {
+  value: string;
+  label: string;
+}
+
 export default function CreateRoom() {
   const [inputTitle, setInputTitle] = useState("")
   const [inputDecsription, setInputDescription] = useState("")
@@ -11,9 +16,22 @@ export default function CreateRoom() {
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
 
+  const USER_LIMITS: Option[] = [
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
+    { value: '5', label: '5' },
+  ];
+
+  const onInputUsersLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    const selected = USER_LIMITS.find((option) => option.value === selectedValue);
+    setInputUsersLimit(selected || null);
+  };
 
   // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => { }, [])
@@ -32,7 +50,8 @@ export default function CreateRoom() {
         description: inputDecsription,
         password: hashedPassword,
         options: {
-          private: inputPrivate
+          private: inputPrivate,
+          user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5
         },
         special_keys: special_keys
       }).select('*')
@@ -100,6 +119,20 @@ export default function CreateRoom() {
             value={inputRoomSpecialKey_1}
             onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
           />
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">入室人数制限</label>
+          <select
+            value={inputUsersLimit?.value || '5'}
+            onChange={onInputUsersLimitChange}
+          >
+            {USER_LIMITS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-5">

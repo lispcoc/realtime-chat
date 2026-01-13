@@ -6,6 +6,11 @@ import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import bcrypt from 'bcryptjs'
 
+interface Option {
+  value: string;
+  label: string;
+}
+
 export default function CreateRoom() {
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -16,11 +21,26 @@ export default function CreateRoom() {
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [login, setLogin] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
 
+  const USER_LIMITS: Option[] = [
+    { value: '0', label: '0' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
+    { value: '5', label: '5' },
+  ];
+
+  const onInputUsersLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    const selected = USER_LIMITS.find((option) => option.value === selectedValue);
+    setInputUsersLimit(selected || null);
+  };
 
   // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => { }, [])
@@ -48,6 +68,7 @@ export default function CreateRoom() {
           if (opt.private) {
             setInputPrivate(opt.private)
           }
+          setInputUsersLimit(new Option(String(opt.user_limit)))
         } else {
           alert("パスワードが違います。")
         }
@@ -95,7 +116,8 @@ export default function CreateRoom() {
         description: inputDecsription,
         password: hashedPassword,
         options: {
-          private: inputPrivate
+          private: inputPrivate,
+          user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5
         },
         special_keys: special_keys
       })
@@ -178,6 +200,20 @@ export default function CreateRoom() {
             {!inputPrivate && (
               <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
             )}
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">入室人数制限</label>
+            <select
+              value={inputUsersLimit?.value || '5'}
+              onChange={onInputUsersLimitChange}
+            >
+              {USER_LIMITS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-5">

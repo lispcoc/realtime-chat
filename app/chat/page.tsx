@@ -1,6 +1,6 @@
 
 "use client"
-import { Database } from "@/types/supabasetype"
+import { Database, Json } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
@@ -9,8 +9,8 @@ import ChatLine from "@/components/chat/chatLine"
 import { createTrip } from "2ch-trip"
 
 type RoomOption = {
-  private: boolean | undefined,
-  limit: number | undefined
+  private: boolean
+  user_limit: number
 }
 
 type User = {
@@ -155,17 +155,7 @@ export default function Chat() {
         return
       }
 
-      let allUsers = null
-      try {
-        const { data } = await supabase.from("Users").select("*").eq('room_id', roomId).order("last_activity")
-
-        allUsers = data
-      } catch (error) {
-        console.error(error)
-      }
-      if (allUsers != null) {
-        await getUsers()
-      }
+      await getUsers()
 
       if (tempRoomData) {
         const opt: any = tempRoomData.options || {}
@@ -259,10 +249,23 @@ export default function Chat() {
     setButtonDisable(false)
   }
 
+  const getRoomOption = () => {
+    const rd: RoomOption = { private: false, user_limit: 5 }
+    if (roomData && roomData.options) {
+      rd.private = (roomData.options as any).private
+      rd.user_limit = parseInt((roomData.options as any).user_limit)
+    }
+    return rd
+  }
+
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
     if (handlingDb) return
+    if (getRoomOption().user_limit <= users.length) {
+      alert('これ以上入室できません。')
+      return
+    }
     handlingDb = true
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
