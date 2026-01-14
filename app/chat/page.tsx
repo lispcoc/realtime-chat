@@ -85,7 +85,7 @@ export default function Chat() {
               const { id, room_id, name, text, color, created_at, system } = payload.new
               if (room_id === roomId) {
                 if (!recievedMessages.includes(id)) {
-                  setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText])
+                  setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0)])
                   recievedMessages.push(id)
                 }
               }
@@ -229,48 +229,80 @@ export default function Chat() {
     }
 
     try {
-      await supabase.from("Messages").insert({
+      const msg = {
         room_id: roomId,
         name: chk.username,
         text: inputText,
         color: colorCodeToInt(color),
         system: false
-      })
-      await supabase.from("Users").upsert({
-        id: chk.id,
-        room_id: roomId,
-        name: chk.username,
-        color: colorCodeToInt(color),
-        last_activity: new Date().toISOString()
-      })
-
+      }
+      let specialMsg = null
       const rd: any = roomData
       if (rd && rd.special_keys && rd.special_keys[inputText]) {
         const special_text: String = rd.special_keys[inputText] || ""
         const array = special_text.split("\n")
         const specialText = array[Math.floor(Math.random() * array.length)]
-        if (specialText) {
-          await supabase.from("Messages").insert({
-            room_id: roomId,
-            name: chk.username,
-            text: inputText + " : " + specialText,
-            color: 0,
-            system: true
-          })
+        specialMsg = {
+          room_id: roomId,
+          name: chk.username,
+          text: inputText + " : " + specialText,
+          color: 0,
+          system: true
         }
       }
 
-      await fetch('/api/dice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          cache: 'no-store',
+      setMessageText((messageText) => [
+        {
+          id: -1,
+          room_id: msg.room_id,
+          name: msg.name,
+          text: msg.text,
+          color: msg.color,
+          created_at: new Date().toISOString(),
+          system: msg.system
         },
-        body: JSON.stringify({
-          roomId: roomId,
-          command: inputText
-        }),
-      });
+        ...messageText
+      ])
+      if (specialMsg) {
+        setMessageText((messageText) => [
+          {
+            id: -1,
+            room_id: specialMsg.room_id,
+            name: specialMsg.name,
+            text: specialMsg.text,
+            color: specialMsg.color,
+            created_at: new Date().toISOString(),
+            system: specialMsg.system
+          },
+          ...messageText
+        ])
+      }
+
+      supabase.from("Messages").insert(msg).then(() => {
+        if (specialMsg) {
+          supabase.from("Messages").insert(specialMsg).then(() => { })
+        } else {
+          fetch('/api/dice', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              cache: 'no-store',
+            },
+            body: JSON.stringify({
+              roomId: roomId,
+              command: inputText
+            }),
+          }).then(() => { })
+        }
+      })
+      supabase.from("Users").upsert({
+        id: chk.id,
+        room_id: roomId,
+        name: chk.username,
+        color: colorCodeToInt(color),
+        last_activity: new Date().toISOString()
+      }).then(() => { })
+
 
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
         const data = {
