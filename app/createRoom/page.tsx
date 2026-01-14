@@ -13,6 +13,7 @@ export default function CreateRoom() {
   const [inputTitle, setInputTitle] = useState("")
   const [inputDecsription, setInputDescription] = useState("")
   const [inputPassword, setInputPassword] = useState("")
+  const [inputRoomAllClearKey, setInputRoomAllClearKey] = useState("")
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
@@ -51,7 +52,8 @@ export default function CreateRoom() {
         password: hashedPassword,
         options: {
           private: inputPrivate,
-          user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5
+          user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
+          all_clear: inputRoomAllClearKey
         },
         special_keys: special_keys
       }).select('*')
@@ -111,17 +113,6 @@ export default function CreateRoom() {
         </div>
 
         <div className="mb-5">
-          <label htmlFor="roomSpecialKey_1" className="block mb-2 text-sm font-medium text-gray-900">特殊キーの設定</label>
-          <input type="text" id="roomSpecialKey_1" name="roomSpecialKey_1"
-            placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            value={inputRoomSpecialKey_1}
-            onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
-          />
-        </div>
-
-        <div className="mb-5">
           <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">入室人数制限</label>
           <select
             value={inputUsersLimit?.value || '5'}
@@ -133,6 +124,26 @@ export default function CreateRoom() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="roomAllClearKey" className="block mb-2 text-sm font-medium text-gray-900">全消去キーの設定</label>
+          <input type="text" id="roomAllClearKey" name="roomAllClearKey"
+            placeholder="特定の発言を検知するとチャットログを消去します。(例: 全消去) 使用しない場合は空欄にしてください。"
+            value={inputRoomAllClearKey} onChange={(event) => setInputRoomAllClearKey(() => event.target.value)}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          />
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="roomSpecialKey_1" className="block mb-2 text-sm font-medium text-gray-900">特殊キーの設定</label>
+          <input type="text" id="roomSpecialKey_1" name="roomSpecialKey_1"
+            placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            value={inputRoomSpecialKey_1}
+            onChange={(event) => setInputRoomSpecialKey_1(() => event.target.value)}
+          />
         </div>
 
         <div className="mb-5">

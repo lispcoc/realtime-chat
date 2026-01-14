@@ -10,7 +10,8 @@ import { createTrip } from "2ch-trip"
 
 type RoomOption = {
   private: boolean
-  user_limit: number
+  user_limit: number,
+  all_clear: string
 }
 
 type User = {
@@ -122,12 +123,20 @@ export default function Chat() {
     }
   }
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (all_clear_at: string | null = "") => {
     let allMessages = null
+    let allClearAt: string | null = all_clear_at
+    if (roomData && roomData.all_clear_at) {
+      allClearAt = roomData.all_clear_at
+    }
     try {
-      const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
-
-      allMessages = data
+      if (allClearAt) {
+        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).gte("created_at", allClearAt).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
+        allMessages = data
+      } else {
+        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
+        allMessages = data
+      }
     } catch (error) {
       console.error(error)
     }
@@ -157,17 +166,17 @@ export default function Chat() {
 
       await getUsers()
 
+      const opt: any = tempRoomData?.options || {}
       if (tempRoomData) {
-        const opt: any = tempRoomData.options || {}
         if (opt.private) {
           const chk = await checkEntered()
           if (chk.entered) {
-            fetchMessages()
+            fetchMessages(tempRoomData.all_clear_at)
             fetchRealtimeData()
           }
         } else {
           await checkEntered()
-          fetchMessages()
+          fetchMessages(tempRoomData.all_clear_at)
           fetchRealtimeData()
         }
       } else {
@@ -242,6 +251,24 @@ export default function Chat() {
           command: inputText
         }),
       });
+
+      if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
+        const data = {
+          action: 'allClear',
+          roomId: roomId
+        }
+
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            cache: 'no-store',
+          },
+          body: JSON.stringify(data),
+        })
+
+        setMessageText([])
+      }
     } catch (error) {
       console.error(error)
     }
@@ -250,10 +277,11 @@ export default function Chat() {
   }
 
   const getRoomOption = () => {
-    const rd: RoomOption = { private: false, user_limit: 5 }
+    const rd: RoomOption = { private: false, user_limit: 5, all_clear: "" }
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.user_limit = parseInt((roomData.options as any).user_limit)
+      rd.all_clear = (roomData.options as any).all_clear || ""
     }
     return rd
   }

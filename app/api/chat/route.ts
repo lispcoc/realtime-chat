@@ -136,6 +136,22 @@ async function getUsers(roomId: number) {
     }, { status: 200 });
 }
 
+async function allClear(roomId: number) {
+    await supabase.from("Rooms").update({
+        all_clear_at: new Date().toISOString()
+    }).eq('id', roomId)
+    await addMessage({
+        color: 0,
+        name: "system",
+        room_id: roomId,
+        system: true,
+        text: `ルームログが消去されました。`
+    })
+    return NextResponse.json({
+        users: []
+    }, { status: 200 });
+}
+
 export async function POST(request: NextRequest) {
     const { action, roomId, username, color } = await request.json();
     const headersList = headers();
@@ -149,6 +165,8 @@ export async function POST(request: NextRequest) {
         return exitRoom(roomId, ip)
     } else if (action === 'getUsers') {
         return getUsers(roomId)
+    } else if (action === 'allClear') {
+        return allClear(roomId)
     }
 
     return NextResponse.json({ ip: ip }, { status: 200 });

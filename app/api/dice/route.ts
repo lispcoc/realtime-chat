@@ -54,7 +54,7 @@ const roll = async (command: string) => {
 
         return elements.join(' ')
     } catch (error) {
-        console.log(error)
+        //console.log(error)
         return null
     }
 }
