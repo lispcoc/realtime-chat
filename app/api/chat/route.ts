@@ -136,17 +136,19 @@ async function getUsers(roomId: number) {
     }, { status: 200 });
 }
 
-async function allClear(roomId: number) {
+async function allClear(roomId: number, send_msg = true) {
     await supabase.from("Rooms").update({
         all_clear_at: new Date().toISOString()
     }).eq('id', roomId)
-    await addMessage({
-        color: 0,
-        name: "system",
-        room_id: roomId,
-        system: true,
-        text: `ルームログが消去されました。`
-    })
+    if (send_msg) {
+        await addMessage({
+            color: 0,
+            name: "system",
+            room_id: roomId,
+            system: true,
+            text: `ルームログが消去されました。`
+        })
+    }
     return NextResponse.json({
         users: []
     }, { status: 200 });
@@ -159,7 +161,7 @@ async function autoClear(roomId: number) {
         if (opt.auto_all_clear) {
             const { data } = await supabase.from("Users").select("*").match({ room_id: roomId })
             if (!data || !data.length) {
-                return allClear(roomId)
+                return allClear(roomId, false)
             }
         }
     }
