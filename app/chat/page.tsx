@@ -258,29 +258,31 @@ export default function Chat() {
         ])
       }
 
-      await supabase.from("Messages").insert(msg)
-      await supabase.from("Users").upsert({
+      supabase.from("Messages").insert(msg).then(() => {
+        if (specialMsg) {
+          supabase.from("Messages").insert(specialMsg).then(() => { })
+        } else {
+          fetch('/api/dice', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              cache: 'no-store',
+            },
+            body: JSON.stringify({
+              roomId: roomId,
+              command: inputText
+            }),
+          }).then(() => { })
+        }
+      })
+      supabase.from("Users").upsert({
         id: chk.id,
         room_id: roomId,
         name: chk.username,
         color: colorCodeToInt(color),
         last_activity: new Date().toISOString()
-      })
-      if (specialMsg) {
-        await supabase.from("Messages").insert(specialMsg)
-      }
+      }).then(() => { })
 
-      await fetch('/api/dice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          cache: 'no-store',
-        },
-        body: JSON.stringify({
-          roomId: roomId,
-          command: inputText
-        }),
-      });
 
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
         const data = {
