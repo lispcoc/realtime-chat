@@ -11,6 +11,13 @@ interface Option {
   label: string;
 }
 
+const USER_LIMITS: Option[] = [
+  { value: '2', label: '2' },
+  { value: '3', label: '3' },
+  { value: '4', label: '4' },
+  { value: '5', label: '5' },
+];
+
 export default function CreateRoom() {
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -29,14 +36,6 @@ export default function CreateRoom() {
   const [login, setLogin] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
 
-  const USER_LIMITS: Option[] = [
-    { value: '0', label: '0' },
-    { value: '1', label: '1' },
-    { value: '2', label: '2' },
-    { value: '3', label: '3' },
-    { value: '4', label: '4' },
-    { value: '5', label: '5' },
-  ];
 
   const onInputUsersLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
