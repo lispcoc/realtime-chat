@@ -113,6 +113,24 @@ export default function Chat() {
           }
         )
         .subscribe()
+
+      supabase
+        .channel(`roominfo_${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "Rooms",
+            filter: `id=eq.${roomId}`
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE") {
+              fetchMessages(payload.new.all_clear_at)
+            }
+          }
+        )
+        .subscribe()
       console.log("自動更新の開始")
       return () => {
         supabase.channel(String(roomId)).unsubscribe()
@@ -131,7 +149,7 @@ export default function Chat() {
     }
     try {
       if (allClearAt) {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).gte("created_at", allClearAt).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
+        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).gt("created_at", allClearAt).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
         allMessages = data
       } else {
         const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
@@ -141,7 +159,9 @@ export default function Chat() {
       console.error(error)
     }
     if (allMessages != null) {
+      recievedMessages.splice(0)
       setMessageText(allMessages)
+      allMessages.forEach(e => recievedMessages.push(e.id))
     }
   }
 
