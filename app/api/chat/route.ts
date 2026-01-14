@@ -11,13 +11,14 @@ async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
 }
 
-async function removeInactiveUser() {
+async function removeInactiveUser(roomId: number) {
     let tenMinutesAgo = new Date()
     tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - INACTIVE_MINUTES)
     tenMinutesAgo.toISOString()
 
     const { data } = await supabase.from('Users')
         .select('*')
+        .eq("room_id", roomId)
         .lte('last_activity', tenMinutesAgo.toISOString()) // last_activity <= tenMinutesAgo
     if (data) {
         const reminder: any[] = []
@@ -40,7 +41,6 @@ async function removeInactiveUser() {
 }
 
 async function checkEntered(roomId: number, ip: string) {
-    await removeInactiveUser()
     const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
     if (data && data[0]) {
         return NextResponse.json({
@@ -120,7 +120,7 @@ async function exitRoom(roomId: number, ip: string) {
 }
 
 async function getUsers(roomId: number) {
-    await removeInactiveUser()
+    await removeInactiveUser(roomId)
     const { data } = await supabase.from("Users").select("*").match({ room_id: roomId })
     if (data) {
         const users = data.map(user => ({
@@ -190,6 +190,8 @@ export async function POST(request: NextRequest) {
         res = await getUsers(roomId)
     } else if (action === 'allClear') {
         res = await allClear(roomId)
+    } else if (action === 'removeInactiveUser') {
+        removeInactiveUser(roomId)
     }
 
     return res
