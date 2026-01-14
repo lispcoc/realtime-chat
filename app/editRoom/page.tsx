@@ -161,7 +161,7 @@ export default function CreateRoom() {
       <h2 className="text-xl font-bold pt-5 pb-10">ルームの編集</h2>
 
       {!login && (
-        <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitCreateRoom)}>
+        <form className="w-full max-w-md pb-10" onSubmit={onSubmitAdmin}>
           <div className="mb-5">
             <label htmlFor="roomPassword">パスワード</label>
             <input
