@@ -221,22 +221,16 @@ export default function Chat() {
     event.preventDefault()
     if (inputText === "") return
     setButtonDisable(true)
-    const chk = await checkEntered()
-    if (!chk.entered) {
-      alert("入室していません。")
-      setButtonDisable(false)
-      return
-    }
 
     try {
       const msg = {
         room_id: roomId,
-        name: chk.username,
+        name: username,
         text: inputText,
         color: colorCodeToInt(color),
         system: false
       }
-      let specialMsg : any = null
+      let specialMsg: any = null
       const rd: any = roomData
       if (rd && rd.special_keys && rd.special_keys[inputText]) {
         const special_text: String = rd.special_keys[inputText] || ""
@@ -244,7 +238,7 @@ export default function Chat() {
         const specialText = array[Math.floor(Math.random() * array.length)]
         specialMsg = {
           room_id: roomId,
-          name: chk.username,
+          name: username,
           text: inputText + " : " + specialText,
           color: 0,
           system: true
@@ -278,6 +272,12 @@ export default function Chat() {
         ])
       }
 
+      const chk = await checkEntered()
+      if (!chk.entered) {
+        alert("入室していません。")
+        setButtonDisable(false)
+        return
+      }
       supabase.from("Messages").insert(msg).then(() => {
         if (specialMsg) {
           supabase.from("Messages").insert(specialMsg).then(() => { })
@@ -499,7 +499,7 @@ export default function Chat() {
           </span>
         ))}
         <span className="flex items-end text-sm font-xs">
-          {roomData  && `(${users.length} / ${getRoomOption().user_limit} 人)`}
+          {roomData && `(${users.length} / ${getRoomOption().user_limit} 人)`}
         </span>
       </div>
 
