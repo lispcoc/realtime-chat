@@ -301,6 +301,7 @@ export default function Chat() {
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.user_limit = parseInt((roomData.options as any).user_limit)
+      if (isNaN(rd.user_limit)) rd.user_limit = 10
       rd.all_clear = (roomData.options as any).all_clear || ""
     }
     return rd
@@ -456,15 +457,18 @@ export default function Chat() {
         </form>
       )}
 
-      <div className="m-2 p-2 border border-gray-300 rounded-lg flex space-x-4">
-        <span className="font-medium">
+      <div className="m-2 p-2 border border-gray-300 rounded-lg flex space-x-2">
+        <span className="font-medium text-sm">
           現在の入室者:
         </span>
         {users.map((user, index) => (
-          <span style={{ color: intToColorCode(user.color) }} className="font-medium">
+          <span style={{ color: intToColorCode(user.color) }} className="font-medium text-sm">
             {user.name}
           </span>
         ))}
+        <span className="flex items-end text-sm font-xs">
+          {roomData  && `(${users.length} / ${getRoomOption().user_limit} 人)`}
+        </span>
       </div>
 
       {isEntered && (
