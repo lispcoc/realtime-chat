@@ -68,8 +68,8 @@ export default function CreateRoom() {
     try {
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const special_keys: any = {}
-      data.roomSpecials.forEach((value, key) => {
-        special_keys[key] = value
+      data.roomSpecials.forEach((value) => {
+        special_keys[value.key] = value.text
       })
       const res = await supabase.from("Rooms").insert({
         title: inputTitle,
