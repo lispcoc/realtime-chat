@@ -17,6 +17,7 @@ export default function CreateRoom() {
   const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
   const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
@@ -52,6 +53,7 @@ export default function CreateRoom() {
         password: hashedPassword,
         options: {
           private: inputPrivate,
+          auto_all_clear: autoAllClear,
           user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
           all_clear: inputRoomAllClearKey
         },
@@ -109,6 +111,16 @@ export default function CreateRoom() {
           )}
           {!inputPrivate && (
             <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
+          )}
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">全員退室時にチャットログを消去する</label>
+          {autoAllClear && (
+            <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} checked />
+          )}
+          {!autoAllClear && (
+            <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} />
           )}
         </div>
 

@@ -152,24 +152,45 @@ async function allClear(roomId: number) {
     }, { status: 200 });
 }
 
+async function autoClear(roomId: number) {
+    const { data } = await supabase.from("Rooms").select('*').eq('id', roomId)
+    if (data && data[0]) {
+        const opt: any = data[0]?.options || {}
+        if (opt.auto_all_clear) {
+            const { data } = await supabase.from("Users").select("*").match({ room_id: roomId })
+            if (!data || !data.length) {
+                return allClear(roomId)
+            }
+        }
+    }
+    return NextResponse.json({
+        users: []
+    }, { status: 200 });
+}
+
 export async function POST(request: NextRequest) {
     const { action, roomId, username, color } = await request.json();
     const headersList = headers();
     const ip = headersList.get("x-forwarded-for") || "";
+    let chk_auto_clear = false
+    let res: NextResponse = NextResponse.json({ ip: ip }, { status: 200 })
 
     if (action === 'checkEntered') {
-        return checkEntered(roomId, ip)
+        res = await checkEntered(roomId, ip)
+        autoClear(roomId)
     } else if (action === 'enterRoom') {
-        return enterRoom(roomId, ip, username, color)
+        res = await enterRoom(roomId, ip, username, color)
+        autoClear(roomId)
     } else if (action === 'exitRoom') {
-        return exitRoom(roomId, ip)
+        res = await exitRoom(roomId, ip)
+        autoClear(roomId)
     } else if (action === 'getUsers') {
-        return getUsers(roomId)
+        res = await getUsers(roomId)
     } else if (action === 'allClear') {
-        return allClear(roomId)
+        res = await allClear(roomId)
     }
 
-    return NextResponse.json({ ip: ip }, { status: 200 });
+    return res
 }
 
 export async function GET(request: NextRequest) {
