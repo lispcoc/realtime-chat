@@ -236,7 +236,7 @@ export default function Chat() {
         color: colorCodeToInt(color),
         system: false
       }
-      let specialMsg = null
+      let specialMsg : any = null
       const rd: any = roomData
       if (rd && rd.special_keys && rd.special_keys[inputText]) {
         const special_text: String = rd.special_keys[inputText] || ""
