@@ -489,16 +489,16 @@ export default function Chat() {
         </form>
       )}
 
-      <div className="m-2 p-2 border border-gray-300 rounded-lg flex space-x-2">
-        <span className="font-medium text-sm">
+      <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
+        <span className="font-medium text-xs">
           現在の入室者:
         </span>
         {users.map((user, index) => (
-          <span style={{ color: intToColorCode(user.color) }} className="font-medium text-sm">
+          <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
             {user.name}
           </span>
         ))}
-        <span className="flex items-end text-sm font-xs">
+        <span className="flex items-end text-xs font-xs">
           {roomData && `(${users.length} / ${getRoomOption().user_limit} 人)`}
         </span>
       </div>
