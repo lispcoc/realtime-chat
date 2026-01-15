@@ -1,15 +1,25 @@
 import Link from 'next/link'
 
+type UserData = {
+  color: number,
+  name: string
+}
+
 type Props = {
   roomId: string,
   linkName: string,
   index: number,
   isAdmin?: boolean | undefined
+  users?: UserData[]
 }
 
-export default function RoomLink({ roomId, linkName, index, isAdmin = false }: Props) {
+const intToColorCode = (num: number | null | undefined) => {
+  return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
+}
+
+export default function RoomLink({ roomId, linkName, index, isAdmin = false, users = [] }: Props) {
   return (
-    <li className='mb-4'>
+    <li className='mb-4 flex  items-end space-x-2'>
       <span>
         {`${String(index).padStart(2, '0')}. `}
       </span>
@@ -17,6 +27,11 @@ export default function RoomLink({ roomId, linkName, index, isAdmin = false }: P
         pathname: isAdmin ? 'adminRoom' : '/chat',
         query: { roomId: roomId },
       }}>{linkName}</Link>
+      {users && users.map((user, index) => (
+        <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
+          {user.name}
+        </span>
+      ))}
     </li>
   )
 }

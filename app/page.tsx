@@ -4,13 +4,43 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
 
+const intToColorCode = (num: number | null | undefined) => {
+  return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
+}
+
 export default function Index() {
   type RoomData = {
     id: number,
     title: string | null,
     created_at: string
   }
+
+  type UserData = {
+    color: number,
+    name: string
+  }
+
   const [rooms, appendRooms] = useState<RoomData[]>([])
+  const [usersList, setUsersList] = useState<UserData[][]>([])
+
+  const getUsers = async (roomId: number) => {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify({
+        action: 'getUsers',
+        roomId: roomId
+      }),
+    })
+    if (response.ok) {
+      const responseData = await response.json()
+      console.log(responseData.users)
+      setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -18,12 +48,14 @@ export default function Index() {
       try {
         const { data } = await supabase.from("Rooms").select("id,title,created_at").order("created_at")
         allRooms = data
-        console.log(allRooms)
       } catch (error) {
         console.error(error)
       }
       if (allRooms != null) {
         appendRooms(allRooms)
+        allRooms.forEach(room => {
+          getUsers(room.id).then(() => { appendRooms(allRooms) })
+        })
       }
     })()
   }, [])
@@ -34,7 +66,7 @@ export default function Index() {
         <h2 className="text-xl font-bold pt-6 pb-10">ルーム一覧</h2>
         <ul>
           {rooms.map((item, index) => (
-            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"}></RoomLink>
+            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
           ))}
         </ul>
       </div>

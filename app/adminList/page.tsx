@@ -10,7 +10,33 @@ export default function Index() {
     title: string | null,
     created_at: string
   }
+
+  type UserData = {
+    color: number,
+    name: string
+  }
+
   const [rooms, appendRooms] = useState<RoomData[]>([])
+  const [usersList, setUsersList] = useState<UserData[][]>([])
+
+  const getUsers = async (roomId: number) => {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify({
+        action: 'getUsers',
+        roomId: roomId
+      }),
+    })
+    if (response.ok) {
+      const responseData = await response.json()
+      console.log(responseData.users)
+      setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -24,6 +50,9 @@ export default function Index() {
       }
       if (allRooms != null) {
         appendRooms(allRooms)
+        allRooms.forEach(room => {
+          getUsers(room.id).then(() => { appendRooms(allRooms) })
+        })
       }
     })()
   }, [])
