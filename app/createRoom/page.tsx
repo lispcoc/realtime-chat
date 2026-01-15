@@ -25,6 +25,11 @@ const USER_LIMITS: Option[] = [
   { value: '3', label: '3' },
   { value: '4', label: '4' },
   { value: '5', label: '5' },
+  { value: '6', label: '6' },
+  { value: '7', label: '7' },
+  { value: '8', label: '8' },
+  { value: '9', label: '9' },
+  { value: '10', label: '10' },
 ];
 
 export default function CreateRoom() {
@@ -32,8 +37,6 @@ export default function CreateRoom() {
   const [inputDecsription, setInputDescription] = useState("")
   const [inputPassword, setInputPassword] = useState("")
   const [inputRoomAllClearKey, setInputRoomAllClearKey] = useState("")
-  const [inputRoomSpecialKey_1, setInputRoomSpecialKey_1] = useState("")
-  const [inputRoomSpecialText_1, setInputRoomSpecialText_1] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
   const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);

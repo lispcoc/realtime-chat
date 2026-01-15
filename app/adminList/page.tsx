@@ -33,7 +33,6 @@ export default function Index() {
     })
     if (response.ok) {
       const responseData = await response.json()
-      console.log(responseData.users)
       setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
     }
   }
@@ -65,7 +64,7 @@ export default function Index() {
         <h2 className="text-xl font-bold pt-6 pb-10">ルーム一覧</h2>
         <ul>
           {rooms.map((item, index) => (
-            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"} isAdmin={true}></RoomLink>
+            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []} isAdmin={true}></RoomLink>
           ))}
         </ul>
       </div>
