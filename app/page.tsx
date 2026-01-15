@@ -44,14 +44,17 @@ export default function Index() {
 
   useEffect(() => {
     (async () => {
-      let allRooms = null
+      let allRooms: RoomData[] = []
       try {
         const { data } = await supabase.from("Rooms").select("id,title,created_at").order("created_at")
-        allRooms = data
+        if (data) {
+          allRooms = data
+          console.log(allRooms)
+        }
       } catch (error) {
         console.error(error)
       }
-      if (allRooms != null) {
+      if (allRooms) {
         appendRooms(allRooms)
         allRooms.forEach(room => {
           getUsers(room.id).then(() => { appendRooms(allRooms) })
