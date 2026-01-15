@@ -1,6 +1,6 @@
 
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useReducer } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
 
@@ -18,6 +18,7 @@ export default function Index() {
 
   const [rooms, appendRooms] = useState<RoomData[]>([])
   const [usersList, setUsersList] = useState<UserData[][]>([])
+  const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
   const getUsers = async (roomId: number) => {
     const response = await fetch('/api/chat', {
@@ -52,7 +53,7 @@ export default function Index() {
       if (allRooms) {
         appendRooms(allRooms)
         allRooms.forEach(room => {
-          getUsers(room.id).then(() => { appendRooms(allRooms) })
+          getUsers(room.id).then(() => { forceUpdate() })
         })
       }
     })()
