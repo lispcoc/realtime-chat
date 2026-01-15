@@ -5,7 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 import { use } from "react";
 
-const INACTIVE_MINUTES = 10
+const INACTIVE_MINUTES = 30
 
 async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
