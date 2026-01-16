@@ -404,7 +404,7 @@ export default function Chat() {
     const responseData = await response.json()
     setIsEntered(responseData.entered)
     setUsername(responseData.username || "")
-    setColor(intToColorCode(responseData.color))
+    setColor(intToColorCode(responseData.color || 0))
 
     return {
       username: responseData.username,
@@ -436,8 +436,8 @@ export default function Chat() {
 
   const linedDescription = (text: String) => {
     const lines = text.split('\n').map((item, index) => {
-      if (item) return (<div>{item}</div>)
-      return (<div>&nbsp;</div>)
+      if (item) return (<div key={index}>{item}</div>)
+      return (<div key={index}>&nbsp;</div>)
     })
     return lines
   }

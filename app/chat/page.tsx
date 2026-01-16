@@ -407,7 +407,7 @@ export default function Chat() {
     const responseData = await response.json()
     setIsEntered(responseData.entered)
     setUsername(responseData.username || "")
-    setColor(intToColorCode(responseData.color))
+    setColor(intToColorCode(responseData.color || 0))
 
     return {
       username: responseData.username,
@@ -439,8 +439,8 @@ export default function Chat() {
 
   const linedDescription = (text: String) => {
     const lines = text.split('\n').map((item, index) => {
-      if (item) return (<div>{item}</div>)
-      return (<div>&nbsp;</div>)
+      if (item) return (<div key={index}>{item}</div>)
+      return (<div key={index}>&nbsp;</div>)
     })
     return lines
   }
@@ -456,7 +456,7 @@ export default function Chat() {
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!isEntered && (
-        <form className="w-full m-2" onSubmit={onSubmitEnter}>
+        <form className="m-2 p-2" onSubmit={onSubmitEnter}>
           <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
           <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
           {showColorPicker && colorPicker(inputName)}
@@ -470,7 +470,7 @@ export default function Chat() {
       )}
 
       {isEntered && (
-        <form className="w-full m-2" onSubmit={onSubmitLeave}>
+        <form className="m-2" onSubmit={onSubmitLeave}>
           <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             退室
           </button>
@@ -492,7 +492,7 @@ export default function Chat() {
       </div>
 
       {isEntered && (
-        <form className="w-full m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
+        <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
           <div className="mb-1 flex items-center grid grid-cols-2">
             <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
             <button type="submit" disabled={buttonDisable || inputText === ""}
