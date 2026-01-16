@@ -431,7 +431,6 @@ export default function Chat() {
     });
 
     const responseData = await response.json();
-    console.log(responseData);
     setIsEntered(false)
   }
 
@@ -519,8 +518,8 @@ export default function Chat() {
           </form>
         )}
 
-        <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
-          <div className="text-sm">
+        <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+          <div className="w-full text-sm" onClick={onClickRoomDescription}>
             ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
           </div>
           {showRoomDescription && (
@@ -540,7 +539,7 @@ export default function Chat() {
 
         <div className="p-2 w-full mb-10">
           {messageText.map((item, index) => (
-            <ChatLine message={item} index={index}></ChatLine>
+            <ChatLine key={index} message={item} index={index}></ChatLine>
           ))}
         </div>
 
