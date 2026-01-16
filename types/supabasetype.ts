@@ -81,6 +81,7 @@ export type Database = {
           password: string | null
           special_keys: Json | null
           title: string | null
+          variables: Json
         }
         Insert: {
           all_clear_at?: string | null
@@ -91,6 +92,7 @@ export type Database = {
           password?: string | null
           special_keys?: Json | null
           title?: string | null
+          variables?: Json
         }
         Update: {
           all_clear_at?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           password?: string | null
           special_keys?: Json | null
           title?: string | null
+          variables?: Json
         }
         Relationships: []
       }
