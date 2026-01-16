@@ -12,7 +12,12 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 type RoomOption = {
   private: boolean
   user_limit: number,
-  all_clear: string
+  all_clear: string,
+  variables: string[]
+}
+
+type VariableObject = {
+  [key: string]: number
 }
 
 type User = {
@@ -31,10 +36,13 @@ export default function Chat() {
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
+  const [variableKeys, setVariableKeys] = useState<string[]>([])
+  const [variables, setVariables] = useState<VariableObject>({})
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
+  const [showVariableCommand, setShowVariableCommand] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
   let handlingDb = false
@@ -115,6 +123,7 @@ export default function Chat() {
           },
           (payload) => {
             if (payload.eventType === "UPDATE") {
+              setVariables(payload.new.variables)
               fetchMessages(payload.new.all_clear_at)
             }
           }
@@ -183,6 +192,7 @@ export default function Chat() {
 
       await getUsers()
 
+      const variables: any = tempRoomData?.variables || {}
       const opt: any = tempRoomData?.options || {}
       if (tempRoomData) {
         if (opt.private) {
@@ -195,6 +205,12 @@ export default function Chat() {
           await checkEntered()
           fetchMessages(tempRoomData.all_clear_at)
           fetchRealtimeData()
+        }
+        if (opt.variables) {
+          setVariableKeys(opt.variables)
+        }
+        if (variables) {
+          setVariables(variables)
         }
       } else {
         await checkEntered()
@@ -320,12 +336,13 @@ export default function Chat() {
   }
 
   const getRoomOption = () => {
-    const rd: RoomOption = { private: false, user_limit: 5, all_clear: "" }
+    const rd: RoomOption = { private: false, user_limit: 5, all_clear: "", variables: [] }
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.user_limit = parseInt((roomData.options as any).user_limit)
       if (isNaN(rd.user_limit)) rd.user_limit = 10
       rd.all_clear = (roomData.options as any).all_clear || ""
+      rd.variables = (roomData.options as any).variables || []
     }
     return rd
   }
@@ -459,6 +476,27 @@ export default function Chat() {
     }
   }
 
+  const setVar = async (op: string, key: string, value: number) => {
+    const data = {
+      action: 'changeVariable',
+      roomId: roomId,
+      arg: {
+        op: op,
+        key: key,
+        value: value
+      }
+    }
+
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify(data),
+    })
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
@@ -523,6 +561,39 @@ export default function Chat() {
               />
             </div>
           </form>
+        )}
+
+        {variableKeys.length > 0 && (
+          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+            <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
+              特殊コマンド {showRoomDescription ? "[非表示]" : "[表示]"}
+            </div>
+            {showVariableCommand && variableKeys.map(key => (
+              <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
+                <span className="col-span-3 text-center">
+                  a ({variables[key] || 0})
+                </span>
+                <button type="submit" onClick={() => setVar("mod", key, 1)}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                  +1
+                </button>
+                <button type="submit" onClick={() => setVar("mod", key, -1)}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                  -1
+                </button>
+                <button type="submit" onClick={() => setVar("set", key, 0)}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                  リセット
+                </button>
+              </div>
+            ))}
+          </div>
         )}
 
         <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">

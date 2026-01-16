@@ -170,8 +170,38 @@ async function autoClear(roomId: number) {
     }, { status: 200 });
 }
 
+async function changeVariable(roomId: number, arg: any) {
+    const res = await supabase.from("Rooms").select('options, variables').eq('id', roomId)
+    console.log(roomId, arg)
+    if (res.data && res.data[0]) {
+        const varData = res.data[0]
+        const variables: any = varData.variables
+        const opt: any = varData.options
+        console.log(opt)
+        if (opt && opt.variables && opt.variables.includes(arg.key)) {
+            if (!variables[arg.key]) variables[arg.key] = 0
+            const value_before = variables[arg.key]
+            if (arg.op === "mod") {
+                variables[arg.key] += arg.value
+            } else if (arg.op === "set") {
+                variables[arg.key] = arg.value
+            }
+            if (value_before != variables[arg.key]) {
+                await supabase.from("Rooms").update({ variables: variables }).eq('id', roomId)
+                await addMessage({
+                    color: 0,
+                    name: "system",
+                    room_id: roomId,
+                    system: true,
+                    text: `${arg.key} : ${value_before} → ${variables[arg.key]}`
+                })
+            }
+        }
+    }
+}
+
 export async function POST(request: NextRequest) {
-    const { action, roomId, username, color } = await request.json();
+    const { action, roomId, username, color, arg } = await request.json();
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || "";
     let chk_auto_clear = false
@@ -192,6 +222,8 @@ export async function POST(request: NextRequest) {
         res = await allClear(roomId)
     } else if (action === 'removeInactiveUser') {
         removeInactiveUser(roomId)
+    } else if (action === 'changeVariable') {
+        changeVariable(roomId, arg)
     }
 
     return res

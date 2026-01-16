@@ -17,7 +17,8 @@ interface Option {
 const schema = z.object({
   roomSpecials: z.array(
     z.object({ key: z.string(), text: z.string() })
-  )
+  ),
+  variables: z.array(z.object({ key: z.string() }))
 });
 type FormData = z.infer<typeof schema>;
 
@@ -58,6 +59,10 @@ export default function CreateRoom() {
     control,
     name: 'roomSpecials'
   });
+  const roomVariableFieldArray = useFieldArray({
+    control,
+    name: 'variables'
+  });
 
 
   const onInputUsersLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -95,6 +100,11 @@ export default function CreateRoom() {
           }
           if (opt.auto_all_clear) {
             setAutoAllClear(opt.auto_all_clear)
+          }
+          if (opt.variables) {
+            for (const key of opt.variables) {
+              roomVariableFieldArray.append({ key: key })
+            }
           }
           setInputUsersLimit(new Option(String(opt.user_limit)))
         } else {
@@ -136,8 +146,17 @@ export default function CreateRoom() {
       const password = inputNewPassword === "" ? inputPassword : inputNewPassword
       const hashedPassword = await bcrypt.hash(password, 10)
       const special_keys: any = {}
+      const variable_keys: string[] = []
+      const variables: any = {}
       data.roomSpecials.forEach((value) => {
         special_keys[value.key] = value.text
+      })
+      data.variables.forEach((value) => {
+        const trimed = value.key.trim()
+        if (trimed) {
+          variable_keys.push(trimed)
+          variables[trimed] = 0
+        }
       })
       await supabase.from("Rooms").upsert({
         id: roomData?.id,
@@ -148,9 +167,11 @@ export default function CreateRoom() {
           private: inputPrivate,
           auto_all_clear: autoAllClear,
           user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
-          all_clear: inputRoomAllClearKey
+          all_clear: inputRoomAllClearKey,
+          variables: variable_keys
         },
-        special_keys: special_keys
+        special_keys: special_keys,
+        variables: variables
       })
       alert("部屋を更新しました。")
       window.location.href = `/chat?roomId=${roomId}`
@@ -307,6 +328,40 @@ export default function CreateRoom() {
               onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}
             >
               特殊キーの設定追加
+            </button>
+          </div>
+
+          {roomVariableFieldArray.fields.map((field, index) => {
+            const isFirstField = index === 0;
+            return (
+              <div className="mb-5" key={field.id}>
+                <label htmlFor={`variables.${index}.key`} className="block mb-2 text-sm font-medium text-gray-900">変数の設定</label>
+                <input type="text"
+                  placeholder="ルーム内で管理できる数値を設定します。(例:得点)"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  {...register(
+                    `variables.${index}.key`
+                  )}
+                />
+                {
+                  !isFirstField && (
+                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                      onClick={() => roomVariableFieldArray.remove(index)}
+                    >
+                      削除
+                    </button>
+                  )
+                }
+              </div>
+            )
+          })}
+
+          <div className="mb-5">
+            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+              onClick={() => roomVariableFieldArray.append({ key: "" })}
+            >
+              変数の設定追加
             </button>
           </div>
 
