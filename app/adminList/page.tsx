@@ -65,7 +65,7 @@ export default function Index() {
         <h2 className="text-xl font-bold pt-6 pb-10">ルーム一覧</h2>
         <ul>
           {rooms.map((item, index) => (
-            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []} isAdmin={true}></RoomLink>
+            <RoomLink key={index} roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []} isAdmin={true}></RoomLink>
           ))}
         </ul>
       </div>

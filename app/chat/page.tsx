@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
 import { createTrip } from "2ch-trip"
+import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 
 type RoomOption = {
   private: boolean
@@ -38,19 +39,6 @@ export default function Chat() {
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
-
-  const colorCodeToInt = (code: string) => {
-    const shorthandRegex = /^#?([a-fA-F\d]+)$/i;
-    const result = shorthandRegex.exec(code) || []
-    if (result.length > 1) {
-      return parseInt(result[1], 16)
-    }
-    return 0
-  }
-
-  const intToColorCode = (num: number | null | undefined) => {
-    return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
-  }
 
   const colorPicker = (username: string) => {
     return (
