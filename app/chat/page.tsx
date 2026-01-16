@@ -566,13 +566,13 @@ export default function Chat() {
               <div className="mb-1 flex items-center grid grid-cols-3">
                 <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900">{username}</span>
                 <button type="submit" disabled={buttonDisable || inputText === ""}
-                  className="text-white text-base bg-blue-700 hover:bg-blue-800 focus:ring-4
+                  className="text-white text-sm bg-blue-700 hover:bg-blue-800 focus:ring-4
                   focus:outline-none focus:ring-blue-300 font-medium rounded-lg
                   sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
                   発言
                 </button>
                 <textarea id="message" name="message" rows={1}
-                  className="col-span-3 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
+                  className="col-span-3 block resize-y p-2.5 mb-2 w-full text-base text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                   value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
                 />
