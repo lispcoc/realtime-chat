@@ -409,8 +409,10 @@ export default function Chat() {
     })
     const responseData = await response.json()
     setIsEntered(responseData.entered)
-    setUsername(responseData.username || "")
-    setColor(intToColorCode(responseData.color || 0))
+    if (responseData.entered) {
+      setUsername(responseData.username || "Unknown")
+      setColor(intToColorCode(responseData.color || 0))
+    }
 
     return {
       username: responseData.username,
