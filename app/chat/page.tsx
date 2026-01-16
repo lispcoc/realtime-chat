@@ -2,6 +2,8 @@
 "use client"
 import { Database, Json } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
+import useSound from 'use-sound';
+import se from "../sound.mp3"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
@@ -27,6 +29,7 @@ type User = {
 
 export default function Chat() {
   const NUM_MESSAGES = 20
+  const [play, { stop, pause }] = useSound(se);
 
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -43,8 +46,10 @@ export default function Chat() {
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
   const [showVariableCommand, setShowVariableCommand] = useState(false)
+  const [playSound, setPlaySound] = useState(true)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [recievedMessage, setRecievedMessage] = useState(false)
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
@@ -84,6 +89,7 @@ export default function Chat() {
                 if (!recievedMessages.includes(id)) {
                   setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0)])
                   recievedMessages.push(id)
+                  setRecievedMessage(true)
                 }
               }
             }
@@ -500,7 +506,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full max-w-4xl" onClick={() => { if (playSound && recievedMessage) { play(); setRecievedMessage(false) } }}>
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!roomDataLoaded && (
@@ -533,6 +539,13 @@ export default function Chat() {
         )}
 
         <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
+          <span className="w-full font-medium text-xs text-right">
+            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { setPlaySound(() => event.target.checked) }} />
+            新着時に音を鳴らす
+          </span>
+        </div>
+
+        <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
           <span className="font-medium text-xs">
             現在の入室者:
           </span>
@@ -549,8 +562,8 @@ export default function Chat() {
         {isEntered && (
           <>
             <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
-              <div className="mb-1 flex items-center grid grid-cols-2">
-                <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
+              <div className="mb-1 flex items-center grid grid-cols-3">
+                <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900">{username}</span>
                 <button type="submit" disabled={buttonDisable || inputText === ""}
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
               focus:outline-none focus:ring-blue-300 font-medium rounded-lg
@@ -558,7 +571,7 @@ export default function Chat() {
                   発言
                 </button>
                 <textarea id="message" name="message" rows={1}
-                  className="col-span-2 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
+                  className="col-span-3 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                   value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
                 />
