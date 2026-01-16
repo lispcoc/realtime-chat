@@ -477,6 +477,8 @@ export default function Chat() {
   }
 
   const setVar = async (op: string, key: string, value: number) => {
+    setButtonDisable(true)
+    setTimeout(() => setButtonDisable(false), 2 * 1000)
     const data = {
       action: 'changeVariable',
       roomId: roomId,
@@ -545,55 +547,62 @@ export default function Chat() {
         </div>
 
         {isEntered && (
-          <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
-            <div className="mb-1 flex items-center grid grid-cols-2">
-              <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
-              <button type="submit" disabled={buttonDisable || inputText === ""}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+          <>
+            <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
+              <div className="mb-1 flex items-center grid grid-cols-2">
+                <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
+                <button type="submit" disabled={buttonDisable || inputText === ""}
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
               focus:outline-none focus:ring-blue-300 font-medium rounded-lg
               text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-                発言
-              </button>
-              <textarea id="message" name="message" rows={1}
-                className="col-span-2 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
+                  発言
+                </button>
+                <textarea id="message" name="message" rows={1}
+                  className="col-span-2 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
-              />
-            </div>
-          </form>
-        )}
-
-        {variableKeys.length > 0 && (
-          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-            <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
-              特殊コマンド {showRoomDescription ? "[非表示]" : "[表示]"}
-            </div>
-            {showVariableCommand && variableKeys.map(key => (
-              <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
-                <span className="col-span-3 text-center">
-                  a ({variables[key] || 0})
-                </span>
-                <button type="submit" onClick={() => setVar("mod", key, 1)}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-                  +1
-                </button>
-                <button type="submit" onClick={() => setVar("mod", key, -1)}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-                  -1
-                </button>
-                <button type="submit" onClick={() => setVar("set", key, 0)}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-                  リセット
-                </button>
+                  value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
+                />
               </div>
-            ))}
-          </div>
+            </form>
+
+            {variableKeys.length > 0 && (
+              <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+                <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
+                  特殊コマンド {showRoomDescription ? "[非表示]" : "[表示]"}
+                </div>
+                {showVariableCommand && variableKeys.map(key => (
+                  <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
+                    <span className="col-span-3 text-center">
+                      <span className=" font-medium">
+                        {key}
+                      </span>
+                      <span>
+                        ({variables[key] || 0})
+                      </span>
+                    </span>
+                    <button type="submit" onClick={() => setVar("mod", key, 1)} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      +1
+                    </button>
+                    <button type="submit" onClick={() => setVar("mod", key, -1)} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      -1
+                    </button>
+                    <button type="submit" onClick={() => setVar("set", key, 0)} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      リセット
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
