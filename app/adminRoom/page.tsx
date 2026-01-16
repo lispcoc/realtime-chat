@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
 import { createTrip } from "2ch-trip"
+import { intToColorCode } from "@/utils/color/color"
 
 type RoomOption = {
   private: boolean
@@ -46,10 +47,6 @@ export default function Chat() {
       return parseInt(result[1], 16)
     }
     return 0
-  }
-
-  const intToColorCode = (num: number | null | undefined) => {
-    return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
   }
 
   const colorPicker = (username: string) => {
@@ -407,7 +404,7 @@ export default function Chat() {
     const responseData = await response.json()
     setIsEntered(responseData.entered)
     setUsername(responseData.username || "")
-    setColor(intToColorCode(responseData.color))
+    setColor(intToColorCode(responseData.color || 0))
 
     return {
       username: responseData.username,
@@ -439,8 +436,8 @@ export default function Chat() {
 
   const linedDescription = (text: String) => {
     const lines = text.split('\n').map((item, index) => {
-      if (item) return (<div>{item}</div>)
-      return (<div>&nbsp;</div>)
+      if (item) return (<div key={index}>{item}</div>)
+      return (<div key={index}>&nbsp;</div>)
     })
     return lines
   }

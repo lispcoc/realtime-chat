@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { intToColorCode } from "@/utils/color/color"
 
 type UserData = {
   color: number,
@@ -11,10 +12,6 @@ type Props = {
   index: number,
   isAdmin?: boolean | undefined
   users?: UserData[]
-}
-
-const intToColorCode = (num: number | null | undefined) => {
-  return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
 }
 
 export default function RoomLink({ roomId, linkName, index, isAdmin = false, users = [] }: Props) {

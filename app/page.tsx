@@ -3,10 +3,7 @@
 import { useEffect, useState, useReducer } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
-
-const intToColorCode = (num: number | null | undefined) => {
-  return num ? '#' + num.toString(16).padStart(6, '0') : '#000000'
-}
+import { intToColorCode } from "@/utils/color/color"
 
 export default function Index() {
   type RoomData = {
@@ -70,7 +67,7 @@ export default function Index() {
         <h2 className="text-xl font-bold pt-6 pb-10">ルーム一覧</h2>
         <ul>
           {rooms.map((item, index) => (
-            <RoomLink roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
+            <RoomLink key={index} roomId={String(item.id)} index={index} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
           ))}
         </ul>
       </div>

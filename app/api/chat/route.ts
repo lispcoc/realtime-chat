@@ -172,7 +172,7 @@ async function autoClear(roomId: number) {
 
 export async function POST(request: NextRequest) {
     const { action, roomId, username, color } = await request.json();
-    const headersList = headers();
+    const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || "";
     let chk_auto_clear = false
     let res: NextResponse = NextResponse.json({ ip: ip }, { status: 200 })
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-    const headersList = headers();
+    const headersList = await headers();
     const ip = headersList.get("x-forwarded-for");
     const searchParams = request.nextUrl.searchParams
     const action = searchParams.get("action") || ""

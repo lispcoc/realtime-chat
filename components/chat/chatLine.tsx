@@ -1,12 +1,9 @@
 import { Database } from "@/types/supabasetype"
+import { intToColorCode } from "@/utils/color/color"
 
 type Props = {
     message: Database["public"]["Tables"]["Messages"]["Row"],
     index: number
-}
-
-const intToColorCode = (num: number) => {
-    return '#' + num.toString(16).padStart(6, '0')
 }
 
 export default function ChatLine({ message, index }: Props) {
