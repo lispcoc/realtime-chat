@@ -29,6 +29,7 @@ export default function Chat() {
   const [inputName, setInputName] = useState("")
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
+  const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
@@ -159,6 +160,13 @@ export default function Chat() {
       if (initialized) return
       initialized = true
 
+      if (localStorage.getItem('username')) {
+        setInputName(localStorage.getItem('username') || "")
+      }
+      if (localStorage.getItem('username_color')) {
+        setColor(localStorage.getItem('username_color') || "#000000")
+      }
+
       let tempRoomData = null
       try {
         const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
@@ -171,6 +179,7 @@ export default function Chat() {
         alert("部屋データの取得に失敗しました。")
         return
       }
+      setRoomDataLoaded(true)
 
       await getUsers()
 
@@ -191,12 +200,6 @@ export default function Chat() {
         await checkEntered()
         fetchMessages()
         fetchRealtimeData()
-      }
-      if (localStorage.getItem('username')) {
-        setInputName(localStorage.getItem('username') || "")
-      }
-      if (localStorage.getItem('username_color')) {
-        setColor(localStorage.getItem('username_color') || "#000000")
       }
 
       const timer = setInterval(getUsers, 5 * 60 * 1000)
@@ -455,89 +458,97 @@ export default function Chat() {
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
-      {!isEntered && (
-        <form className="m-2 p-2" onSubmit={onSubmitEnter}>
-          <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
-          <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
-          {showColorPicker && colorPicker(inputName)}
-          <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+      {!roomDataLoaded && (
+        <div className="m-2 p-2">
+          部屋データを読み込み中...
+        </div>
+      )}
+
+      {roomDataLoaded && (<>
+        {!isEntered && (
+          <form className="m-2 p-2" onSubmit={onSubmitEnter}>
+            <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
+            <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
+            {showColorPicker && colorPicker(inputName)}
+            <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                 focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-            name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-          <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-            入室
-          </button>
-        </form>
-      )}
+              name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
+            <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+              入室
+            </button>
+          </form>
+        )}
 
-      {isEntered && (
-        <form className="m-2" onSubmit={onSubmitLeave}>
-          <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-            退室
-          </button>
-        </form>
-      )}
+        {isEntered && (
+          <form className="m-2" onSubmit={onSubmitLeave}>
+            <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+              退室
+            </button>
+          </form>
+        )}
 
-      <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
-        <span className="font-medium text-xs">
-          現在の入室者:
-        </span>
-        {users.map((user, index) => (
-          <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
-            {user.name}
+        <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
+          <span className="font-medium text-xs">
+            現在の入室者:
           </span>
-        ))}
-        <span className="flex items-end text-xs font-xs">
-          {roomData && `(${users.length} / ${getRoomOption().user_limit} 人)`}
-        </span>
-      </div>
+          {users.map((user, index) => (
+            <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
+              {user.name}
+            </span>
+          ))}
+          <span className="flex items-end text-xs font-xs">
+            {roomData && `(${users.length} / ${getRoomOption().user_limit} 人)`}
+          </span>
+        </div>
 
-      {isEntered && (
-        <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
-          <div className="mb-1 flex items-center grid grid-cols-2">
-            <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
-            <button type="submit" disabled={buttonDisable || inputText === ""}
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+        {isEntered && (
+          <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
+            <div className="mb-1 flex items-center grid grid-cols-2">
+              <span style={{ color: color }} className="mb-2 font-medium text-gray-900">{username}</span>
+              <button type="submit" disabled={buttonDisable || inputText === ""}
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
               focus:outline-none focus:ring-blue-300 font-medium rounded-lg
               text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
-              発言
-            </button>
-            <textarea id="message" name="message" rows={1}
-              className="col-span-2 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
+                発言
+              </button>
+              <textarea id="message" name="message" rows={1}
+                className="col-span-2 block resize-y p-2.5 mb-2 w-full text-sm text-gray-900
                 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
-            />
-          </div>
-        </form>
-      )}
+                value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
+              />
+            </div>
+          </form>
+        )}
 
-      <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
-        <div className="text-sm">
-          ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+        <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg" onClick={onClickRoomDescription}>
+          <div className="text-sm">
+            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+          </div>
+          {showRoomDescription && (
+            <div className="text-xs">{
+              roomData
+                ? linedDescription(roomData.description || "")
+                : ""}
+            </div>
+          )}
         </div>
-        {showRoomDescription && (
-          <div className="text-xs">{
-            roomData
-              ? linedDescription(roomData.description || "")
-              : ""}
+
+        {roomData?.options && (roomData?.options as any).private && !isEntered && (
+          <div className="p-2 w-full pb-10">
+            未入室閲覧禁止設定です。
           </div>
         )}
-      </div>
 
-      {roomData?.options && (roomData?.options as any).private && !isEntered && (
-        <div className="p-2 w-full pb-10">
-          未入室閲覧禁止設定です。
+        <div className="p-2 w-full mb-10">
+          {messageText.map((item, index) => (
+            <ChatLine message={item} index={index}></ChatLine>
+          ))}
         </div>
-      )}
 
-      <div className="p-2 w-full mb-10">
-        {messageText.map((item, index) => (
-          <ChatLine message={item} index={index}></ChatLine>
-        ))}
-      </div>
-
-      <div className="w-full mb-10">
-        <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
-      </div>
+        <div className="w-full mb-10">
+          <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
+        </div>
+      </>)}
 
     </div>
   )
