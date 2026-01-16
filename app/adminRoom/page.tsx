@@ -340,6 +340,10 @@ export default function Chat() {
       alert('これ以上入室できません。')
       return
     }
+    if (users.find(user => (user.name === createTrip(inputName)))) {
+      alert('同じ名前の人が入室しています。')
+      return
+    }
     handlingDb = true
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
