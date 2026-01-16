@@ -521,8 +521,9 @@ export default function Chat() {
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
             {showColorPicker && colorPicker(inputName)}
-            <input type="text" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
+            <input type="text" id="name"
+              className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+              focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
             <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
               入室
@@ -565,9 +566,9 @@ export default function Chat() {
               <div className="mb-1 flex items-center grid grid-cols-3">
                 <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900">{username}</span>
                 <button type="submit" disabled={buttonDisable || inputText === ""}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-              focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-              text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                  className="text-white text-base bg-blue-700 hover:bg-blue-800 focus:ring-4
+                  focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                  sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
                   発言
                 </button>
                 <textarea id="message" name="message" rows={1}
