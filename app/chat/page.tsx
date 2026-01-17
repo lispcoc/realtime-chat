@@ -573,7 +573,7 @@ export default function Chat() {
                 </button>
                 <textarea id="message" name="message" rows={1}
                   className="col-span-3 block resize-y p-2.5 mb-2 w-full text-base text-gray-900
-                bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                   value={inputText} onChange={(event) => { event.target.style.height = "auto"; event.target.style.height = `${event.target.scrollHeight}px`; setInputText(() => event.target.value.replace(/\r?\n/g, '')) }}
                 />
               </div>

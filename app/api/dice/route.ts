@@ -14,12 +14,14 @@ async function addMessage(msg: any) {
 
 const roll = async (command: string) => {
     try {
+        let isDiceRoll = false
         const tokens = tokenize(command)
         const ops: string[] = []
         const consts: string[] = []
         tokens.forEach(token => {
             if (token.type === 'DiceRoll') {
                 if (token.detailType === '_SimpleDieRoll') {
+                    isDiceRoll = true
                     if (token.detail.count > 20 || token.detail.numSides > 10000) {
                         throw new Error('too big dice')
                     }
@@ -30,6 +32,7 @@ const roll = async (command: string) => {
                 ops.push(token.operator)
             }
         })
+        if (!isDiceRoll) return null
         const rolls = rollDice(tokens)
         const rollTotals = tallyRolls(tokens, rolls)
         const result = calculateFinalResult(tokens, rollTotals)
