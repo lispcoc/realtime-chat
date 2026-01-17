@@ -46,7 +46,7 @@ export default function Chat() {
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
   const [showVariableCommand, setShowVariableCommand] = useState(false)
-  const [playSound, setPlaySound] = useState(true)
+  const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [recievedMessage, setRecievedMessage] = useState(false)
@@ -228,7 +228,11 @@ export default function Chat() {
 
       return () => clearInterval(timer)
     })()
-  }, [])
+    if (recievedMessage) {
+      if (playSound) play()
+      setRecievedMessage(false)
+    }
+  }, [recievedMessage])
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -506,7 +510,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="w-full max-w-4xl" onClick={() => { if (playSound && recievedMessage) { play(); setRecievedMessage(false) } }}>
+    <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!roomDataLoaded && (
@@ -541,7 +545,7 @@ export default function Chat() {
 
         <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
           <span className="w-full font-medium text-xs text-right">
-            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { setPlaySound(() => event.target.checked) }} />
+            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { play(); setPlaySound(() => event.target.checked) }} />
             新着時に音を鳴らす
           </span>
         </div>
@@ -582,7 +586,7 @@ export default function Chat() {
             {variableKeys.length > 0 && (
               <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
                 <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
-                  特殊コマンド {showRoomDescription ? "[非表示]" : "[表示]"}
+                  特殊コマンド {showVariableCommand ? "[非表示]" : "[表示]"}
                 </div>
                 {showVariableCommand && variableKeys.map(key => (
                   <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
