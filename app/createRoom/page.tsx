@@ -39,6 +39,7 @@ export default function CreateRoom() {
   const [inputPassword, setInputPassword] = useState("")
   const [inputRoomAllClearKey, setInputRoomAllClearKey] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [inputUseTrump, setInputUseTrump] = useState(false)
   const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
@@ -94,6 +95,7 @@ export default function CreateRoom() {
         options: {
           private: inputPrivate,
           auto_all_clear: autoAllClear,
+          use_trump: inputUseTrump,
           user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
           all_clear: inputRoomAllClearKey,
           variables: variable_keys
@@ -163,6 +165,16 @@ export default function CreateRoom() {
           )}
           {!autoAllClear && (
             <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} />
+          )}
+        </div>
+
+        <div className="mb-5">
+          <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">トランプ機能を使う</label>
+          {inputUseTrump && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} checked />
+          )}
+          {!inputUseTrump && (
+            <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} />
           )}
         </div>
 

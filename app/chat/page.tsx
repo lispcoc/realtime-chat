@@ -15,6 +15,7 @@ type RoomOption = {
   private: boolean
   user_limit: number,
   all_clear: string,
+  use_trump: boolean,
   variables: string[]
 }
 
@@ -42,11 +43,13 @@ export default function Chat() {
   const [users, setUsers] = useState<User[]>([])
   const [variableKeys, setVariableKeys] = useState<string[]>([])
   const [variables, setVariables] = useState<VariableObject>({})
+  const [useTrump, setUseTrump] = useState(false)
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
   const [showVariableCommand, setShowVariableCommand] = useState(false)
+  const [showTrumpCommand, setShowTrumpCommand] = useState(false)
   const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -219,6 +222,9 @@ export default function Chat() {
         if (variables) {
           setVariables(variables)
         }
+        if (opt.use_trump) {
+          setUseTrump(opt.use_trump)
+        }
       } else {
         await checkEntered()
         fetchMessages()
@@ -347,9 +353,10 @@ export default function Chat() {
   }
 
   const getRoomOption = () => {
-    const rd: RoomOption = { private: false, user_limit: 5, all_clear: "", variables: [] }
+    const rd: RoomOption = { private: false, use_trump: false, user_limit: 5, all_clear: "", variables: [] }
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
+      rd.use_trump = (roomData.options as any).use_trump
       rd.user_limit = parseInt((roomData.options as any).user_limit)
       if (isNaN(rd.user_limit)) rd.user_limit = 10
       rd.all_clear = (roomData.options as any).all_clear || ""
@@ -515,6 +522,40 @@ export default function Chat() {
     })
   }
 
+  const drawCard = async () => {
+    setButtonDisable(true)
+    setTimeout(() => setButtonDisable(false), 2 * 1000)
+    fetch('/api/card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify({
+        roomId: roomId,
+        command: 'drawCard',
+        username: username
+      }),
+    })
+  }
+
+  const resetDeck = async () => {
+    setButtonDisable(true)
+    setTimeout(() => setButtonDisable(false), 2 * 1000)
+    fetch('/api/card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: JSON.stringify({
+        roomId: roomId,
+        command: 'resetDeck',
+        username: username
+      }),
+    })
+  }
+
   return (
     <div className="w-full max-w-4xl">
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
@@ -589,6 +630,30 @@ export default function Chat() {
               </div>
             </form>
 
+            {useTrump && (
+              <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+                <div className="w-full text-sm" onClick={() => setShowTrumpCommand(!showTrumpCommand)}>
+                  トランプ機能 {showTrumpCommand ? "[非表示]" : "[表示]"}
+                </div>
+                {showTrumpCommand && (
+                  <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
+                    <button type="submit" onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      1枚引く
+                    </button>
+                    <button type="submit" onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      山札をリセット
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {variableKeys.length > 0 && (
               <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
                 <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
@@ -604,19 +669,19 @@ export default function Chat() {
                         ({variables[key] || 0})
                       </span>
                     </span>
-                    <button type="submit" onClick={() => setVar("mod", key, 1)} disabled={buttonDisable}
+                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("mod", key, 1) }} disabled={buttonDisable}
                       className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
                       focus:outline-none focus:ring-blue-300 font-medium rounded-lg
                       text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
                       +1
                     </button>
-                    <button type="submit" onClick={() => setVar("mod", key, -1)} disabled={buttonDisable}
+                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("mod", key, -1) }} disabled={buttonDisable}
                       className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
                       focus:outline-none focus:ring-blue-300 font-medium rounded-lg
                       text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
                       -1
                     </button>
-                    <button type="submit" onClick={() => setVar("set", key, 0)} disabled={buttonDisable}
+                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("set", key, 0) }} disabled={buttonDisable}
                       className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
                       focus:outline-none focus:ring-blue-300 font-medium rounded-lg
                       text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">

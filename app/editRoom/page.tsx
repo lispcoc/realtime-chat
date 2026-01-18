@@ -44,6 +44,7 @@ export default function CreateRoom() {
   const [inputNewPassword, setInputNewPassword] = useState("")
   const [inputRoomAllClearKey, setInputRoomAllClearKey] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
+  const [inputUseTrump, setInputUseTrump] = useState(false)
   const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
@@ -101,6 +102,10 @@ export default function CreateRoom() {
           if (opt.auto_all_clear) {
             setAutoAllClear(opt.auto_all_clear)
           }
+          if (opt.use_trump) {
+            setInputUseTrump(opt.use_trump)
+          }
+
           if (opt.variables) {
             for (const key of opt.variables) {
               roomVariableFieldArray.append({ key: key })
@@ -166,6 +171,7 @@ export default function CreateRoom() {
         options: {
           private: inputPrivate,
           auto_all_clear: autoAllClear,
+          use_trump: inputUseTrump,
           user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
           all_clear: inputRoomAllClearKey,
           variables: variable_keys
@@ -261,6 +267,16 @@ export default function CreateRoom() {
             )}
             {!autoAllClear && (
               <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} />
+            )}
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">トランプ機能を使う</label>
+            {inputUseTrump && (
+              <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} checked />
+            )}
+            {!inputUseTrump && (
+              <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} />
             )}
           </div>
 

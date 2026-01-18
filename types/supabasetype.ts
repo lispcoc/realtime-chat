@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      Cards: {
+        Row: {
+          id: number
+          remaining: string[] | null
+          room_id: number
+          type: string | null
+        }
+        Insert: {
+          id?: number
+          remaining?: string[] | null
+          room_id: number
+          type?: string | null
+        }
+        Update: {
+          id?: number
+          remaining?: string[] | null
+          room_id?: number
+          type?: string | null
+        }
+        Relationships: []
+      }
       Chats: {
         Row: {
           channel: string | null
