@@ -4,8 +4,10 @@ import { headers } from "next/headers";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
 import { use } from "react";
+import bcrypt from 'bcryptjs'
 
 const INACTIVE_MINUTES = 30
+const fixedSalt = "$2a$10$IKzllnUoRdQkZscoft21rJ8QkCUJSDO"
 
 async function addMessage(msg: any) {
     await supabase.from("Messages").insert(msg)
@@ -40,14 +42,14 @@ async function removeInactiveUser(roomId: number) {
     }
 }
 
-async function checkEntered(roomId: number, ip: string) {
-    const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
+async function checkEntered(roomId: number, userId: string) {
+    const { data } = await supabase.from("Users").select("*").match({ "id": userId, room_id: roomId })
     if (data && data[0]) {
         return NextResponse.json({
             username: data[0].name,
             entered: true,
             color: data[0].color,
-            id: ip
+            id: userId
         }, {
             status: 200
         });
@@ -58,18 +60,18 @@ async function checkEntered(roomId: number, ip: string) {
     }, { status: 200 });
 }
 
-async function enterRoom(roomId: number, ip: string, username: string, color: number) {
+async function enterRoom(roomId: number, userId: string, username: string, color: number) {
     try {
-        const { data } = await supabase.from("Users").select("*").match({ "id": ip })
+        const { data } = await supabase.from("Users").select("*").match({ "id": userId })
         if (data && data[0]) {
             if (data[0].room_id === roomId) {
                 return NextResponse.json({
-                    ip: ip
+                    id: userId
                 }, {
                     status: 200
                 });
             } else {
-                await supabase.from("Users").delete().match({ "id": ip })
+                await supabase.from("Users").delete().match({ "id": userId })
                 addMessage({
                     color: 0,
                     name: "system",
@@ -80,7 +82,7 @@ async function enterRoom(roomId: number, ip: string, username: string, color: nu
             }
         }
         await supabase.from("Users").insert({
-            id: ip,
+            id: userId,
             room_id: roomId,
             name: username,
             color: color,
@@ -95,16 +97,16 @@ async function enterRoom(roomId: number, ip: string, username: string, color: nu
     } catch (error) {
         console.error(error)
     }
-    return NextResponse.json({ ip: ip }, { status: 200 });
+    return NextResponse.json({ id: userId }, { status: 200 });
 }
 
-async function exitRoom(roomId: number, ip: string) {
+async function exitRoom(roomId: number, userId: string) {
     try {
-        const { data } = await supabase.from("Users").select("*").match({ "id": ip, room_id: roomId })
+        const { data } = await supabase.from("Users").select("*").match({ "id": userId, room_id: roomId })
         if (data && data[0]) {
             await supabase.from("Users")
                 .delete()
-                .match({ "id": ip, room_id: roomId })
+                .match({ "id": userId, room_id: roomId })
             addMessage({
                 color: 0,
                 name: "system",
@@ -116,7 +118,7 @@ async function exitRoom(roomId: number, ip: string) {
     } catch (error) {
         console.error(error)
     }
-    return NextResponse.json({ ip: ip }, { status: 200 });
+    return NextResponse.json({ ip: userId }, { status: 200 });
 }
 
 async function getUsers(roomId: number) {
@@ -201,20 +203,20 @@ async function changeVariable(roomId: number, arg: any) {
 }
 
 export async function POST(request: NextRequest) {
-    const { action, roomId, username, color, arg } = await request.json();
+    const { action, roomId, username, userId, color, arg } = await request.json();
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || "";
     let chk_auto_clear = false
     let res: NextResponse = NextResponse.json({ ip: ip }, { status: 200 })
 
     if (action === 'checkEntered') {
-        res = await checkEntered(roomId, ip)
+        res = await checkEntered(roomId, userId ? userId : bcrypt.hashSync(ip, fixedSalt))
         autoClear(roomId)
     } else if (action === 'enterRoom') {
-        res = await enterRoom(roomId, ip, username, color)
+        res = await enterRoom(roomId, userId ? userId : bcrypt.hashSync(ip, fixedSalt), username, color)
         autoClear(roomId)
     } else if (action === 'exitRoom') {
-        res = await exitRoom(roomId, ip)
+        res = await exitRoom(roomId, userId ? userId : bcrypt.hashSync(ip, fixedSalt))
         autoClear(roomId)
     } else if (action === 'getUsers') {
         res = await getUsers(roomId)

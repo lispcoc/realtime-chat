@@ -30,6 +30,7 @@ type User = {
 export default function Chat() {
   const NUM_MESSAGES = 20
   const [play, { stop, pause }] = useSound(se);
+  const fixedSalt = "$2a$10$IKzllnUoRdQkZscoft21rJ8QkCUJSDO"
 
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -378,7 +379,8 @@ export default function Chat() {
       action: 'enterRoom',
       roomId: roomId,
       color: colorCodeToInt(color),
-      username: createTrip(inputName)
+      username: createTrip(inputName),
+      userId: localStorage.getItem("userId") || null
     };
 
     const response = await fetch('/api/chat', {
@@ -391,6 +393,8 @@ export default function Chat() {
     });
 
     if (response.ok) {
+      const data = await response.json()
+      localStorage.setItem("userId", data.id)
       const chk = await checkEntered()
       if (opt.private && chk.entered) {
         await fetchMessages()
@@ -428,7 +432,8 @@ export default function Chat() {
   const checkEntered = async () => {
     const data = {
       action: 'checkEntered',
-      roomId: roomId
+      roomId: roomId,
+      userId: localStorage.getItem("userId") || null
     }
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -456,7 +461,8 @@ export default function Chat() {
     event.preventDefault()
     const data = {
       action: 'exitRoom',
-      roomId: roomId
+      roomId: roomId,
+      userId: localStorage.getItem("userId") || null
     };
 
     const response = await fetch('/api/chat', {
