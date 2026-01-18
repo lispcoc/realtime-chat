@@ -8,6 +8,7 @@ import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
+import MessageDialog from '@/components/modal';
 import { createTrip } from "2ch-trip"
 import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 
@@ -49,6 +50,9 @@ export default function Chat() {
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
   const [showVariableCommand, setShowVariableCommand] = useState(false)
+  const [inputVariableOpen, setInputVariableOpen] = useState(false)
+  const [inputVariableKey, setInputVariableKey] = useState("")
+  const [inputVariableValue, setInputVariableValue] = useState(0)
   const [showTrumpCommand, setShowTrumpCommand] = useState(false)
   const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
@@ -661,7 +665,7 @@ export default function Chat() {
                 </div>
                 {showVariableCommand && variableKeys.map(key => (
                   <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
-                    <span className="col-span-3 text-center">
+                    <span className="col-span-2 text-center">
                       <span className=" font-medium">
                         {key}
                       </span>
@@ -681,6 +685,12 @@ export default function Chat() {
                       text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
                       -1
                     </button>
+                    <button type="submit" onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true) }} disabled={buttonDisable}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
+                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
+                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                      値を入力
+                    </button>
                     <button type="submit" onClick={() => { if (!buttonDisable) setVar("set", key, 0) }} disabled={buttonDisable}
                       className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
                       focus:outline-none focus:ring-blue-300 font-medium rounded-lg
@@ -693,6 +703,21 @@ export default function Chat() {
             )}
           </>
         )}
+        <MessageDialog
+          open={inputVariableOpen}
+          showCancel={true}
+          onCancel={() => setInputVariableOpen(false)}
+          onOk={() => { setInputVariableOpen(false); setVar("set", inputVariableKey, inputVariableValue) }}
+          message={(
+            <div>
+              {inputVariableKey}
+              <input type="number" value={inputVariableValue} onChange={(event) => setInputVariableValue(() => parseInt(event.target.value))}
+                className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+                              focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
+              />
+            </div>
+          )}
+        />
 
         <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
           <div className="w-full text-sm" onClick={onClickRoomDescription}>
