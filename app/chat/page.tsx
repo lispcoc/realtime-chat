@@ -33,6 +33,7 @@ export default function Chat() {
   const NUM_MESSAGES = 20
   const [play, { stop, pause }] = useSound(se);
   const fixedSalt = "$2a$10$IKzllnUoRdQkZscoft21rJ8QkCUJSDO"
+  const BUTTON_STYLE = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
 
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -580,7 +581,7 @@ export default function Chat() {
               className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" disabled={buttonDisable || inputName === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputName === ""}>
               入室
             </button>
           </form>
@@ -588,7 +589,7 @@ export default function Chat() {
 
         {isEntered && (
           <form className="m-2" onSubmit={onSubmitLeave}>
-            <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button type="submit" className={`${BUTTON_STYLE}`}>
               退室
             </button>
           </form>
@@ -620,10 +621,7 @@ export default function Chat() {
             <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
               <div className="mb-1 flex items-center grid grid-cols-3">
                 <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900">{username}</span>
-                <button type="submit" disabled={buttonDisable || inputText === ""}
-                  className="text-white text-sm bg-blue-700 hover:bg-blue-800 focus:ring-4
-                  focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                  sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputText === ""}>
                   発言
                 </button>
                 <textarea id="message" name="message" rows={1}
@@ -641,16 +639,10 @@ export default function Chat() {
                 </div>
                 {showTrumpCommand && (
                   <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
-                    <button type="submit" onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}>
                       1枚引く
                     </button>
-                    <button type="submit" onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}>
                       山札をリセット
                     </button>
                   </div>
@@ -673,28 +665,16 @@ export default function Chat() {
                         ({variables[key] || 0})
                       </span>
                     </span>
-                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("mod", key, 1) }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1) }} disabled={buttonDisable}>
                       +1
                     </button>
-                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("mod", key, -1) }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1) }} disabled={buttonDisable}>
                       -1
                     </button>
-                    <button type="submit" onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true) }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true) }} disabled={buttonDisable}>
                       値を入力
                     </button>
-                    <button type="submit" onClick={() => { if (!buttonDisable) setVar("set", key, 0) }} disabled={buttonDisable}
-                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4
-                      focus:outline-none focus:ring-blue-300 font-medium rounded-lg
-                      text-sm sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0) }} disabled={buttonDisable}>
                       リセット
                     </button>
                   </div>
