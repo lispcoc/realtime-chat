@@ -436,7 +436,10 @@ export default function Chat() {
 
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
         const chk = await checkEntered()
-        if (!chk.entered) alert("入室していません。")
+        if (!chk.entered) {
+          setIsEntered(false)
+          alert("入室していません。")
+        }
       }
     }
   }
