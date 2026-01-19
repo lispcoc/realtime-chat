@@ -79,16 +79,20 @@ const TermsOfUse = ({ forceShow = false, onClose = () => { } }: Props) => {
                   ※本メッセージが繰り返し表示される場合は、ブラウザのCookie機能を有効化してください。
                 </li>
               </ul>
-              <div className="">
-                <input type="checkbox" id="agree" name="agree" onChange={(event) => setAgree(() => event.target.checked)} />
-                18歳以上であり、上記のすべてに同意する。
-                <button
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
-                  disabled={!agree}
-                  onClick={() => { if (agree) { onAgree() } }}
-                >
-                  OK
-                </button>
+              <div className="p-10">
+                <div className="">
+                  <input type="checkbox" id="agree" name="agree" onChange={(event) => setAgree(() => event.target.checked)} />
+                  18歳以上であり、上記のすべてに同意する。
+                </div>
+                <div className="mt-5">
+                  <button
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    disabled={!agree}
+                    onClick={() => { if (agree) { onAgree() } }}
+                  >
+                    OK
+                  </button>
+                </div>
               </div>
             </div>
           </div>
