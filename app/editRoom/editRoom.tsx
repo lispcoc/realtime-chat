@@ -100,6 +100,9 @@ export default function EditRoom() {
           if (opt.private) {
             setInputPrivate(opt.private)
           }
+          if (opt.all_clear) {
+            setInputRoomAllClearKey(opt.all_clear)
+          }
           if (opt.auto_all_clear) {
             setAutoAllClear(opt.auto_all_clear)
           }

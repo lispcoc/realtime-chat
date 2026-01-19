@@ -36,8 +36,7 @@ const linkifyOptions = {
 
 export default function Chat() {
   const NUM_MESSAGES = 20
-  const [play, { stop, pause }] = useSound(se);
-  const fixedSalt = "$2a$10$IKzllnUoRdQkZscoft21rJ8QkCUJSDO"
+  const [play, { stop, pause }] = useSound(se)
   const BUTTON_STYLE = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
 
   const searchParams = useSearchParams()
@@ -603,18 +602,11 @@ export default function Chat() {
         )}
 
         <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
-          <span className="w-full font-medium text-xs text-right">
-            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { play(); setPlaySound(() => event.target.checked) }} />
-            新着時に音を鳴らす
-          </span>
-        </div>
-
-        <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
           <span className="font-medium text-xs">
             現在の入室者:
           </span>
           {users.map((user, index) => (
-            <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
+            <span key={index} style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
               {user.name}
             </span>
           ))}
@@ -623,11 +615,12 @@ export default function Chat() {
           </span>
         </div>
 
+        {isEntered && showColorPicker && colorPicker('')}
         {isEntered && (
           <>
             <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
               <div className="mb-1 flex items-center grid grid-cols-3">
-                <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900">{username}</span>
+                <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>{username}</span>
                 <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputText === ""}>
                   発言
                 </button>
@@ -706,19 +699,19 @@ export default function Chat() {
           )}
         />
 
-        <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-          <div className="w-full text-sm" onClick={onClickRoomDescription}>
-            ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
-          </div>
-          {showRoomDescription && (
+        {showRoomDescription && (
+          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+            <div className="w-full text-sm" onClick={onClickRoomDescription}>
+              ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+            </div>
             <Linkify as="div" className="text-xs" options={linkifyOptions}>
               {
                 roomData
                   ? linedDescription(roomData.description || "")
                   : ""}
             </Linkify>
-          )}
-        </div>
+          </div>
+        )}
 
         {roomData?.options && (roomData?.options as any).private && !isEntered && (
           <div className="p-2 w-full pb-10">
@@ -730,6 +723,21 @@ export default function Chat() {
           {messageText.map((item, index) => (
             <ChatLine key={index} message={item} index={index}></ChatLine>
           ))}
+        </div>
+
+        {!showRoomDescription && (
+          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+            <div className="w-full text-sm" onClick={onClickRoomDescription}>
+              ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+            </div>
+          </div>
+        )}
+
+        <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
+          <span className="w-full font-medium text-xs text-right">
+            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { play(); setPlaySound(() => event.target.checked) }} />
+            新着時に音を鳴らす
+          </span>
         </div>
 
         <div className="w-full mb-10">
