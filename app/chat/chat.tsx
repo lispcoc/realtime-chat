@@ -728,10 +728,10 @@ export default function Chat() {
                   トランプ機能
                 </div>
                 <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
-                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}>
+                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     1枚引く
                   </button>
-                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}>
+                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     山札をリセット
                   </button>
                 </div>
@@ -752,16 +752,16 @@ export default function Chat() {
                         ({variables[key] || 0})
                       </span>
                     </span>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       +1
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       -1
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       値を入力
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       リセット
                     </button>
                   </div>
