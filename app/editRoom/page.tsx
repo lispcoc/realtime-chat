@@ -47,6 +47,7 @@ export default function CreateRoom() {
   const [inputUseTrump, setInputUseTrump] = useState(false)
   const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
+  const [inputDeleteRoom, setInputDeleteRoom] = useState(false)
   const [buttonDisable, setButtonDisable] = useState(false)
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [login, setLogin] = useState(false)
@@ -389,7 +390,11 @@ export default function CreateRoom() {
 
       {login && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitDeleteRoom}>
-          <button type="submit" disabled={inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <div className="rounded-lg flex flex-wrap space-x-2">
+            <label htmlFor='deleteRoom' className="block mb-2 text-sm font-medium text-gray-900">部屋を削除する (確認)</label>
+            <input type="checkbox" id="deleteRoom" name="deleteRoom" onChange={(event) => { setInputDeleteRoom(() => event.target.checked) }} />
+          </div>
+          <button type="submit" disabled={inputPassword === "" || !inputDeleteRoom} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
             部屋の削除
           </button>
         </form>
