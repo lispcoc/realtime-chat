@@ -647,13 +647,13 @@ export default function Chat() {
           onCancel={() => setInputVariableOpen(false)}
           onOk={() => { setInputVariableOpen(false); setVar("set", inputVariableKey, inputVariableValue) }}
           message={(
-            <div>
+            <form onSubmit={() => { setInputVariableOpen(false); setVar("set", inputVariableKey, inputVariableValue) }}>
               {inputVariableKey}
               <input type="number" value={inputVariableValue} onChange={(event) => setInputVariableValue(() => parseInt(event.target.value))}
                 className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
                               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               />
-            </div>
+            </form>
           )}
         />
 
