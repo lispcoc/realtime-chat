@@ -40,7 +40,6 @@ export default function Chats() {
     }
   }
 
-  // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => {
     (async () => {
       let allMessages = null
