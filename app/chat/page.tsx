@@ -11,6 +11,7 @@ import ChatLine from "@/components/chat/chatLine"
 import MessageDialog from '@/components/modal';
 import { createTrip } from "2ch-trip"
 import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
+import Linkify from "linkify-react";
 
 type RoomOption = {
   private: boolean
@@ -27,6 +28,10 @@ type VariableObject = {
 type User = {
   color: number;
   name: string;
+}
+
+const linkifyOptions = {
+  className: "text-blue-700",
 }
 
 export default function Chat() {
@@ -706,11 +711,12 @@ export default function Chat() {
             ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
           </div>
           {showRoomDescription && (
-            <div className="text-xs">{
-              roomData
-                ? linedDescription(roomData.description || "")
-                : ""}
-            </div>
+            <Linkify as="div" className="text-xs" options={linkifyOptions}>
+              {
+                roomData
+                  ? linedDescription(roomData.description || "")
+                  : ""}
+            </Linkify>
           )}
         </div>
 
