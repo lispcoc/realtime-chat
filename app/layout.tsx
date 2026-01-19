@@ -1,4 +1,5 @@
 import Header from '@/components/header'
+import TermsOfUse from '@/components/termsOfUse'
 import './globals.css'
 
 const defaultUrl = process.env.VERCEL_URL
@@ -23,6 +24,7 @@ export default function RootLayout({
         <main className="pt-14 min-h-screen flex flex-col items-center">
           {children}
         </main>
+        <TermsOfUse />
       </body>
     </html>
   )
