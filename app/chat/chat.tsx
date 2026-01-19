@@ -54,7 +54,9 @@ export default function Chat() {
   const [username, setUsername] = useState("")
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showRoomDescription, setShowRoomDescription] = useState(true)
+  const [showRoomDescriptionModal, setShowRoomDescriptionModal] = useState(false);
   const [showVariableCommand, setShowVariableCommand] = useState(false)
+  const [showSettings, setShowSettings] = useState(false);
   const [inputVariableOpen, setInputVariableOpen] = useState(false)
   const [inputVariableKey, setInputVariableKey] = useState("")
   const [inputVariableValue, setInputVariableValue] = useState(0)
@@ -632,33 +634,117 @@ export default function Chat() {
               </div>
             </form>
 
-            {useTrump && (
-              <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-                <div className="w-full text-sm" onClick={() => setShowTrumpCommand(!showTrumpCommand)}>
-                  トランプ機能 {showTrumpCommand ? "[非表示]" : "[表示]"}
-                </div>
-                {showTrumpCommand && (
-                  <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
-                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}>
-                      1枚引く
-                    </button>
-                    <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}>
-                      山札をリセット
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+          </>
+        )}
+        <MessageDialog
+          open={inputVariableOpen}
+          showCancel={true}
+          onCancel={() => setInputVariableOpen(false)}
+          onOk={() => { setInputVariableOpen(false); setVar("set", inputVariableKey, inputVariableValue) }}
+          message={(
+            <div>
+              {inputVariableKey}
+              <input type="number" value={inputVariableValue} onChange={(event) => setInputVariableValue(() => parseInt(event.target.value))}
+                className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+                              focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
+              />
+            </div>
+          )}
+        />
 
-            {variableKeys.length > 0 && (
-              <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-                <div className="w-full text-sm" onClick={() => setShowVariableCommand(!showVariableCommand)}>
-                  特殊コマンド {showVariableCommand ? "[非表示]" : "[表示]"}
+        {!isEntered && (
+          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
+            <div className="w-full text-sm" onClick={onClickRoomDescription}>
+              ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
+            </div>
+            {showRoomDescription && (
+              <Linkify as="div" className="text-xs" options={linkifyOptions}>
+                {
+                  roomData
+                    ? linedDescription(roomData.description || "")
+                    : ""}
+              </Linkify>
+            )}
+          </div>
+        )}
+
+        {roomData?.options && (roomData?.options as any).private && !isEntered && (
+          <div className="p-2 w-full pb-10">
+            未入室閲覧禁止設定です。
+          </div>
+        )}
+
+        <div className="p-2 w-full mb-10">
+          {messageText.map((item, index) => (
+            <ChatLine key={index} message={item} index={index}></ChatLine>
+          ))}
+        </div>
+
+        <div className="w-full mb-20">
+          <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
+        </div>
+      </>)}
+
+      {isEntered && (
+        <footer className="bg-white p-4 border-b-2 border-gray-300 fixed left-0 bottom-0 w-full">
+          <ul className="w-full max-w-xl m-auto flex space-x-4 font-medium flex-row grid grid-cols-3">
+            <li className="text-center">
+              <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowRoomDescriptionModal(true)}>ルーム紹介</span>
+            </li>
+            <li className="text-center">
+              <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowVariableCommand(true)}>特殊コマンド</span>
+            </li>
+            <li className="text-center">
+              <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowSettings(true)}>設定</span>
+            </li>
+          </ul>
+        </footer>
+      )}
+
+      <MessageDialog
+        open={showRoomDescriptionModal}
+        onCancel={() => setShowRoomDescriptionModal(false)}
+        onOk={() => setShowRoomDescriptionModal(false)}
+        message={(
+          <Linkify as="div" className="" options={linkifyOptions}>
+            {
+              roomData
+                ? linedDescription(roomData.description || "")
+                : ""}
+          </Linkify>
+        )}
+      />
+
+      <MessageDialog
+        open={showVariableCommand}
+        onCancel={() => setShowVariableCommand(false)}
+        onOk={() => setShowVariableCommand(false)}
+        message={(
+          <>
+            {useTrump && (
+              <>
+                <div className="w-full font-medium">
+                  トランプ機能
                 </div>
-                {showVariableCommand && variableKeys.map(key => (
-                  <div className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
+                <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
+                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard() }} disabled={buttonDisable}>
+                    1枚引く
+                  </button>
+                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck() }} disabled={buttonDisable}>
+                    山札をリセット
+                  </button>
+                </div>
+              </>
+            )}
+            {variableKeys.length && (
+              <>
+                <div className="w-full font-medium">
+                  数値の操作
+                </div>
+                {variableKeys.map((key, index) => (
+                  <div key={index} className="m-2 mb-1 flex items-center grid grid-cols-6 space-x-2">
                     <span className="col-span-2 row-span-2 text-center">
-                      <span className=" font-medium">
+                      <span className="font-medium">
                         {key}
                       </span>
                       <span>
@@ -679,71 +765,28 @@ export default function Chat() {
                     </button>
                   </div>
                 ))}
-              </div>
+              </>
             )}
           </>
         )}
-        <MessageDialog
-          open={inputVariableOpen}
-          showCancel={true}
-          onCancel={() => setInputVariableOpen(false)}
-          onOk={() => { setInputVariableOpen(false); setVar("set", inputVariableKey, inputVariableValue) }}
-          message={(
-            <div>
-              {inputVariableKey}
-              <input type="number" value={inputVariableValue} onChange={(event) => setInputVariableValue(() => parseInt(event.target.value))}
-                className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
-                              focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-              />
-            </div>
-          )}
-        />
+      />
 
-        {showRoomDescription && (
-          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-            <div className="w-full text-sm" onClick={onClickRoomDescription}>
-              ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
-            </div>
-            <Linkify as="div" className="text-xs" options={linkifyOptions}>
-              {
-                roomData
-                  ? linedDescription(roomData.description || "")
-                  : ""}
-            </Linkify>
-          </div>
-        )}
-
-        {roomData?.options && (roomData?.options as any).private && !isEntered && (
-          <div className="p-2 w-full pb-10">
-            未入室閲覧禁止設定です。
-          </div>
-        )}
-
-        <div className="p-2 w-full mb-10">
-          {messageText.map((item, index) => (
-            <ChatLine key={index} message={item} index={index}></ChatLine>
-          ))}
-        </div>
-
-        {!showRoomDescription && (
-          <div className="m-2 p-2 text-sm border border-gray-300 rounded-lg">
-            <div className="w-full text-sm" onClick={onClickRoomDescription}>
-              ルーム紹介 {showRoomDescription ? "[非表示]" : "[表示]"}
-            </div>
-          </div>
-        )}
-
-        <div className="m-2 p-2 border border-gray-300 rounded-lg flex flex-wrap space-x-2">
-          <span className="w-full font-medium text-xs text-right">
-            <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { play(); setPlaySound(() => event.target.checked) }} />
+      <MessageDialog
+        open={showSettings}
+        onCancel={() => setShowSettings(false)}
+        onOk={() => setShowSettings(false)}
+        message={(
+          <span className="w-full font-medium text-right">
+            {playSound && (
+              <input checked type="checkbox" id="playsound" name="playsound" onChange={(event) => { if (event.target.checked) play(); setPlaySound(() => event.target.checked) }} />
+            )}
+            {!playSound && (
+              <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { if (event.target.checked) play(); setPlaySound(() => event.target.checked) }} />
+            )}
             新着時に音を鳴らす
           </span>
-        </div>
-
-        <div className="w-full mb-10">
-          <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
-        </div>
-      </>)}
+        )}
+      />
 
     </div>
   )
