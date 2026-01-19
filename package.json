@@ -13,7 +13,6 @@
     "2ch-trip": "^4.0.0",
     "autoprefixer": "10.4.15",
     "bcryptjs": "^3.0.3",
-    "geist": "^1.0.0",
     "linkify-react": "^4.3.2",
     "linkifyjs": "^4.3.2",
     "next": "^16.1.3",
