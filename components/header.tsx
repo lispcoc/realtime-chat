@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react"
 import Link from 'next/link'
 import MessageDialog from '@/components/modal';
+import TermsOfUse from '@/components/termsOfUse';
 
 export default function Header() {
     const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+    const [showTermsOfUse, setShowTermsOfUse] = useState(false);
 
     return (
         <header className="p-4 border-b-2 border-gray-300 fixed w-full">
@@ -19,7 +21,14 @@ export default function Header() {
                 <li>
                     <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setMessageDialogOpen(true)}>機能説明</span>
                 </li>
+                <li>
+                    <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowTermsOfUse(true)}>利用規約</span>
+                </li>
             </ul>
+
+            {showTermsOfUse && (
+                <TermsOfUse forceShow={true} onClose={() => setShowTermsOfUse(false)} />
+            )}
 
             <MessageDialog
                 open={messageDialogOpen}

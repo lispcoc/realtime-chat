@@ -5,20 +5,29 @@ import './modal.css'
 
 const lastUpdate = "2026-01-19T00:00:00.000Z"
 
-const TermsOfUse = () => {
+type Props = {
+  forceShow?: boolean
+  onClose?: () => void
+}
+
+const TermsOfUse = ({ forceShow = false, onClose = () => { } }: Props) => {
   const [agree, setAgree] = useState(false)
   const [close, setClose] = useState(true)
 
   const onAgree = () => {
     localStorage.setItem('agreeDate', lastUpdate)
     setClose(true)
+    onClose()
   }
 
   useEffect(() => {
-    const date = localStorage.getItem('agreeDate') || ""
-    console.log(date)
-    if (!alreadyAgree()) {
+    if (forceShow) {
       setClose(false)
+    } else {
+      const date = localStorage.getItem('agreeDate') || ""
+      if (!alreadyAgree()) {
+        setClose(false)
+      }
     }
   }, [])
 
