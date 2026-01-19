@@ -526,13 +526,17 @@ export default function Chat() {
       }
     }
 
-    fetch('/api/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         cache: 'no-store',
       },
       body: JSON.stringify(data),
+    }).then(res => {
+      res.json().then(data => {
+        if (data.variables) setVariables(data.variables)
+      })
     })
   }
 

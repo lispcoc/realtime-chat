@@ -195,8 +195,14 @@ async function changeVariable(roomId: number, arg: any) {
                     text: `${arg.key} : ${value_before} → ${variables[arg.key]}`
                 })
             }
+            return NextResponse.json({
+                variables: variables
+            }, { status: 200 });
         }
     }
+    return NextResponse.json({
+        variables: null
+    }, { status: 200 });
 }
 
 export async function POST(request: NextRequest) {
@@ -222,7 +228,7 @@ export async function POST(request: NextRequest) {
     } else if (action === 'removeInactiveUser') {
         removeInactiveUser(roomId)
     } else if (action === 'changeVariable') {
-        changeVariable(roomId, arg)
+        res = await changeVariable(roomId, arg)
     }
 
     return res
