@@ -178,7 +178,6 @@ export default function Chat() {
     }
   }
 
-  // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => {
     (async () => {
       if (initialized) return

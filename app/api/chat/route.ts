@@ -1,9 +1,6 @@
-import { Database } from "@/types/supabasetype"
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from "next/headers";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/utils/supabase/supabase"
-import { use } from "react";
 import bcrypt from 'bcryptjs'
 
 const INACTIVE_MINUTES = 30
@@ -21,7 +18,7 @@ async function removeInactiveUser(roomId: number) {
     const { data } = await supabase.from('Users')
         .select('*')
         .eq("room_id", roomId)
-        .lte('last_activity', tenMinutesAgo.toISOString()) // last_activity <= tenMinutesAgo
+        .lte('last_activity', tenMinutesAgo.toISOString())
     if (data) {
         const reminder: any[] = []
         data.forEach(user => {
