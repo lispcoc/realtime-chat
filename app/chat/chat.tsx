@@ -363,12 +363,13 @@ export default function Chat() {
   }
 
   const getRoomOption = () => {
-    const rd: RoomOption = { private: false, use_trump: false, user_limit: 5, all_clear: "", variables: [] }
+    const rd: RoomOption = { private: false, use_trump: false, user_limit: 10, all_clear: "", variables: [] }
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.use_trump = (roomData.options as any).use_trump
       rd.user_limit = parseInt((roomData.options as any).user_limit)
       if (isNaN(rd.user_limit)) rd.user_limit = 10
+      if (rd.user_limit < 3) rd.user_limit = 3
       rd.all_clear = (roomData.options as any).all_clear || ""
       rd.variables = (roomData.options as any).variables || []
     }
