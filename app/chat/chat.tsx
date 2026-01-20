@@ -449,30 +449,31 @@ export default function Chat() {
   }
 
   const checkEntered = async () => {
-    const data = {
-      action: 'checkEntered',
-      roomId: roomId,
-      userId: localStorage.getItem("userId") || null
-    }
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
+    const response = await supabase.functions.invoke('database-access', {
+      body: {
+        action: 'checkEntered',
+        roomId: roomId,
+        userId: localStorage.getItem("userId") || null
       },
-      body: JSON.stringify(data),
     })
-    const responseData = await response.json()
-    setIsEntered(responseData.entered)
-    if (responseData.entered) {
-      setUsername(responseData.username || "Unknown")
-      setColor(intToColorCode(responseData.color || 0))
+    if (response.data) {
+      const responseData = response.data
+      setIsEntered(responseData.entered)
+      if (responseData.entered) {
+        setUsername(responseData.username || "Unknown")
+        setColor(intToColorCode(responseData.color || 0))
+      }
+      return {
+        username: responseData.username,
+        entered: responseData.entered,
+        id: responseData.id
+      }
     }
 
     return {
-      username: responseData.username,
-      entered: responseData.entered,
-      id: responseData.id
+      username: "",
+      entered: false,
+      id: ""
     }
   }
 
