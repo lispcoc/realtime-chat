@@ -30,12 +30,13 @@ type User = {
   name: string;
 }
 
+const NUM_MESSAGES = 50
+
 const linkifyOptions = {
   className: "text-blue-700",
 }
 
 export default function Chat() {
-  const NUM_MESSAGES = 20
   const [play, { stop, pause }] = useSound(se)
   const BUTTON_STYLE = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
 
