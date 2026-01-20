@@ -271,10 +271,15 @@ export default function Chat() {
         const special_text: String = rd.special_keys[inputText] || ""
         const array = special_text.split("\n")
         const specialText = array[Math.floor(Math.random() * array.length)]
+        let res: string = specialText
+        Object.entries(variables).map((value) => {
+          const regexp = new RegExp(`{${value[0]}}`, 'g')
+          res = res.replace(regexp, `${value[1]}`)
+        })
         specialMsg = {
           room_id: roomId,
           name: username,
-          text: inputText + " : " + specialText,
+          text: inputText + " : " + res,
           color: 0,
           system: true
         }

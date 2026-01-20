@@ -6,6 +6,7 @@ import { supabase } from "@/utils/supabase/supabase"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
+import MessageDialog from '@/components/modal';
 
 interface Option {
   value: string;
@@ -42,6 +43,7 @@ export default function CreateRoom() {
   const [autoAllClear, setAutoAllClear] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [buttonDisable, setButtonDisable] = useState(false)
+  const [showSpecialKeyDetail, setShowSpecialKeyDetail] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
 
   const { register, handleSubmit, control } = useForm<FormData>({
@@ -214,7 +216,7 @@ export default function CreateRoom() {
                 )}
               />
               <div className="mb-5">
-                <label htmlFor={`roomSpecial.${index}.text`} className="block mb-2 text-sm font-medium text-gray-900">特殊テキストの設定</label>
+                <label htmlFor={`roomSpecial.${index}.text`} className="block mb-2 text-sm font-medium text-gray-900">特殊テキストの設定 (<a className="text-blue-700 hover:border-blue-700 hover:text-blue-700" onClick={() => setShowSpecialKeyDetail(true)}>詳細</a>)</label>
                 <textarea rows={4}
                   placeholder={roomSpecialTextPlaceHolder}
                   className="block p-2.5 w-full text-sm text-gray-900
@@ -282,6 +284,17 @@ export default function CreateRoom() {
           部屋を作成
         </button>
       </form>
+
+      <MessageDialog
+        open={showSpecialKeyDetail}
+        onCancel={() => setShowSpecialKeyDetail(false)}
+        onOk={() => setShowSpecialKeyDetail(false)}
+        message={(
+          <div className="mb-5">
+            {`{変数}`} のように{`{}`}で変数名を囲むと変数の現在値を表示します。 (※更新のタイミング次第で正しく反映されない場合もあります)
+          </div>
+        )}
+      />
     </div>
   )
 }
