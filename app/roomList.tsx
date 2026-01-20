@@ -44,11 +44,11 @@ export default function RoomList({ }: Props) {
     (async () => {
       let allRooms: RoomData[] = []
       try {
-        console.log(page)
-        const { data } = await supabase.from("Rooms").select("id,title,created_at").order("created_at").range(page * PER_PAGE, page * PER_PAGE + PER_PAGE - 1)
-        if (data) {
-          allRooms = data
-          console.log(allRooms)
+        const response = await supabase.functions.invoke('roomList', {
+          body: { page: page },
+        })
+        if (response.data) {
+          allRooms = response.data.rooms
         }
       } catch (error) {
         console.error(error)
