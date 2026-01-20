@@ -373,19 +373,11 @@ export default function Chat() {
   }
 
   const getUsers = async () => {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        action: 'getUsers',
-        roomId: roomId
-      }),
+    const response = await supabase.functions.invoke('database-access', {
+      body: { action: 'getUsers', roomId: roomId },
     })
-    if (response.ok) {
-      const responseData = await response.json()
+    if (response.data) {
+      const responseData = response.data
       setUsers(responseData.users)
 
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {

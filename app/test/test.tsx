@@ -9,7 +9,7 @@ export default function Test() {
     const [messageText, setMessageText] = useState("aaa")
 
     const access = supabase.functions.invoke('database-access', {
-        body: { name: 'Functions' },
+        body: { action: 'getUsers', roomId: 21 },
     }).then(res => {
         console.log(res)
         setMessageText(JSON.stringify(res.data))

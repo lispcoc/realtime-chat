@@ -21,19 +21,11 @@ export default function Index() {
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
   const getUsers = async (roomId: number) => {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        action: 'getUsers',
-        roomId: roomId
-      }),
+    const response = await supabase.functions.invoke('database-access', {
+      body: { action: 'getUsers', roomId: roomId },
     })
-    if (response.ok) {
-      const responseData = await response.json()
+    if (response.data) {
+      const responseData = response.data
       setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
     }
   }

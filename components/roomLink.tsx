@@ -25,7 +25,7 @@ export default function RoomLink({ roomId, linkName, index, isAdmin = false, use
         query: { roomId: roomId },
       }}>{linkName}</Link>
       {users && users.map((user, index) => (
-        <span style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
+        <span key={index} style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
           {user.name}
         </span>
       ))}
