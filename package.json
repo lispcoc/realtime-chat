@@ -9,7 +9,7 @@
     "@airjp73/dice-notation": "^2.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "^2.90.1",
     "2ch-trip": "^4.0.0",
     "autoprefixer": "10.4.15",
     "bcryptjs": "^3.0.3",
