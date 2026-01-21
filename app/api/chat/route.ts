@@ -91,6 +91,9 @@ async function enterRoom(roomId: number, userId: string, username: string, color
             system: true,
             text: `${username}さんが入室しました。`
         })
+        await supabase.from("Rooms").update({
+            last_enter: new Date().toISOString()
+        }).eq('id', roomId)
     } catch (error) {
         console.error(error)
     }
