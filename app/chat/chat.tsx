@@ -398,10 +398,6 @@ export default function Chat() {
     if (inputName === "") return
     if (handlingDb) return
     const opt = getRoomOption()
-    if (opt.user_limit <= users.length) {
-      alert('これ以上入室できません。')
-      return
-    }
     if (users.find(user => (user.name === createTrip(inputName)))) {
       alert('同じ名前の人が入室しています。')
       return
@@ -410,30 +406,26 @@ export default function Chat() {
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
-    const data = {
-      action: 'enterRoom',
-      roomId: roomId,
-      color: colorCodeToInt(color),
-      username: createTrip(inputName),
-      userId: localStorage.getItem("userId") || null
-    };
-
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
+    const response = await supabase.functions.invoke('database-access', {
+      body: {
+        action: 'enterRoom',
+        roomId: roomId,
+        color: colorCodeToInt(color),
+        username: createTrip(inputName),
+        userId: localStorage.getItem("userId") || null
       },
-      body: JSON.stringify(data),
-    });
-
-    if (response.ok) {
-      const data = await response.json()
-      localStorage.setItem("userId", data.id)
-      const chk = await checkEntered()
-      if (opt.private && chk.entered) {
-        await fetchMessages()
-        fetchRealtimeData()
+    })
+    if (response.data) {
+      const responseData = response.data
+      if (responseData.success) {
+        localStorage.setItem("userId", responseData.id)
+        const chk = await checkEntered()
+        if (opt.private && chk.entered) {
+          await fetchMessages()
+          fetchRealtimeData()
+        }
+      } else {
+        alert(responseData.reason)
       }
     }
     await getUsers()
