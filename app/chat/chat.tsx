@@ -44,6 +44,7 @@ export default function Chat() {
   let roomId = parseInt(searchParams.get("roomId")!!)
   const [inputText, setInputText] = useState("")
   const [inputName, setInputName] = useState("")
+  const [pendingMessageText, setPendingMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
@@ -103,6 +104,7 @@ export default function Chat() {
               const { id, room_id, name, text, color, created_at, system } = payload.new
               if (room_id === roomId) {
                 if (!recievedMessages.includes(id)) {
+                  setPendingMessageText([])
                   setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0)])
                   recievedMessages.push(id)
                   setRecievedMessage(true)
@@ -285,20 +287,9 @@ export default function Chat() {
         }
       }
 
-      setMessageText((messageText) => [
-        {
-          id: -1,
-          room_id: msg.room_id,
-          name: msg.name,
-          text: msg.text,
-          color: msg.color,
-          created_at: new Date().toISOString(),
-          system: msg.system
-        },
-        ...messageText
-      ])
+      setPendingMessageText([])
       if (specialMsg) {
-        setMessageText((messageText) => [
+        setPendingMessageText(() => [
           {
             id: -1,
             room_id: specialMsg.room_id,
@@ -308,7 +299,27 @@ export default function Chat() {
             created_at: new Date().toISOString(),
             system: specialMsg.system
           },
-          ...messageText
+          {
+            id: -1,
+            room_id: msg.room_id,
+            name: msg.name,
+            text: msg.text,
+            color: msg.color,
+            created_at: new Date().toISOString(),
+            system: msg.system
+          }
+        ])
+      } else {
+        setPendingMessageText(() => [
+          {
+            id: -1,
+            room_id: msg.room_id,
+            name: msg.name,
+            text: msg.text,
+            color: msg.color,
+            created_at: new Date().toISOString(),
+            system: msg.system
+          }
         ])
       }
 
@@ -679,6 +690,9 @@ export default function Chat() {
         )}
 
         <div className="p-2 w-full mb-10">
+          {pendingMessageText.map((item, index) => (
+            <ChatLine key={index} message={item} index={index}></ChatLine>
+          ))}
           {messageText.map((item, index) => (
             <ChatLine key={index} message={item} index={index}></ChatLine>
           ))}
