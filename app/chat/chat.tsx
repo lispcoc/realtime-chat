@@ -285,6 +285,9 @@ export default function Chat() {
           color: 0,
           system: true
         }
+        if (Object.keys(variables).includes(inputText)) {
+          setVar("mod", inputText, 1)
+        }
       }
 
       setPendingMessageText([])
