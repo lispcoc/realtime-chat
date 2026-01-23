@@ -10,15 +10,23 @@ import ChatLine from "@/components/chat/chatLine"
 export default function PastLog() {
     const searchParams = useSearchParams()
     let roomId = parseInt(searchParams.get("roomId")!!)
+    let page = parseInt(searchParams.get("p")!!) || 0
     const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
 
     useEffect(() => {
         (async () => {
             let allMessages: Database["public"]["Tables"]["Messages"]["Row"][] = []
             try {
-                const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false })
-                if (data != null) {
-                    allMessages = data
+                if (roomId) {
+                    const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).range(page * 1000, (page + 1) * 1000)
+                    if (data != null) {
+                        allMessages = data
+                    }
+                } else {
+                    const { data } = await supabase.from("Messages").select("*").order("created_at", { ascending: false }).range(page * 1000, (page + 1) * 1000)
+                    if (data != null) {
+                        allMessages = data
+                    }
                 }
             } catch (error) {
                 console.error(error)
@@ -33,7 +41,7 @@ export default function PastLog() {
         <div>
             <div className="w-full max-w-3xl">
                 {messageText.map((item, index) => (
-                    <ChatLine message={item} index={index} key={index}></ChatLine>
+                    <ChatLine message={item} index={index} key={index} showRoomId={true}></ChatLine>
                 ))}
             </div>
         </div>
