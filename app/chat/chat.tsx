@@ -485,18 +485,13 @@ export default function Chat() {
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const data = {
-      action: 'exitRoom',
-      roomId: roomId,
-      userId: localStorage.getItem("userId") || null
-    };
-
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-
-    const responseData = await response.json();
+    await supabase.functions.invoke('database-access', {
+      body: {
+        action: 'exitRoom',
+        roomId: roomId,
+        userId: localStorage.getItem("userId") || null
+      },
+    })
     setIsEntered(false)
   }
 
