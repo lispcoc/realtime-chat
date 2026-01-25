@@ -102,10 +102,11 @@ export default function Chat() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               const { id, room_id, name, text, color, created_at, system } = payload.new
+              console.log(payload)
               if (room_id === roomId) {
                 if (!recievedMessages.includes(id)) {
                   setPendingMessageText([])
-                  setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0)])
+                  setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0 && msg.id != id)])
                   recievedMessages.push(id)
                   setRecievedMessage(true)
                 }
