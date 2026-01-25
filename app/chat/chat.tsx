@@ -630,7 +630,7 @@ export default function Chat() {
           <>
             <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
               <div className="mb-1 flex items-center grid grid-cols-3">
-                <span style={{ color: color }} className="col-span-2 mb-2 font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>{username}</span>
+                <span style={{ color: color }} className="col-span-2 mb-2 font-bold text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>{username}</span>
                 <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputText === ""}>
                   発言
                 </button>

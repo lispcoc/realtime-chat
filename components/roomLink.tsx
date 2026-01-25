@@ -16,7 +16,7 @@ type Props = {
 
 export default function RoomLink({ roomId, linkName, index, isAdmin = false, users = [] }: Props) {
   return (
-    <li className='mb-4 flex  items-end space-x-2'>
+    <li className='mb-4 flex text-wrap items-end space-x-2'>
       <span>
         {`${String(index).padStart(2, '0')}. `}
       </span>
@@ -25,7 +25,7 @@ export default function RoomLink({ roomId, linkName, index, isAdmin = false, use
         query: { roomId: roomId },
       }}>{linkName}</Link>
       {users && users.map((user, index) => (
-        <span key={index} style={{ color: intToColorCode(user.color) }} className="font-medium text-xs">
+        <span key={index} style={{ color: intToColorCode(user.color) }} className="font-bold text-xs">
           {user.name}
         </span>
       ))}
