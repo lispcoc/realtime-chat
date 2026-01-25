@@ -62,7 +62,7 @@ export default function Chat() {
   const [inputVariableOpen, setInputVariableOpen] = useState(false)
   const [inputVariableKey, setInputVariableKey] = useState("")
   const [inputVariableValue, setInputVariableValue] = useState(0)
-  const [showTrumpCommand, setShowTrumpCommand] = useState(false)
+  const [realtimeDataStarted, setRealtimeDataStarted] = useState(false)
   const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -88,6 +88,8 @@ export default function Chat() {
   }
 
   const fetchRealtimeData = () => {
+    if (realtimeDataStarted) return
+    setRealtimeDataStarted(true)
     try {
       supabase
         .channel(String(roomId))
