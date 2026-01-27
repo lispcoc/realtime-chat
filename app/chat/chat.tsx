@@ -716,7 +716,7 @@ export default function Chat() {
 
       {isEntered && (
         <footer className="bg-white p-4 border-b-2 border-gray-300 fixed left-0 bottom-0 w-full">
-          <ul className="w-full max-w-xl m-auto flex space-x-4 font-medium flex-row grid grid-cols-3">
+          <ul className="w-full max-w-xl m-auto flex font-medium flex-row grid grid-cols-3">
             <li className="text-center">
               <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowRoomDescriptionModal(true)}>ルーム紹介</span>
             </li>

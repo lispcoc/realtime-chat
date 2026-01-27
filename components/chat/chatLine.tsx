@@ -14,7 +14,7 @@ export default function ChatLine({ message, index, showRoomId = false }: Props) 
     const dispMessage = message.system ? message.text : `${message.text}`
     const date = new Date((Date.parse(message.created_at))).toLocaleString()
     return (
-        <div className="w-full">
+        <div className="w-full break-words">
             <hr style={{ height: 1 }} className="" />
             <div className="p-1 w-full">
                 {showRoomId && (
