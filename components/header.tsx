@@ -10,7 +10,7 @@ export default function Header() {
     const [showTermsOfUse, setShowTermsOfUse] = useState(false);
 
     return (
-        <header className="w-full p-4 border-b-2 border-gray-300 fixed translate-x+1/2">
+        <header className="w-full p-2 border-b-2 border-gray-300 fixed">
             <ul className="w-full max-w-xl m-auto flex space-x-4 font-medium flex-row">
                 <li>
                     <Link className="text-gray-700 hover:text-blue-700" href="/">Home</Link>
@@ -25,7 +25,8 @@ export default function Header() {
                     <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setShowTermsOfUse(true)}>利用規約</span>
                 </li>
             </ul>
-            <div className="w-full max-w-xl m-auto flex text-xs text-red-700 text-meduim">※メンテナンス情報：1/28(水) 8:00 ～ サービスを停止します。</div>
+            <div className="w-full max-w-xl m-auto flex text-xs text-red-700 text-meduim">
+            </div>
             {showTermsOfUse && (
                 <TermsOfUse forceShow={true} onClose={() => setShowTermsOfUse(false)} />
             )}
