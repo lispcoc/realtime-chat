@@ -9,6 +9,9 @@ const nextConfig = {
       }
     })
     return config
+  },
+  env: {
+    IS_IN_MAINTENANCE_MODE: process.env.IS_IN_MAINTENANCE_MODE,
   }
 }
 
