@@ -335,9 +335,27 @@ export default function Chat() {
         setButtonDisable(false)
         return
       }
-      supabase.from("Messages").insert(msg).then(() => {
+      supabase.functions.invoke('database-access', {
+        body: {
+          action: 'addMessage',
+          roomId: msg.room_id,
+          username: msg.name,
+          text: msg.text,
+          color: msg.color,
+          system: msg.system
+        },
+      }).then((res) => {
         if (specialMsg) {
-          supabase.from("Messages").insert(specialMsg).then(() => { })
+          supabase.functions.invoke('database-access', {
+            body: {
+              action: 'addMessage',
+              roomId: specialMsg.room_id,
+              username: specialMsg.name,
+              text: specialMsg.text,
+              color: specialMsg.color,
+              system: specialMsg.system
+            },
+          }).then(() => { })
         } else {
           fetch('/api/dice', {
             method: 'POST',
