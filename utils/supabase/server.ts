@@ -42,7 +42,7 @@ export function createSupabaseServerForAPI(request: Request) {
             return { name, value: rest.join('=') }
           }).filter(c => c.name)
         },
-        setAll(cookiesToSet) {
+        setAll(ookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         },
       },
     }
