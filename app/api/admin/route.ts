@@ -13,8 +13,8 @@ export async function GET() {
   }
 
   return NextResponse.json(
-    { error: "Basic Auth Required" },
-    { status: 401 }
+    { result: 'ng', test: process.env.ADMIN_EMAIL },
+    { status: 200 }
   )
 }
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json(
-    { error: "Basic Auth Required" },
-    { status: 401 }
+    { result: 'ng' },
+    { status: 200 }
   )
 }

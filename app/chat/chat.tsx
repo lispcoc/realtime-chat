@@ -80,7 +80,8 @@ export default function Chat() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
-    return res.status == 200
+    const data = await res.json()
+    return data.result === "ok"
   }
 
   const colorPicker = (username: string) => {
