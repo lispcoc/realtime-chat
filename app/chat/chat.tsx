@@ -78,7 +78,9 @@ export default function Chat() {
   const isAdmin = async () => {
     const res = await fetch('/api/admin', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors',
+      credentials: 'include'
     })
     const data = await res.json()
     return data.result === "ok"

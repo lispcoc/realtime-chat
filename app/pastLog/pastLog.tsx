@@ -29,7 +29,8 @@ export default function PastLog() {
           roomId: roomId,
           page: page
         }),
-        credentials: "include"
+        mode: 'cors',
+        credentials: 'include'
       })
       const result = await res.json();
       if (result.messages != null) {
