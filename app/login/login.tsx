@@ -36,20 +36,6 @@ export default function Login() {
     }
   }
 
-  const tokenstr = localStorage.getItem('sb-rtchat-auth-token')
-  if (tokenstr) {
-    fetch('/api/admin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: tokenstr
-    }).then((res) => {
-      console.log(res)
-    })
-  }
-
   return (
     <div>
       <main>
