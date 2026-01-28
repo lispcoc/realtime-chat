@@ -1,5 +1,5 @@
 "use client"
-import { supabase } from "@/utils/supabase/client"
+import { supabase } from "@/utils/supabase/supabase"
 import { useState } from "react";
 import Link from 'next/link';
 
@@ -28,9 +28,26 @@ export default function Login() {
       })
 
       alert('OK');
+      console.log(localStorage)
     } catch {
       alert('エラーが発生しました');
+
+      console.log()
     }
+  }
+
+  const tokenstr = localStorage.getItem('sb-rtchat-auth-token')
+  if (tokenstr) {
+    fetch('/api/admin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      body: tokenstr
+    }).then((res) => {
+      console.log(res)
+    })
   }
 
   return (

@@ -76,14 +76,21 @@ export default function Chat() {
   let roomChannel: RealtimeChannel | null = null
 
   const isAdmin = async () => {
-    const res = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      mode: 'cors',
-      credentials: 'include'
-    })
-    const data = await res.json()
-    return data.result === "ok"
+    const tokenstr = localStorage.getItem('sb-rtchat-auth-token')
+    if (tokenstr) {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: tokenstr
+      })
+      const data = await res.json()
+      return data.result === "ok"
+    }
+
+    return false
   }
 
   const colorPicker = (username: string) => {

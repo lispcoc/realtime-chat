@@ -25,10 +25,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const client = await createClient()
-  const res = await client.auth.getUser()
-  const { roomId, page } = await request.json();
-  if (res.data) {
+  const { access_token, refresh_token, roomId, page } = await request.json();
+
+  const res = await supabase.auth.setSession({ access_token: access_token, refresh_token: refresh_token })
+  if (res.data && res.data.user && res.data.user.email === process.env.ADMIN_EMAIL) {
     let allMessages: Database["public"]["Tables"]["Messages"]["Row"][] = []
     try {
       if (roomId) {
