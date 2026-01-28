@@ -12,7 +12,7 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -39,7 +39,7 @@ export function createSupabaseServerForAPI(request: Request) {
         getAll() {
           return cookieStore.split('; ').map(cookie => {
             const [name, ...rest] = cookie.split('=')
-            return {name, value: rest.join('=')}
+            return { name, value: rest.join('=') }
           }).filter(c => c.name)
         },
         setAll(cookiesToSet) {
