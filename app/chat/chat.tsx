@@ -1,6 +1,7 @@
 
 "use client"
 import { Database, Json } from "@/types/supabasetype"
+import { RealtimeChannel } from "@supabase/realtime-js"
 import { useEffect, useState } from "react"
 import useSound from 'use-sound';
 import se from "../sound.mp3"
@@ -70,13 +71,15 @@ export default function Chat() {
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
+  let messageChannel: RealtimeChannel | null = null
+  let userChannel: RealtimeChannel | null = null
+  let roomChannel: RealtimeChannel | null = null
 
   const isAdmin = async () => {
     const res = await fetch('/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
-    console.log(res)
     return res.status == 200
   }
 
@@ -100,7 +103,7 @@ export default function Chat() {
     if (realtimeDataStarted) return
     setRealtimeDataStarted(true)
     try {
-      supabase
+      messageChannel = supabase
         .channel(String(roomId))
         .on(
           "postgres_changes",
@@ -127,7 +130,7 @@ export default function Chat() {
         )
         .subscribe()
 
-      supabase
+      userChannel = supabase
         .channel(`users_${roomId}`)
         .on(
           "postgres_changes",
@@ -147,7 +150,7 @@ export default function Chat() {
         )
         .subscribe()
 
-      supabase
+      roomChannel = supabase
         .channel(`roominfo_${roomId}`)
         .on(
           "postgres_changes",
@@ -265,6 +268,19 @@ export default function Chat() {
       setRecievedMessage(false)
     }
   }, [recievedMessage])
+
+  const handleBeforeUnload = () => {
+    if (messageChannel) messageChannel.unsubscribe()
+    if (userChannel) userChannel.unsubscribe()
+    if (roomChannel) roomChannel.unsubscribe()
+    console.log("自動更新の終了")
+  }
+
+  useEffect(() => {
+    return () => {
+      handleBeforeUnload()
+    }
+  }, [])
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
