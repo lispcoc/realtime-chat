@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from "@/utils/supabase/server"
+import { createSupabaseServerForAPI } from "@/utils/supabase/server"
 
-export async function GET() {
-  const client = await createClient()
+export async function GET(request: Request) {
+  const client = createSupabaseServerForAPI(request)
   const res = await client.auth.getUser()
 
   if (res.data && res.data.user && res.data.user.email === process.env.ADMIN_EMAIL) {
@@ -18,8 +18,8 @@ export async function GET() {
   )
 }
 
-export async function POST(request: NextRequest) {
-  const client = await createClient()
+export async function POST(request: Request) {
+  const client = createSupabaseServerForAPI(request)
   const res = await client.auth.getUser()
   //const { roomId, command, username } = await request.json();
 
