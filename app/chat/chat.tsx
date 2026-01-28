@@ -71,6 +71,15 @@ export default function Chat() {
   let initialized = false
   let recievedMessages: any[] = []
 
+  const isAdmin = async () => {
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    console.log(res)
+    return res.status == 200
+  }
+
   const colorPicker = (username: string) => {
     return (
       <div className="p-2">
@@ -223,7 +232,7 @@ export default function Chat() {
       if (tempRoomData) {
         if (opt.private) {
           const chk = await checkEntered()
-          if (chk.entered) {
+          if (chk.entered || await isAdmin()) {
             fetchMessages(tempRoomData.all_clear_at)
             fetchRealtimeData()
           }

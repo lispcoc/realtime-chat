@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createSupabaseServerForAPI } from "@/utils/supabase/server"
+import { createClient } from "@/utils/supabase/server"
 import { Database } from '@/types/supabasetype'
 import { supabase } from "@/utils/supabase/supabase"
 

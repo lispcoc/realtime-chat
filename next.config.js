@@ -12,6 +12,7 @@ const nextConfig = {
   },
   env: {
     IS_IN_MAINTENANCE_MODE: process.env.IS_IN_MAINTENANCE_MODE,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   }
 }
 
