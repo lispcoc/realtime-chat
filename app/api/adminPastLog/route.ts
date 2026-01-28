@@ -47,19 +47,15 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(
       {
+        result: 'ok',
         messages: allMessages
       },
-      {
-        status: 200
-      }
+      { status: 200 }
     )
   }
 
   return NextResponse.json(
-    { error: "Basic Auth Required" },
-    {
-      headers: { "WWW-Authenticate": 'Basic realm="Secure Area"' },
-      status: 401,
-    }
+    { result: 'ng', res: res },
+    { status: 200 }
   )
 }
