@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   return NextResponse.json(
-    { result: 'ng', test: process.env.ADMIN_EMAIL },
+    { result: 'ng', res: res },
     { status: 200 }
   )
 }
