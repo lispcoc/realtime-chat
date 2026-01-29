@@ -80,6 +80,24 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
     })()
   }, [checkLogedIn])
 
+  const refreshToken = async () => {
+    const res = await fetch('/api/auth/google-oauth/refreshToken', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      },
+      mode: 'cors',
+      credentials: 'include'
+    })
+  }
+
+  useEffect(() => {
+    (async () => {
+      const timer = setInterval(refreshToken, 30 * 60 * 1000)
+    })()
+  }, [])
+
   return (
     <>
       <div className="">

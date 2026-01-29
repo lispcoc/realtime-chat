@@ -68,18 +68,6 @@ export default function PastLog() {
     }
   }
 
-  const refreshToken = async () => {
-    const res = await fetch('/api/auth/google-oauth/refreshToken', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      mode: 'cors',
-      credentials: 'include'
-    })
-  }
-
   useEffect(() => {
     (async () => {
       const res = await fetch('/api/adminPastLog', {
@@ -99,7 +87,6 @@ export default function PastLog() {
       if (result.messages != null) {
         setMessageText(result.messages)
         fetchRealtimeData()
-        const timer = setInterval(refreshToken, 10 * 60 * 1000)
       } else {
         alert('管理者アカウントではありません。ログインしてください。')
       }
