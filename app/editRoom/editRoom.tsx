@@ -221,11 +221,12 @@ export default function EditRoom() {
         })
       })
 
-      if (res.statusText === 'ok') {
+      console.log(res)
+      if (res.status == 200) {
         alert("部屋を更新しました。")
         window.location.href = `/chat?roomId=${roomId}`
       } else {
-        alert(res.statusText)
+        alert("部屋の更新に失敗しました。")
       }
     } catch (error) {
       console.error(error)

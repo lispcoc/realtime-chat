@@ -140,12 +140,12 @@ export default function CreateRoom() {
         })
       })
 
-      if (res.statusText === 'ok') {
+      if (res.status == 200) {
         alert("部屋を作成しました。")
         const data = await res.json()
         window.location.href = `/chat?roomId=${data.newRoomId}`
       } else {
-        alert(res.statusText)
+        alert("部屋の作成に失敗しました。")
       }
     } catch (error) {
       console.error(error)

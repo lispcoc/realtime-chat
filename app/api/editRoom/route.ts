@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
   }
   return NextResponse.json({}, {
-    status: 200,
+    status: 400,
     statusText: 'ng'
   })
 }
