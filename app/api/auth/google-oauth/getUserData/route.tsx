@@ -1,12 +1,11 @@
-import { oauth2Client } from '@/lib/google/oauth'
+import { oauth2Client, refreshTokenIfNeeded } from '@/lib/google/oauth'
 import { google } from 'googleapis'
-import { NextResponse, NextRequest } from "next/server";
-import { cookies } from 'next/headers';
+import { NextResponse, NextRequest } from "next/server"
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    const currentSessionToken = (await cookies()).get('session')?.value || "{}"
-    oauth2Client.setCredentials(JSON.parse(currentSessionToken))
+    await refreshTokenIfNeeded()
     const oauth2 = google.oauth2({
       auth: oauth2Client,
       version: "v2"
@@ -19,10 +18,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    console.log(error)
   }
 
   return NextResponse.json(
-    { result: 'ng' },
-    { status: 200 }
+    { result: 'No valid access token' },
+    { status: 401 }
   )
 }
