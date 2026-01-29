@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from "next/headers";
 import { supabase } from "@/utils/supabase/supabase"
 import bcrypt from 'bcryptjs'
+import { supabaseServiceRole } from "@/utils/supabase/supabaseServiceRole"
 
 const INACTIVE_MINUTES = 30
 const fixedSalt = "$2a$10$IKzllnUoRdQkZscoft21rJ8QkCUJSDO"
@@ -173,7 +174,7 @@ async function autoClear(roomId: number) {
 }
 
 async function changeVariable(roomId: number, arg: any) {
-    const res = await supabase.from("Rooms").select('options, variables').eq('id', roomId)
+    const res = await supabaseServiceRole.from("Rooms").select('options, variables').eq('id', roomId)
     console.log(roomId, arg)
     if (res.data && res.data[0]) {
         const varData = res.data[0]
@@ -189,7 +190,7 @@ async function changeVariable(roomId: number, arg: any) {
                 variables[arg.key] = arg.value
             }
             if (value_before != variables[arg.key]) {
-                await supabase.from("Rooms").update({ variables: variables }).eq('id', roomId)
+                await supabaseServiceRole.from("Rooms").update({ variables: variables }).eq('id', roomId)
                 await addMessage({
                     color: 0,
                     name: "system",
