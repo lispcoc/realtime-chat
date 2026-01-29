@@ -1,14 +1,15 @@
 
 "use client"
-import { Database } from "@/types/supabasetype"
 import { useEffect, useState } from "react"
 import { useForm, useFieldArray } from 'react-hook-form';
 import { supabase } from "@/utils/supabase/supabase"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Database } from "@/types/supabasetype"
 import { useSearchParams } from "next/navigation"
 import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
+import Google from "../auth/googleAuth"
 
 interface Option {
   value: string;
@@ -50,6 +51,7 @@ export default function EditRoom() {
   const [inputDeleteRoom, setInputDeleteRoom] = useState(false)
   const [buttonDisable, setButtonDisable] = useState(false)
   const [showSpecialKeyDetail, setShowSpecialKeyDetail] = useState(false)
+  const [ownerEmail, setOwnerEmail] = useState("")
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
   const [login, setLogin] = useState(false)
   const roomSpecialTextPlaceHolder = "大吉\n中吉\n吉\n末吉\n凶"
@@ -67,15 +69,28 @@ export default function EditRoom() {
     name: 'variables'
   });
 
-
   const onInputUsersLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     const selected = USER_LIMITS.find((option) => option.value === selectedValue);
     setInputUsersLimit(selected || null);
   };
 
-  // 初回のみ実行するために引数に空の配列を渡している
   useEffect(() => { }, [])
+
+  const getUserName = async () => {
+    const res = await fetch('/api/auth/google-oauth/getUserData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      }
+    })
+    const data = await res.json()
+    if (data.result === 'ok') {
+      return data.res.data.email
+    }
+    return null
+  }
 
   const onSubmitAdmin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -153,6 +168,11 @@ export default function EditRoom() {
     if (inputPassword === "") return
     setButtonDisable(true)
     try {
+      const ownerEmail = await getUserName()
+      if (!ownerEmail) {
+        alert('認証されていません。')
+        return
+      }
       const password = inputNewPassword === "" ? inputPassword : inputNewPassword
       const hashedPassword = await bcrypt.hash(password, 10)
       const special_keys: any = {}
@@ -172,6 +192,7 @@ export default function EditRoom() {
         id: roomData?.id,
         title: inputTitle,
         description: inputDecsription,
+        owner: ownerEmail,
         password: hashedPassword,
         options: {
           private: inputPrivate,
@@ -195,9 +216,18 @@ export default function EditRoom() {
 
   return (
     <div className="flex-1 w-full max-w-md flex flex-col p-2">
-      <h2 className="text-xl font-bold pt-5 pb-10">ルームの編集</h2>
+      <h2 className="text-xl font-bold pt-5">ルームの作成</h2>
 
-      {!login && (
+      <div className="w-full p-2">
+        <div className="w-full p-2 text-center">
+          ※ルームの作成にはGoogleアカウントで認証する必要があります。
+        </div>
+        <div className="w-full p-2 text-center">
+          <Google onSetUserName={setOwnerEmail} />
+        </div>
+      </div>
+
+      {(ownerEmail && !login) && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitAdmin}>
           <div className="mb-5">
             <label htmlFor="roomPassword">パスワード</label>
@@ -217,7 +247,7 @@ export default function EditRoom() {
         </form>
       )}
 
-      {login && (
+      {(ownerEmail && login) && (
         <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitCreateRoom)}>
           <div className="mb-5">
             <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900">ルーム名</label>
@@ -344,6 +374,7 @@ export default function EditRoom() {
               </div>
             )
           })}
+
           <div className="mb-5">
             <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
               onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}

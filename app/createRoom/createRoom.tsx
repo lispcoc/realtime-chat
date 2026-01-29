@@ -32,7 +32,7 @@ const USER_LIMITS: Option[] = [
   { value: '8', label: '8' },
   { value: '9', label: '9' },
   { value: '10', label: '10' },
-];
+]
 
 export default function CreateRoom() {
   const [inputTitle, setInputTitle] = useState("")
@@ -67,9 +67,7 @@ export default function CreateRoom() {
     setInputUsersLimit(selected || null);
   };
 
-  // 初回のみ実行するために引数に空の配列を渡している
-  useEffect(() => {
-  }, [])
+  useEffect(() => { }, [])
 
   const getUserName = async () => {
     const res = await fetch('/api/auth/google-oauth/getUserData', {
@@ -304,6 +302,7 @@ export default function CreateRoom() {
               </div>
             )
           })}
+
           <div className="mb-5">
             <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
               onClick={() => roomVariableFieldArray.append({ key: "" })}

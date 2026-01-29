@@ -725,8 +725,11 @@ export default function Chat() {
           ))}
         </div>
 
-        <div className="w-full mb-20">
+        <div className="w-full mb-4">
           <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
+        </div>
+        <div className="w-full mb-4">
+          <a href={"/adminMenu?roomId=" + roomId} >管理者用メニュー</a>
         </div>
       </>)}
 
