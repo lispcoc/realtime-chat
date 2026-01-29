@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
 import Google from "../auth/googleAuth"
 import styles from '@/components/style'
+import { RoomData } from "@/types/chat"
 
 interface Option {
   value: string;
@@ -109,7 +110,8 @@ export default function CreateRoom() {
           variables[trimed] = 0
         }
       })
-      const res = await supabase.from("Rooms").insert({
+
+      const newRoomData: RoomData = {
         title: inputTitle,
         description: inputDecsription,
         owner: ownerEmail,
@@ -124,12 +126,26 @@ export default function CreateRoom() {
         },
         special_keys: special_keys,
         variables: variables
-      }).select('*')
-      alert("部屋を作成しました。")
-      if (res.data && res.data[0]) {
-        window.location.href = `/chat?roomId=${res.data[0].id}`
+      }
+
+      const res = await fetch('/api/editRoom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: JSON.stringify({
+          mode: 'create',
+          roomData: newRoomData
+        })
+      })
+
+      if (res.statusText === 'ok') {
+        alert("部屋を作成しました。")
+        const data = await res.json()
+        window.location.href = `/chat?roomId=${data.newRoomId}`
       } else {
-        window.location.href = '/'
+        alert(res.statusText)
       }
     } catch (error) {
       console.error(error)

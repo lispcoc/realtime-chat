@@ -11,6 +11,7 @@ import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
 import Google from "../auth/googleAuth"
 import styles from '@/components/style'
+import { RoomData } from "@/types/chat"
 
 interface Option {
   value: string;
@@ -189,7 +190,8 @@ export default function EditRoom() {
           variables[trimed] = 0
         }
       })
-      await supabase.from("Rooms").upsert({
+
+      const newRoomData: RoomData = {
         id: roomData?.id,
         title: inputTitle,
         description: inputDecsription,
@@ -205,9 +207,26 @@ export default function EditRoom() {
         },
         special_keys: special_keys,
         variables: variables
+      }
+
+      const res = await fetch('/api/editRoom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: JSON.stringify({
+          mode: 'edit',
+          roomData: newRoomData
+        })
       })
-      alert("部屋を更新しました。")
-      window.location.href = `/chat?roomId=${roomId}`
+
+      if (res.statusText === 'ok') {
+        alert("部屋を更新しました。")
+        window.location.href = `/chat?roomId=${roomId}`
+      } else {
+        alert(res.statusText)
+      }
     } catch (error) {
       console.error(error)
       alert("部屋の更新に失敗しました。")

@@ -20,7 +20,7 @@ export default function RoomLink({ roomId, linkName, index, isAdmin = false, use
       <span>
         {`${String(index).padStart(2, '0')}. `}
       </span>
-      <Link className='text-blue-700 hover:border-blue-700 hover:text-blue-700' href={{
+      <Link className='text-blue-700 hover:border-blue-700 hover:text-blue-700 font-bold' href={{
         pathname: isAdmin ? 'adminRoom' : '/chat',
         query: { roomId: roomId },
       }}>{linkName}</Link>
