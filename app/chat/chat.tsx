@@ -15,6 +15,10 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
 import styles from '@/components/style'
 
+type Prop = {
+  onSetTitle?: (title: string) => void
+}
+
 type RoomOption = {
   private: boolean
   user_limit: number,
@@ -38,7 +42,7 @@ const linkifyOptions = {
   className: "text-blue-700",
 }
 
-export default function Chat() {
+export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [play, { stop, pause }] = useSound(se)
 
   const searchParams = useSearchParams()
@@ -613,6 +617,7 @@ export default function Chat() {
 
   return (
     <div className="w-full max-w-4xl">
+      <title>{roomData?.title}</title>
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
       {!roomDataLoaded && (

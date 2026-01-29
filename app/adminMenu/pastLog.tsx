@@ -1,10 +1,10 @@
 
 "use client"
+import { useSearchParams } from "next/navigation"
 import { Database } from "@/types/supabasetype"
 import { RealtimeChannel } from "@supabase/realtime-js"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
-import { useSearchParams } from "next/navigation"
 import ChatLine from "@/components/chat/chatLine"
 
 type UserData = {

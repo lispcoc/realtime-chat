@@ -1,6 +1,6 @@
 
-import Chat from "./chat"
 import { Suspense } from "react"
+import Chat from "./chat"
 
 export default function Chats() {
   const isInMaintenanceMode = process.env.IS_IN_MAINTENANCE_MODE === "true";
