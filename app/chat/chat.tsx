@@ -378,16 +378,11 @@ export default function Chat() {
             },
           }).then(() => { })
         } else {
-          fetch('/api/dice', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              cache: 'no-store',
-            },
-            body: JSON.stringify({
+          supabase.functions.invoke('dice', {
+            body: {
               roomId: roomId,
               command: inputText
-            }),
+            }
           }).then(() => { })
         }
       })
