@@ -4,6 +4,7 @@ import { useEffect, useState, useReducer, } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
 import { useSearchParams } from "next/navigation"
+import { useRouter } from 'next/navigation'
 
 type Props = {
 }
@@ -14,6 +15,7 @@ export default function RoomList({ }: Props) {
   const searchParams = useSearchParams()
   let page = parseInt(searchParams.get("p") || "0")
   const authCode = searchParams.get("code") || null
+  const router = useRouter()
 
   type RoomData = {
     id: number,
@@ -75,6 +77,7 @@ export default function RoomList({ }: Props) {
         if (data.result === 'ok') {
           localStorage.setItem('google-auth-tokens', JSON.stringify(data.tokens))
         }
+        router.push('/')
       }
     })()
   }, [page])
