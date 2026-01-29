@@ -3,7 +3,6 @@
 import { useEffect, useState, useReducer, } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
-import { intToColorCode } from "@/utils/color/color"
 import { useSearchParams } from "next/navigation"
 
 type Props = {
@@ -14,6 +13,7 @@ const PER_PAGE = 10
 export default function RoomList({ }: Props) {
   const searchParams = useSearchParams()
   let page = parseInt(searchParams.get("p") || "0")
+  const authCode = searchParams.get("code") || null
 
   type RoomData = {
     id: number,
@@ -58,6 +58,23 @@ export default function RoomList({ }: Props) {
         allRooms.forEach(room => {
           getUsers(room.id).then(() => { forceUpdate() })
         })
+      }
+
+      if (authCode) {
+        const res = await fetch('/api/auth/google-oauth/getToken', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            cache: 'no-store',
+          },
+          body: JSON.stringify({
+            code: authCode
+          })
+        })
+        const data = await res.json()
+        if (data.result === 'ok') {
+          localStorage.setItem('google-auth-tokens', JSON.stringify(data.tokens))
+        }
       }
     })()
   }, [page])

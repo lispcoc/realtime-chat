@@ -76,20 +76,6 @@ export default function Chat() {
   let roomChannel: RealtimeChannel | null = null
 
   const isAdmin = async () => {
-    const tokenstr = localStorage.getItem('sb-rtchat-auth-token')
-    if (tokenstr) {
-      const res = await fetch('/api/admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          cache: 'no-store',
-        },
-        body: tokenstr
-      })
-      const data = await res.json()
-      return data.result === "ok"
-    }
-
     return false
   }
 

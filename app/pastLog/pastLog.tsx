@@ -70,29 +70,23 @@ export default function PastLog() {
 
   useEffect(() => {
     (async () => {
-      const tokenstr = localStorage.getItem('sb-rtchat-auth-token')
-      if (tokenstr) {
-        const token = JSON.parse(tokenstr)
-        const res = await fetch('/api/adminPastLog', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            cache: 'no-store',
-          },
-          body: JSON.stringify({
-            roomId: roomId,
-            page: page,
-            access_token: token.access_token,
-            refresh_token: token.refresh_token
-          }),
-          mode: 'cors',
-          credentials: 'include'
-        })
-        const result = await res.json();
-        if (result.messages != null) {
-          setMessageText(result.messages)
-          fetchRealtimeData()
-        }
+      const res = await fetch('/api/adminPastLog', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: JSON.stringify({
+          roomId: roomId,
+          page: page,
+        }),
+        mode: 'cors',
+        credentials: 'include'
+      })
+      const result = await res.json();
+      if (result.messages != null) {
+        setMessageText(result.messages)
+        fetchRealtimeData()
       }
     })()
   }, [])
