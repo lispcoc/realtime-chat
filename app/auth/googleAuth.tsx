@@ -10,8 +10,11 @@ const scopes = [
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email'
 ]
+type Prop = {
+  onSetUserName?: (userName: string) => void
+}
 
-export default function Google() {
+export default function Google({ onSetUserName = () => { } }: Prop) {
   const [userName, setUserName] = useState("")
   const [checkLogedIn, setCheckLogedIn] = useState(false)
   const router = useRouter()
@@ -66,9 +69,11 @@ export default function Google() {
   useEffect(() => {
     (async () => {
       setUserName("")
+      onSetUserName("")
       const username = await getUserName()
       if (username) {
         setUserName(username)
+        onSetUserName(username)
       }
       setCheckLogedIn(true)
     })()
