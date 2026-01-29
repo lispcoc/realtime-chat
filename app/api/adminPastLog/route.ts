@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
   try {
     const { roomId, page } = await request.json();
     const currentSessionToken = (await cookies()).get('session')?.value
-    console.log(currentSessionToken)
     if (currentSessionToken) {
       oauth2Client.setCredentials(JSON.parse(currentSessionToken))
       const oauth2 = google.oauth2({
@@ -18,7 +17,6 @@ export async function POST(request: NextRequest) {
         version: "v2"
       })
       const res = await oauth2.userinfo.get()
-      console.log(res.data)
       if (res && res.data && res.data.email === process.env.ADMIN_EMAIL) {
         let allMessages: Database["public"]["Tables"]["Messages"]["Row"][] = []
         try {

@@ -3,10 +3,9 @@ import { NextResponse, NextRequest } from "next/server";
 import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
-  const { code } = await request.json();
-
-  const oauth2Client = createOAuth2Client();
-  const { tokens } = await oauth2Client.getToken(code);
+  const { code } = await request.json()
+  const oauth2Client = createOAuth2Client()
+  const { tokens } = await oauth2Client.getToken(code)
 
   if (tokens) {
     (await cookies()).set('session', JSON.stringify(tokens), {

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-import { type NextRequest } from "next/server";
+import { redirect } from "next/navigation"
+import { type NextRequest } from "next/server"
 import { oauth2Client } from '@/lib/google/oauth'
 
 const scopes = [
@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: scopes
-  });
-	
+  })
+
   // Google認証リンクへリダイレクト
-  redirect(url);
+  redirect(url)
 }
