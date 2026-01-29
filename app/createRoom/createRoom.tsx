@@ -8,6 +8,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
 import Google from "../auth/googleAuth"
+import styles from '@/components/style'
 
 interface Option {
   value: string;
@@ -258,7 +259,7 @@ export default function CreateRoom() {
                 </div>
                 {
                   !isFirstField && (
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    <button type="button" className={styles.button}
                       onClick={() => roomSpecialFieldArray.remove(index)}
                     >
                       削除
@@ -270,7 +271,7 @@ export default function CreateRoom() {
           })}
 
           <div className="mb-5">
-            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+            <button type="button" className={styles.button}
               onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}
             >
               特殊キーの設定追加
@@ -292,7 +293,7 @@ export default function CreateRoom() {
                 />
                 {
                   !isFirstField && (
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    <button type="button" className={styles.button}
                       onClick={() => roomVariableFieldArray.remove(index)}
                     >
                       削除
@@ -304,14 +305,14 @@ export default function CreateRoom() {
           })}
 
           <div className="mb-5">
-            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+            <button type="button" className={styles.button}
               onClick={() => roomVariableFieldArray.append({ key: "" })}
             >
               変数の設定追加
             </button>
           </div>
 
-          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className={styles.button}>
             部屋を作成
           </button>
         </form>

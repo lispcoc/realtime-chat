@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react"
 import { useRouter } from 'next/navigation'
+import styles from '@/components/style'
 
 const scopes = [
   'https://www.googleapis.com/auth/userinfo.profile',
@@ -84,22 +85,24 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
       <div className="">
         <div className="">
           {!checkLogedIn && (
-            `確認中...`
+            <button className={styles.button} disabled>
+              確認中...
+            </button>
           )}
           {checkLogedIn && userName && (
             <>
               <div className="">
                 ログイン済み: {userName}
               </div>
-              <a onClick={handleLogout} className="text-blue-700">
+              <button className={styles.button} onClick={handleLogout}>
                 ログアウト
-              </a>
+              </button>
             </>
           )}
           {checkLogedIn && !userName && (
-            <Link href="/api/auth/google-oauth" className="text-blue-700">
+            <button className={styles.button} onClick={() => router.push('/api/auth/google-oauth')}>
               ログイン
-            </Link>
+            </button>
           )}
         </div>
         <div>

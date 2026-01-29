@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import React from 'react';
+import styles from '@/components/style'
 import './modal.css'
 
 const lastUpdate = "2026-01-19T00:00:00.000Z"
@@ -86,7 +87,7 @@ const TermsOfUse = ({ forceShow = false, onClose = () => { } }: Props) => {
                 </div>
                 <div className="mt-5">
                   <button
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    className={styles.button}
                     disabled={!agree}
                     onClick={() => { if (agree) { onAgree() } }}
                   >

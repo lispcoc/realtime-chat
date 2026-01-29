@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation"
 import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
 import Google from "../auth/googleAuth"
+import styles from '@/components/style'
 
 interface Option {
   value: string;
@@ -240,7 +241,7 @@ export default function EditRoom() {
               required
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
-            <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+            <button type="submit" className={styles.button}>
               認証
             </button>
           </div>
@@ -364,7 +365,7 @@ export default function EditRoom() {
                 </div>
                 {
                   !isFirstField && (
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    <button type="button" className={styles.button}
                       onClick={() => roomSpecialFieldArray.remove(index)}
                     >
                       削除
@@ -376,7 +377,7 @@ export default function EditRoom() {
           })}
 
           <div className="mb-5">
-            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+            <button type="button" className={styles.button}
               onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}
             >
               特殊キーの設定追加
@@ -398,7 +399,7 @@ export default function EditRoom() {
                 />
                 {
                   !isFirstField && (
-                    <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+                    <button type="button" className={styles.button}
                       onClick={() => roomVariableFieldArray.remove(index)}
                     >
                       削除
@@ -410,14 +411,14 @@ export default function EditRoom() {
           })}
 
           <div className="mb-5">
-            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
+            <button type="button" className={styles.button}
               onClick={() => roomVariableFieldArray.append({ key: "" })}
             >
               変数の設定追加
             </button>
           </div>
 
-          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className={styles.button}>
             変更を反映
           </button>
         </form>
@@ -429,7 +430,7 @@ export default function EditRoom() {
             <label htmlFor='deleteRoom' className="block mb-2 text-sm font-medium text-gray-900">部屋を削除する (確認)</label>
             <input type="checkbox" id="deleteRoom" name="deleteRoom" onChange={(event) => { setInputDeleteRoom(() => event.target.checked) }} />
           </div>
-          <button type="submit" disabled={inputPassword === "" || !inputDeleteRoom} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25">
+          <button type="submit" disabled={inputPassword === "" || !inputDeleteRoom} className={styles.button}>
             部屋の削除
           </button>
         </form>

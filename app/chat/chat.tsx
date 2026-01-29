@@ -9,10 +9,11 @@ import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
 import * as ColorWheel from "react-hsv-ring"
 import ChatLine from "@/components/chat/chatLine"
-import MessageDialog from '@/components/modal';
+import MessageDialog from '@/components/modal'
 import { createTrip } from "2ch-trip"
 import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
-import Linkify from "linkify-react";
+import Linkify from "linkify-react"
+import styles from '@/components/style'
 
 type RoomOption = {
   private: boolean
@@ -39,7 +40,6 @@ const linkifyOptions = {
 
 export default function Chat() {
   const [play, { stop, pause }] = useSound(se)
-  const BUTTON_STYLE = "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center disabled:opacity-25"
 
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -631,7 +631,7 @@ export default function Chat() {
               className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputName === ""}>
+            <button type="submit" className={styles.button} disabled={buttonDisable || inputName === ""}>
               入室
             </button>
           </form>
@@ -639,7 +639,7 @@ export default function Chat() {
 
         {isEntered && (
           <form className="m-2" onSubmit={onSubmitLeave}>
-            <button type="submit" className={`${BUTTON_STYLE}`}>
+            <button type="submit" className={styles.button}>
               退室
             </button>
           </form>
@@ -665,7 +665,7 @@ export default function Chat() {
             <form className="m-2" onSubmit={onSubmitNewMessage} onKeyDown={inputTextKeyPress}>
               <div className="mb-1 flex items-center grid grid-cols-3">
                 <span style={{ color: color }} className="col-span-2 mb-2 font-bold text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>{username}</span>
-                <button type="submit" className={`${BUTTON_STYLE}`} disabled={buttonDisable || inputText === ""}>
+                <button type="submit" className={styles.button} disabled={buttonDisable || inputText === ""}>
                   発言
                 </button>
                 <textarea id="message" name="message" rows={1}
@@ -775,10 +775,10 @@ export default function Chat() {
                   トランプ機能
                 </div>
                 <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
-                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) drawCard(); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                  <button type="submit" className={styles.button} onClick={() => { if (!buttonDisable) drawCard(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     1枚引く
                   </button>
-                  <button type="submit" className={`${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) resetDeck(); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                  <button type="submit" className={styles.button} onClick={() => { if (!buttonDisable) resetDeck(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     山札をリセット
                   </button>
                 </div>
@@ -799,16 +799,16 @@ export default function Chat() {
                         ({variables[key] || 0})
                       </span>
                     </span>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       +1
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       -1
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       値を入力
                     </button>
-                    <button type="submit" className={`col-span-2 ${BUTTON_STYLE}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       リセット
                     </button>
                   </div>
