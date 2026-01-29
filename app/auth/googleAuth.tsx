@@ -4,6 +4,7 @@
 import { supabase } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react"
+import { useRouter } from 'next/navigation'
 
 const scopes = [
   'https://www.googleapis.com/auth/userinfo.profile',
@@ -13,6 +14,7 @@ const scopes = [
 export default function Google() {
   const [userName, setUserName] = useState("")
   const [checkLogedIn, setCheckLogedIn] = useState(false)
+  const router = useRouter()
 
   const handleLogin = async () => {
     const { data: user, error } = await supabase.auth.signInWithOAuth({
@@ -33,39 +35,44 @@ export default function Google() {
   }
 
   const getUserName = async () => {
-    const tokens = JSON.parse(localStorage.getItem('google-auth-tokens') || 'null')
-    if (tokens) {
-      const res = await fetch('/api/auth/google-oauth/getUserData', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          cache: 'no-store',
-        },
-        body: JSON.stringify({
-          tokens: tokens
-        })
-      })
-      const data = await res.json()
-      if (data.result === 'ok') {
-        return data.res.data.email
+    const res = await fetch('/api/auth/google-oauth/getUserData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
       }
+    })
+    const data = await res.json()
+    if (data.result === 'ok') {
+      return data.res.data.email
     }
     return null
   }
 
-  const testLogout = async () => {
-    const res = await supabase.auth.signOut()
+  const handleLogout = async () => {
+    const res = await fetch('/api/auth/google-oauth/logOut', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      }
+    })
+    const data = await res.json()
+    if (data.result === 'ok') {
+    }
+    setCheckLogedIn(false)
   }
 
   useEffect(() => {
     (async () => {
+      setUserName("")
       const username = await getUserName()
       if (username) {
         setUserName(username)
       }
       setCheckLogedIn(true)
     })()
-  }, [])
+  }, [checkLogedIn])
 
   return (
     <>
@@ -75,10 +82,17 @@ export default function Google() {
             `確認中...`
           )}
           {checkLogedIn && userName && (
-            `ログイン済み: ${userName}`
+            <>
+              <div className="">
+                ログイン済み: {userName}
+              </div>
+              <a onClick={handleLogout} className="text-blue-700">
+                ログアウト
+              </a>
+            </>
           )}
           {checkLogedIn && !userName && (
-            <Link href="/api/auth/google-oauth">
+            <Link href="/api/auth/google-oauth" className="text-blue-700">
               ログイン
             </Link>
           )}

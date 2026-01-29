@@ -5,20 +5,8 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    const { tokens } = await request.json()
-
-    if (tokens) {
-      (await cookies()).set('session', JSON.stringify(tokens), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/'
-      })
-    }
-
     const currentSessionToken = (await cookies()).get('session')?.value || "{}"
-
-    oauth2Client.setCredentials(tokens || JSON.parse(currentSessionToken))
+    oauth2Client.setCredentials(JSON.parse(currentSessionToken))
     const oauth2 = google.oauth2({
       auth: oauth2Client,
       version: "v2"

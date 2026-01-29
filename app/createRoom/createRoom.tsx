@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
 import MessageDialog from '@/components/modal';
+import Google from "../auth/googleAuth"
 
 interface Option {
   value: string;
@@ -69,11 +70,31 @@ export default function CreateRoom() {
   useEffect(() => {
   }, [])
 
+  const getUserName = async () => {
+    const res = await fetch('/api/auth/google-oauth/getUserData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cache: 'no-store',
+      }
+    })
+    const data = await res.json()
+    if (data.result === 'ok') {
+      return data.res.data.email
+    }
+    return null
+  }
+
   const onSubmitCreateRoom = async (data: FormData) => {
     if (inputTitle === "") return
     if (inputPassword === "") return
     setButtonDisable(true)
     try {
+      const ownerEmail = await getUserName()
+      if (!ownerEmail) {
+        alert('認証されていません。')
+        return
+      }
       const hashedPassword = await bcrypt.hash(inputPassword, 10)
       const special_keys: any = {}
       const variable_keys: string[] = []
@@ -91,6 +112,7 @@ export default function CreateRoom() {
       const res = await supabase.from("Rooms").insert({
         title: inputTitle,
         description: inputDecsription,
+        owner: ownerEmail,
         password: hashedPassword,
         options: {
           private: inputPrivate,
@@ -118,8 +140,16 @@ export default function CreateRoom() {
 
   return (
     <div className="flex-1 w-full max-w-md flex flex-col p-2">
-      <h2 className="text-xl font-bold pt-5 pb-10">ルームの作成</h2>
+      <h2 className="text-xl font-bold pt-5">ルームの作成</h2>
 
+      <div className="w-full p-2">
+        <div className="w-full p-2 text-center">
+          ※ルームの作成にはGoogleアカウントで認証する必要があります。
+        </div>
+        <div className="w-full p-2 text-center">
+          <Google />
+        </div>
+      </div>
       <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitCreateRoom)}>
         <div className="mb-5">
           <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900">ルーム名</label>

@@ -1,5 +1,3 @@
-import { oauth2Client } from '@/lib/google/oauth'
-import { google } from 'googleapis'
 import { NextResponse, NextRequest } from "next/server";
 import { cookies } from 'next/headers';
 
