@@ -30,6 +30,8 @@ export default function RoomList({ }: Props) {
 
   const [rooms, appendRooms] = useState<RoomData[]>([])
   const [usersList, setUsersList] = useState<UserData[][]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [serverError, setServerError] = useState(false)
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
   const getUsers = async (roomId: number) => {
@@ -51,9 +53,13 @@ export default function RoomList({ }: Props) {
         })
         if (response.data) {
           allRooms = response.data.rooms
+          setLoaded(true)
+        } else {
+          setServerError(true)
         }
       } catch (error) {
         console.error(error)
+        setServerError(true)
       }
       if (allRooms) {
         appendRooms(allRooms)
@@ -84,21 +90,35 @@ export default function RoomList({ }: Props) {
 
   return (
     <>
-      <div className="p-2 space-x-2">
-        {(page > 0) && (
-          <>
-            <a href={`?p=${page - 1}`}>前の10件</a>
-          </>
-        )}
-        {(rooms.length == PER_PAGE) && (
-          <a href={`?p=${page + 1}`}>次の10件</a>
-        )}
-      </div>
-      <ul>
-        {rooms.map((item, index) => (
-          <RoomLink key={index} roomId={String(item.id)} index={page * PER_PAGE + index + 1} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
-        ))}
-      </ul>
+      {!loaded && !serverError && (
+        <div className="p-2 space-x-2">
+          <span>読み込み中...</span>
+        </div>
+      )}
+      {serverError && (
+        <div className="p-2 space-x-2">
+          <span className="text-red-500">サーバーエラーが発生しました。時間をおいて再度お試しください。</span>
+        </div>
+      )}
+      {loaded && (
+        <>
+          <div className="p-2 space-x-2">
+            {(page > 0) && (
+              <>
+                <a href={`?p=${page - 1}`}>前の10件</a>
+              </>
+            )}
+            {(rooms.length == PER_PAGE) && (
+              <a href={`?p=${page + 1}`}>次の10件</a>
+            )}
+          </div>
+          <ul>
+            {rooms.map((item, index) => (
+              <RoomLink key={index} roomId={String(item.id)} index={page * PER_PAGE + index + 1} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
+            ))}
+          </ul>
+        </>
+      )}
     </>
   )
 }
