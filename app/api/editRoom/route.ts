@@ -1,4 +1,5 @@
-
+import { oauth2Client, refreshTokenIfNeeded } from '@/lib/google/oauth'
+import { google } from 'googleapis'
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from "next/headers"
 import { RoomData } from "@/types/chat"
@@ -11,6 +12,21 @@ type ReqPayload = {
 
 export async function POST(request: NextRequest) {
   try {
+    await refreshTokenIfNeeded()
+    const oauth2 = google.oauth2({
+      auth: oauth2Client,
+      version: "v2"
+    })
+    const res = await oauth2.userinfo.get()
+    const owner = res.data.email
+    if (!owner) {
+      return NextResponse.json({
+        message: '認証エラー'
+      }, {
+        status: 400,
+        statusText: 'ng'
+      })
+    }
     const payload: ReqPayload = await request.json();
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for") || ""
