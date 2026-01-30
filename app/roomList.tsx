@@ -1,10 +1,8 @@
 
 "use client"
-import { useEffect, useState, useReducer, } from "react"
-import { supabase } from "@/utils/supabase/supabase"
-import RoomLink from '@/components/roomLink'
 import { useSearchParams } from "next/navigation"
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useReducer, } from "react"
+import RoomLink from '@/components/roomLink'
 
 type Props = {
 }
@@ -13,80 +11,46 @@ const PER_PAGE = 10
 
 export default function RoomList({ }: Props) {
   const searchParams = useSearchParams()
-  let page = parseInt(searchParams.get("p") || "0")
-  const authCode = searchParams.get("code") || null
-  const router = useRouter()
 
   type RoomData = {
-    id: number,
-    title: string | null,
+    id: number
+    title: string | null
     created_at: string
   }
 
   type UserData = {
-    color: number,
+    color: number
     name: string
+    room_id: number
   }
 
-  const [rooms, appendRooms] = useState<RoomData[]>([])
-  const [usersList, setUsersList] = useState<UserData[][]>([])
+  type AllData = {
+    rooms: RoomData[]
+    users: UserData[]
+  }
+
+  const [roomList, setRoomList] = useState<AllData>()
   const [loaded, setLoaded] = useState(false)
   const [serverError, setServerError] = useState(false)
+  const [page, setPage] = useState(0)
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
-
-  const getUsers = async (roomId: number) => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: { action: 'getUsers', roomId: roomId },
-    })
-    if (response.data) {
-      const responseData = response.data
-      setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
-    }
-  }
 
   useEffect(() => {
     (async () => {
-      let allRooms: RoomData[] = []
       try {
-        const response = await supabase.functions.invoke('roomList', {
-          body: { page: page },
+        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/chat/roomList.json`, {
+          method: 'GET'
         })
-        if (response.data) {
-          allRooms = response.data.rooms
-          setLoaded(true)
-        } else {
-          setServerError(true)
-        }
+        const data: AllData = await new Response(res.body).json()
+        setRoomList(data)
+        setLoaded(true)
       } catch (error) {
         console.error(error)
         setServerError(true)
-      }
-      if (allRooms) {
-        appendRooms(allRooms)
-        allRooms.forEach(room => {
-          getUsers(room.id).then(() => { forceUpdate() })
-        })
-      }
-
-      if (authCode) {
-        const res = await fetch('/api/auth/google-oauth/getToken', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            cache: 'no-store',
-          },
-          body: JSON.stringify({
-            code: authCode
-          })
-        })
-        const data = await res.json()
-        if (data.result === 'ok') {
-          localStorage.setItem('google-auth-tokens', JSON.stringify(data.tokens))
-        }
-        router.push('/')
+        setLoaded(true)
       }
     })()
-  }, [page])
+  }, [])
 
   return (
     <>
@@ -100,22 +64,34 @@ export default function RoomList({ }: Props) {
           <span className="text-red-500">サーバーエラーが発生しました。時間をおいて再度お試しください。</span>
         </div>
       )}
-      {loaded && (
+      {loaded && roomList && (
         <>
           <div className="p-2 space-x-2">
-            {(page > 0) && (
-              <>
-                <a href={`?p=${page - 1}`}>前の10件</a>
-              </>
+            {page > 0 && (
+              <span onClick={() => { setPage(page - 1) }}>前の10件</span>
             )}
-            {(rooms.length == PER_PAGE) && (
-              <a href={`?p=${page + 1}`}>次の10件</a>
+            {page <= 0 && (
+              <span className="opacity-20 text-gray-700">前の10件</span>
+            )}
+            <> / </>
+            {roomList.rooms.length > (page + 1) * PER_PAGE && (
+              <span onClick={() => { setPage(page + 1) }}>次の10件</span>
             )}
           </div>
           <ul>
-            {rooms.map((item, index) => (
-              <RoomLink key={index} roomId={String(item.id)} index={page * PER_PAGE + index + 1} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
-            ))}
+            {(
+              roomList.rooms
+                .slice(page * PER_PAGE, (page + 1) * PER_PAGE)
+                .map((room, index) => (
+                  <RoomLink
+                    key={index}
+                    roomId={String(room.id)}
+                    index={page * PER_PAGE + index + 1}
+                    linkName={room.title || "unknown"}
+                    users={roomList.users.filter(user => user.room_id == room.id)}>
+                  </RoomLink>
+                ))
+            )}
           </ul>
         </>
       )}
