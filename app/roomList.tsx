@@ -39,7 +39,8 @@ export default function RoomList({ }: Props) {
     (async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/chat/roomList.json`, {
-          method: 'GET'
+          method: 'GET',
+          cache: 'no-store'
         })
         const data: AllData = await new Response(res.body).json()
         setRoomList(data)
