@@ -55,18 +55,6 @@ export default function RoomList({ }: Props) {
       )}
       {loaded && roomList && (
         <>
-          <div className="p-2 space-x-2">
-            {page > 0 && (
-              <span onClick={() => { setPage(page - 1) }}>前の10件</span>
-            )}
-            {page <= 0 && (
-              <span className="opacity-20 text-gray-700">前の10件</span>
-            )}
-            <> / </>
-            {roomList.rooms.length > (page + 1) * PER_PAGE && (
-              <span onClick={() => { setPage(page + 1) }}>次の10件</span>
-            )}
-          </div>
           <ul>
             {(
               roomList.rooms
@@ -82,6 +70,24 @@ export default function RoomList({ }: Props) {
                 ))
             )}
           </ul>
+          <div className="w-full flex flex-col items-center p-2 space-x-2">
+            <div className="flex space-x-4">
+              {page > 0 && (
+                <span onClick={() => { setPage(page - 1) }}>前の{PER_PAGE}件</span>
+              )}
+              {page <= 0 && (
+                <span className="opacity-20 text-gray-700">前の{PER_PAGE}件</span>
+              )}
+              <span> &lt; </span>
+              {Array.from({ length: Math.ceil(roomList.rooms.length / PER_PAGE) }, (_, i) => i).map(i => (
+                <span key={i} onClick={() => { setPage(i) }} className={i === page ? "font-bold" : ""}>{i + 1}</span>
+              ))}
+              <span> &gt; </span>
+              {roomList.rooms.length > (page + 1) * PER_PAGE && (
+                <span onClick={() => { setPage(page + 1) }}>次の{PER_PAGE}件</span>
+              )}
+            </div>
+          </div>
         </>
       )}
     </>

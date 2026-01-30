@@ -23,7 +23,6 @@ export function createOAuth2Client(options?: {
 }
 
 export function setOAuthTokenCookie(tokens: string) {
-  console.log(tokens)
 }
 
 export const oauth2Client = createOAuth2Client()

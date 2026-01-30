@@ -14,7 +14,6 @@ export default function Login() {
         email: email,
         password: password,
       })
-      console.log(res)
       if (res.error) {
         throw res.error;
       }
@@ -28,11 +27,8 @@ export default function Login() {
       })
 
       alert('OK');
-      console.log(localStorage)
     } catch {
       alert('エラーが発生しました');
-
-      console.log()
     }
   }
 
