@@ -488,6 +488,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
         const chk = await checkEntered()
         if (!chk.entered) {
+          if (messageChannel) messageChannel.unsubscribe()
+          if (userChannel) userChannel.unsubscribe()
+          if (roomChannel) roomChannel.unsubscribe()
+          console.log("自動更新の終了")
           setIsEntered(false)
           alert("入室していません。")
         }
