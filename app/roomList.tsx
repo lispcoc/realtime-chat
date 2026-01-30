@@ -2,7 +2,7 @@
 "use client"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState, useReducer, } from "react"
-import RoomLink from '@/components/roomLink'
+import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 
 type Props = {
 }
@@ -11,18 +11,6 @@ const PER_PAGE = 10
 
 export default function RoomList({ }: Props) {
   const searchParams = useSearchParams()
-
-  type RoomData = {
-    id: number
-    title: string | null
-    created_at: string
-  }
-
-  type UserData = {
-    color: number
-    name: string
-    room_id: number
-  }
 
   type AllData = {
     rooms: RoomData[]
