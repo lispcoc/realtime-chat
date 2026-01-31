@@ -5,7 +5,9 @@ import { Database } from "@/types/supabasetype"
 import { RealtimeChannel } from "@supabase/realtime-js"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
+import useSound from 'use-sound'
 import ChatLine from "@/components/chat/chatLine"
+import se from "../sound.mp3"
 
 type UserData = {
   email: string;
@@ -17,6 +19,7 @@ export default function PastLog() {
   let page = parseInt(searchParams.get("p")!!) || 0
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   let messageChannel: RealtimeChannel | null = null
+  const [play, { stop, pause }] = useSound(se)
 
   const fetchRealtimeData = () => {
     try {
@@ -34,7 +37,10 @@ export default function PastLog() {
             (payload) => {
               if (payload.eventType === "INSERT") {
                 const { id, room_id, name, text, color, created_at, system } = payload.new
+                console.log(payload)
+                console.log(new Date(new Date().getTime() - Date.parse(created_at)).getMilliseconds())
                 setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0 && msg.id != id)])
+                play()
               }
             }
           )
@@ -52,6 +58,8 @@ export default function PastLog() {
             (payload) => {
               if (payload.eventType === "INSERT") {
                 const { id, room_id, name, text, color, created_at, system } = payload.new
+                console.log(payload)
+                console.log(new Date(new Date().getTime() - Date.parse(created_at)).getMilliseconds())
                 setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0 && msg.id != id)])
               }
             }
@@ -92,6 +100,10 @@ export default function PastLog() {
       }
     })()
   }, [])
+
+  useEffect(() => {
+    play()
+  }, [messageText])
 
   return (
     <div>

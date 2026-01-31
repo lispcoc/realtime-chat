@@ -3,7 +3,7 @@
 import { Database, Json } from "@/types/supabasetype"
 import { RealtimeChannel } from "@supabase/realtime-js"
 import { useEffect, useState } from "react"
-import useSound from 'use-sound';
+import useSound from 'use-sound'
 import se from "../sound.mp3"
 import { supabase } from "@/utils/supabase/supabase"
 import { useSearchParams } from "next/navigation"
@@ -259,15 +259,27 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         fetchRealtimeData()
       }
 
+      if (localStorage.getItem('playSound') === 'true') {
+        setPlaySound(true)
+      }
       const timer = setInterval(getUsers, 5 * 60 * 1000)
 
       return () => clearInterval(timer)
     })()
+  }, [])
+
+  useEffect(() => {
     if (recievedMessage) {
       if (playSound) play()
       setRecievedMessage(false)
     }
   }, [recievedMessage])
+
+  const onSoundChanged = (option: boolean) => {
+    setPlaySound(option)
+    localStorage.setItem('playSound', option ? 'true' : 'false')
+    play()
+  }
 
   const handleBeforeUnload = () => {
     if (messageChannel) messageChannel.unsubscribe()
@@ -737,7 +749,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         <div className="w-full mb-4">
           <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
         </div>
-        <div className="w-full mb-4">
+        <div className="w-full mb-8">
           <a href={"/adminMenu?roomId=" + roomId} >管理者用メニュー</a>
         </div>
       </>)}
@@ -834,13 +846,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         onOk={() => setShowSettings(false)}
         message={(
           <span className="w-full font-medium text-right">
-            {playSound && (
-              <input checked type="checkbox" id="playsound" name="playsound" onChange={(event) => { if (event.target.checked) play(); setPlaySound(() => event.target.checked) }} />
-            )}
-            {!playSound && (
-              <input type="checkbox" id="playsound" name="playsound" onChange={(event) => { if (event.target.checked) play(); setPlaySound(() => event.target.checked) }} />
-            )}
-            新着時に音を鳴らす
+            <input checked={playSound} type="checkbox" id="playsound" name="playsound" onChange={(event) => { onSoundChanged(event.target.checked) }} />
+            <label htmlFor="playsound">新着時に音を鳴らす</label>
           </span>
         )}
       />
