@@ -1,12 +1,20 @@
 import Link from 'next/link'
 import { intToColorCode } from "@/utils/color/color"
 
-type UserData = {
-  color: number,
+export type RoomData = {
+  id: number
+  title: string | null
+  created_at: string
+}
+
+export type UserData = {
+  color: number
   name: string
+  room_id: number
 }
 
 type Props = {
+  children?: React.ReactNode
   roomId: string,
   linkName: string,
   index: number,

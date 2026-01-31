@@ -1,10 +1,8 @@
 
 "use client"
-import { useEffect, useState, useReducer, } from "react"
-import { supabase } from "@/utils/supabase/supabase"
-import RoomLink from '@/components/roomLink'
 import { useSearchParams } from "next/navigation"
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useReducer, } from "react"
+import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 
 type Props = {
 }
@@ -13,92 +11,85 @@ const PER_PAGE = 10
 
 export default function RoomList({ }: Props) {
   const searchParams = useSearchParams()
-  let page = parseInt(searchParams.get("p") || "0")
-  const authCode = searchParams.get("code") || null
-  const router = useRouter()
 
-  type RoomData = {
-    id: number,
-    title: string | null,
-    created_at: string
+  type AllData = {
+    rooms: RoomData[]
+    users: UserData[]
   }
 
-  type UserData = {
-    color: number,
-    name: string
-  }
-
-  const [rooms, appendRooms] = useState<RoomData[]>([])
-  const [usersList, setUsersList] = useState<UserData[][]>([])
+  const [roomList, setRoomList] = useState<AllData>()
+  const [loaded, setLoaded] = useState(false)
+  const [serverError, setServerError] = useState(false)
+  const [page, setPage] = useState(0)
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
-
-  const getUsers = async (roomId: number) => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: { action: 'getUsers', roomId: roomId },
-    })
-    if (response.data) {
-      const responseData = response.data
-      setUsersList((usersList) => { usersList[roomId] = responseData.users; return usersList })
-    }
-  }
 
   useEffect(() => {
     (async () => {
-      let allRooms: RoomData[] = []
       try {
-        const response = await supabase.functions.invoke('roomList', {
-          body: { page: page },
+        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/chat/roomList.json`, {
+          method: 'GET',
+          cache: 'no-store'
         })
-        if (response.data) {
-          allRooms = response.data.rooms
-        }
+        const data: AllData = await new Response(res.body).json()
+        setRoomList(data)
+        setLoaded(true)
       } catch (error) {
         console.error(error)
-      }
-      if (allRooms) {
-        appendRooms(allRooms)
-        allRooms.forEach(room => {
-          getUsers(room.id).then(() => { forceUpdate() })
-        })
-      }
-
-      if (authCode) {
-        const res = await fetch('/api/auth/google-oauth/getToken', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            cache: 'no-store',
-          },
-          body: JSON.stringify({
-            code: authCode
-          })
-        })
-        const data = await res.json()
-        if (data.result === 'ok') {
-          localStorage.setItem('google-auth-tokens', JSON.stringify(data.tokens))
-        }
-        router.push('/')
+        setServerError(true)
+        setLoaded(true)
       }
     })()
-  }, [page])
+  }, [])
 
   return (
     <>
-      <div className="p-2 space-x-2">
-        {(page > 0) && (
-          <>
-            <a href={`?p=${page - 1}`}>前の10件</a>
-          </>
-        )}
-        {(rooms.length == PER_PAGE) && (
-          <a href={`?p=${page + 1}`}>次の10件</a>
-        )}
-      </div>
-      <ul>
-        {rooms.map((item, index) => (
-          <RoomLink key={index} roomId={String(item.id)} index={page * PER_PAGE + index + 1} linkName={item.title || "unknown"} users={usersList[item.id] || []}></RoomLink>
-        ))}
-      </ul>
+      {!loaded && !serverError && (
+        <div className="p-2 space-x-2">
+          <span>読み込み中...</span>
+        </div>
+      )}
+      {serverError && (
+        <div className="p-2 space-x-2">
+          <span className="text-red-500">サーバーエラーが発生しました。時間をおいて再度お試しください。</span>
+        </div>
+      )}
+      {loaded && roomList && (
+        <>
+          <ul>
+            {(
+              roomList.rooms
+                .slice(page * PER_PAGE, (page + 1) * PER_PAGE)
+                .map((room, index) => (
+                  <RoomLink
+                    key={index}
+                    roomId={String(room.id)}
+                    index={page * PER_PAGE + index + 1}
+                    linkName={room.title || "unknown"}
+                    users={roomList.users.filter(user => user.room_id == room.id)}>
+                  </RoomLink>
+                ))
+            )}
+          </ul>
+          <div className="w-full flex flex-col items-center p-2 space-x-2">
+            <div className="flex space-x-4">
+              {page > 0 && (
+                <span onClick={() => { setPage(page - 1) }}>前の{PER_PAGE}件</span>
+              )}
+              {page <= 0 && (
+                <span className="opacity-20 text-gray-700">前の{PER_PAGE}件</span>
+              )}
+              <span> &lt; </span>
+              {Array.from({ length: Math.ceil(roomList.rooms.length / PER_PAGE) }, (_, i) => i).map(i => (
+                <span key={i} onClick={() => { setPage(i) }} className={i === page ? "font-bold" : ""}>{i + 1}</span>
+              ))}
+              <span> &gt; </span>
+              {roomList.rooms.length > (page + 1) * PER_PAGE && (
+                <span onClick={() => { setPage(page + 1) }}>次の{PER_PAGE}件</span>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }
