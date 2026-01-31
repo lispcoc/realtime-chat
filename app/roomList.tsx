@@ -2,6 +2,7 @@
 "use client"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState, useReducer, } from "react"
+import { supabase } from "@/utils/supabase/supabase"
 import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 
 type Props = {
@@ -23,21 +24,57 @@ export default function RoomList({ }: Props) {
   const [page, setPage] = useState(0)
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
+  const fetchRealtimeData = () => {
+    try {
+      supabase
+        .channel('roomList')
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "Users"
+          },
+          (payload) => {
+            if (payload.schema !== 'UPDATE') {
+              console.log('update after 10 seconds...')
+              setTimeout(fetchRoomList, 10000)
+            }
+          }
+        )
+        .subscribe()
+      console.log("自動更新の開始")
+      return () => {
+        supabase.channel('roomList').unsubscribe()
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const fetchRoomList = async () => {
+    console.log('fetchRoomList')
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/chat/roomList.json`, {
+        method: 'GET',
+        cache: 'no-store'
+      })
+      const data: AllData = await new Response(res.body).json()
+      setRoomList(data)
+      return true
+    } catch (error) {
+      console.error(error)
+    }
+    return false
+  }
+
   useEffect(() => {
     (async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/chat/roomList.json`, {
-          method: 'GET',
-          cache: 'no-store'
-        })
-        const data: AllData = await new Response(res.body).json()
-        setRoomList(data)
-        setLoaded(true)
-      } catch (error) {
-        console.error(error)
+      if (!await fetchRoomList()) {
         setServerError(true)
-        setLoaded(true)
       }
+      setLoaded(true)
+      fetchRealtimeData()
     })()
   }, [])
 
