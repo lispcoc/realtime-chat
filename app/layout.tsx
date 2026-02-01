@@ -1,4 +1,5 @@
 import Header from '@/components/header'
+import HeadLine from '@/components/headLine'
 import TermsOfUse from '@/components/termsOfUse'
 import './globals.css'
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className="bg-background text-foreground">
         <Header></Header>
         <main className="pt-14 min-h-screen flex flex-col items-center">
+          <HeadLine></HeadLine>
           {children}
         </main>
         <TermsOfUse />
