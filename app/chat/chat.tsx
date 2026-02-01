@@ -52,6 +52,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [pendingMessageText, setPendingMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
+  const [roomAuthenticated, setRoomAuthenticated] = useState(false)
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [variableKeys, setVariableKeys] = useState<string[]>([])
@@ -216,10 +217,16 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       let tempRoomData = null
       try {
-        const { data } = await supabase.from("Rooms").select("*").eq('id', roomId).order("created_at")
-        if (data && data[0]) {
-          setRoomData(data[0])
-          tempRoomData = data[0]
+
+        const { response, data } = await supabase.functions.invoke('roomInfo', {
+          body: { roomId: roomId },
+        })
+        console.log(response)
+        if (data) {
+          console.log(data)
+          setRoomData(data.info)
+          tempRoomData = data.info
+          setRoomAuthenticated(data.authenticated)
         }
       } catch (error) {
         console.error(error)
@@ -645,6 +652,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       {roomDataLoaded && (<>
         {!isEntered && (
           <form className="m-2 p-2" onSubmit={onSubmitEnter}>
+            {!roomAuthenticated && (
+              <div className="text-right font-xs">
+                ※認証されていない部屋です
+              </div>
+            )}
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
             {showColorPicker && colorPicker(inputName)}
