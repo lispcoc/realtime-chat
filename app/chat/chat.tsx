@@ -221,9 +221,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         const { response, data } = await supabase.functions.invoke('roomInfo', {
           body: { roomId: roomId },
         })
-        console.log(response)
         if (data) {
-          console.log(data)
           setRoomData(data.info)
           tempRoomData = data.info
           setRoomAuthenticated(data.authenticated)
