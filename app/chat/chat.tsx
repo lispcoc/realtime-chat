@@ -653,7 +653,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         {!isEntered && (
           <form className="m-2 p-2" onSubmit={onSubmitEnter}>
             {!roomAuthenticated && (
-              <div className="text-right font-xs">
+              <div className="text-right text-xs">
                 ※認証されていない部屋です
               </div>
             )}
