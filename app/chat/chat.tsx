@@ -34,6 +34,7 @@ type VariableObject = {
 type User = {
   color: number;
   name: string;
+  id: string;
 }
 
 const NUM_MESSAGES = 50
@@ -138,14 +139,25 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           {
             event: "*",
             schema: "public",
-            table: "Users",
-            filter: `room_id=eq.${roomId}`
+            table: "Users"
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
-              getUsers()
+              const { id, name, color, room_id } = payload.new
+              if (room_id == roomId) {
+                setUsers((users) => [{ id, name, color }, ...users])
+              }
             } else if (payload.eventType === "DELETE") {
-              getUsers()
+              const { id } = payload.old
+              setUsers((users) => users.filter(user => user.id != id))
+              if (isEntered && !users.find(user => user.id === localStorage.getItem("userId"))) {
+                if (messageChannel) messageChannel.unsubscribe()
+                if (userChannel) userChannel.unsubscribe()
+                if (roomChannel) roomChannel.unsubscribe()
+                console.log("自動更新の終了")
+                setIsEntered(false)
+                alert("入室していません。")
+              }
             }
           }
         )
@@ -554,6 +566,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         userId: localStorage.getItem("userId") || null
       },
     })
+    setUsers((users) => users.filter(user => user.id != localStorage.getItem("userId")))
     setIsEntered(false)
   }
 
