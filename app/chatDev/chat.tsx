@@ -104,25 +104,26 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   type _User = Database["public"]["Tables"]["Users"]["Row"]
 
   type Packet<T> = {
-    type: T extends Message
-    ? "message"
-    : T extends SendMessage
-    ? "message"
-    : T extends _User
-    ? "enterRoom" | "exitRoom"
-    : T extends SendUser
-    ? "enterRoom" | "exitRoom"
-    : T extends EnterRoomResponse
-    ? "EnterRoomResponse"
-    : T extends changeVariable
-    ? "changeVariable"
-    : T extends dice
-    ? "dice"
-    : T extends card
-    ? "card"
+    type: T extends Message ? "message"
+    : T extends SendMessage ? "message"
+    : T extends _User ? "enterRoom" | "exitRoom"
+    : T extends SendUser ? "enterRoom" | "exitRoom"
+    : T extends EnterRoomResponse ? "EnterRoomResponse"
+    : T extends changeVariable ? "changeVariable"
+    : T extends card ? "card"
+    : T extends dice ? "dice"
     : "error"
     room_id: number,
     data: T
+  }
+
+  const pack : Packet<card> = {
+    type: "card",
+    room_id: roomId,
+    data: {
+      name: username,
+      command: "drawCard"
+    }
   }
 
   const [socket, setSocket] = useState<WebSocket>(null!)
@@ -131,9 +132,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const createSocket = () => {
     console.log(process.env.NEXT_PUBLIC_MY_SUPABASE_URL!)
     const _socket = new WebSocket(url + "?roomId=" + roomId)
-    setSocket(_socket);
     _socket.onopen = () => {
       console.log("Connected to WebSocket server");
+      setSocket(_socket);
     }
 
     _socket.onmessage = (event) => {
@@ -731,7 +732,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
               className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" className={styles.button} disabled={buttonDisable || inputName === ""}>
+            <button type="submit" className={styles.button} disabled={!socket || buttonDisable || inputName === ""}>
               入室
             </button>
           </form>
