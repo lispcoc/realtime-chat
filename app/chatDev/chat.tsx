@@ -98,7 +98,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const [socket, setSocket] = useState<WebSocket>(null!)
-  const url = 'ws://rtchat.0am.jp:8001'
+  const url = 'wss://rtchat.0am.jp/ws/'
 
   const createSocket = () => {
     console.log(process.env.NEXT_PUBLIC_MY_SUPABASE_URL!)
