@@ -129,6 +129,20 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [socket, setSocket] = useState<WebSocket>(null!)
   const url = 'wss://rtchat.0am.jp/ws/'
 
+  const onMessagePacketRecieved = (packet: Packet<Message>) => {
+    const opt = getRoomOption()
+    if (opt.private && !isEntered) {
+      setMessageText([])
+      return
+    }
+    if (packet.data.room_id == roomId) {
+      setPendingMessageText([])
+      setMessageText((messageText) => [packet.data, ...messageText])
+      recievedMessages.push(packet.data.id)
+      setRecievedMessage(true)
+    }
+  }
+
   const createSocket = (opt: RoomOption) => {
     console.log(process.env.NEXT_PUBLIC_MY_SUPABASE_URL!)
     const _socket = new WebSocket(url + "?roomId=" + roomId)
@@ -140,15 +154,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     _socket.onmessage = (event) => {
       const packet: Packet<Message> = JSON.parse(event.data)
       if (packet.type === "message") {
-        if (opt.private && !isEntered) {
-          setMessageText([])
-          return
-        } else if (packet.data.room_id == roomId) {
-          setPendingMessageText([])
-          setMessageText((messageText) => [packet.data, ...messageText])
-          recievedMessages.push(packet.data.id)
-          setRecievedMessage(true)
-        }
+        onMessagePacketRecieved(packet)
       }
       const packet2: Packet<EnterRoomResponse> = JSON.parse(event.data)
       if (packet2.type === "EnterRoomResponse") {
