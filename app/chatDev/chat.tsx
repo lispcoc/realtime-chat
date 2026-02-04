@@ -97,6 +97,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   type dice = {
     command: string;
   }
+  type card = {
+    name: string;
+    command: string;
+  }
 
   type Packet<T> = {
     type: T extends Message
@@ -111,6 +115,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     ? "changeVariable"
     : T extends dice
     ? "dice"
+    : T extends card
+    ? "card"
     : "error"
     room_id: number,
     data: T
@@ -404,7 +410,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const handleBeforeUnload = () => {
-    if (messageChannel) messageChannel.unsubscribe()
     if (userChannel) userChannel.unsubscribe()
     if (roomChannel) roomChannel.unsubscribe()
     console.log("自動更新の終了")
@@ -649,35 +654,33 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const drawCard = async () => {
     setButtonDisable(true)
     setTimeout(() => setButtonDisable(false), 2 * 1000)
-    fetch('/api/card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        roomId: roomId,
-        command: 'drawCard',
-        username: username
-      }),
-    })
+    if (socket) {
+      const packet: Packet<card> = {
+        type: "card",
+        room_id: roomId,
+        data: {
+          name: username,
+          command: "drawCard"
+        }
+      }
+      socket.send(JSON.stringify(packet))
+    }
   }
 
   const resetDeck = async () => {
     setButtonDisable(true)
     setTimeout(() => setButtonDisable(false), 2 * 1000)
-    fetch('/api/card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        roomId: roomId,
-        command: 'resetDeck',
-        username: username
-      }),
-    })
+    if (socket) {
+      const packet: Packet<card> = {
+        type: "card",
+        room_id: roomId,
+        data: {
+          name: username,
+          command: "resetDeck"
+        }
+      }
+      socket.send(JSON.stringify(packet))
+    }
   }
 
   return (
