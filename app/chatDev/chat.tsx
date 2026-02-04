@@ -84,6 +84,19 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
   type SendUser = Database["public"]["Tables"]["Users"]["Row"]
   type SendMessage = Omit<Message, 'id' | 'created_at'>
+  type EnterRoomResponse = {
+    success: boolean;
+    reason: string;
+    id: string;
+  }
+  type changeVariable = {
+    op: string;
+    key: string;
+    value: number;
+  }
+  type dice = {
+    command: string;
+  }
 
   type Packet<T> = {
     type: T extends Message
@@ -92,6 +105,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     ? "message"
     : T extends SendUser
     ? "enterRoom" | "exitRoom"
+    : T extends EnterRoomResponse
+    ? "EnterRoomResponse"
+    : T extends changeVariable
+    ? "changeVariable"
+    : T extends dice
+    ? "dice"
     : "error"
     room_id: number,
     data: T
@@ -113,12 +132,26 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.log("Received:", packet)
       if (packet.type === "message") {
         if (packet.data.room_id == roomId) {
-          console.log(packet.data)
           setPendingMessageText([])
           setMessageText((messageText) => [packet.data, ...messageText])
           recievedMessages.push(packet.data.id)
           setRecievedMessage(true)
         }
+      }
+      const packet2: Packet<EnterRoomResponse> = JSON.parse(event.data)
+      if (packet2.type === "EnterRoomResponse") {
+        if (packet2.data.success) {
+          localStorage.setItem("userId", packet2.data.id)
+          setIsEntered(true)
+          const opt = getRoomOption()
+          if (opt.private) {
+            fetchMessages()
+            fetchRealtimeData()
+          }
+        } else {
+          alert("入室に失敗しました: " + packet2.data.reason)
+        }
+        setButtonDisable(false)
       }
     }
 
@@ -139,6 +172,17 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (socket) {
       const packet: Packet<SendMessage> = {
         type: "message",
+        room_id: roomId,
+        data: data,
+      }
+      socket.send(JSON.stringify(packet))
+    }
+  }
+
+  const diceRoll = (data: dice) => {
+    if (socket) {
+      const packet: Packet<dice> = {
+        type: "dice",
         room_id: roomId,
         data: data,
       }
@@ -432,12 +476,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           system: specialMsg.system
         })
       } else {
-        supabase.functions.invoke('dice', {
-          body: {
-            roomId: roomId,
-            command: inputText
-          }
-        }).then(() => { })
       }
       supabase.from("Users").upsert({
         id: chk.id,
@@ -446,7 +484,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         color: colorCodeToInt(color),
         last_activity: new Date().toISOString()
       }).then(() => { })
-
 
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
         const data = {
@@ -499,37 +536,13 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
-    const response = await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'enterRoom',
-        roomId: roomId,
-        color: colorCodeToInt(color),
-        username: createTrip(inputName),
-        userId: localStorage.getItem("userId") || null
-      },
+    enterRoom({
+      room_id: roomId,
+      color: colorCodeToInt(color),
+      name: createTrip(inputName),
+      id: localStorage.getItem("userId") || "",
+      last_activity: new Date().toISOString()
     })
-    if (response.data) {
-      const responseData = response.data
-      if (responseData.success) {
-        localStorage.setItem("userId", responseData.id)
-        const chk = await checkEntered()
-        if (opt.private && chk.entered) {
-          await fetchMessages()
-          fetchRealtimeData()
-        }
-        enterRoom({
-          room_id: roomId,
-          color: colorCodeToInt(color),
-          name: createTrip(inputName),
-          id: localStorage.getItem("userId") || "",
-          last_activity: new Date().toISOString()
-        })
-      } else {
-        alert(responseData.reason)
-      }
-    }
-    await getUsers()
-    setButtonDisable(false)
     handlingDb = false
   }
 
@@ -586,13 +599,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'exitRoom',
-        roomId: roomId,
-        userId: localStorage.getItem("userId") || null
-      },
-    })
     exitRoom({
       room_id: roomId,
       color: colorCodeToInt(color),
@@ -625,28 +631,19 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const setVar = async (op: string, key: string, value: number) => {
     setButtonDisable(true)
     setTimeout(() => setButtonDisable(false), 2 * 1000)
-    const data = {
-      action: 'changeVariable',
-      roomId: roomId,
-      arg: {
-        op: op,
-        key: key,
-        value: value
-      }
-    }
 
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify(data),
-    }).then(res => {
-      res.json().then(data => {
-        if (data.variables) setVariables(data.variables)
-      })
-    })
+    if (socket) {
+      const packet: Packet<changeVariable> = {
+        type: "changeVariable",
+        room_id: roomId,
+        data: {
+          op: op,
+          key: key,
+          value: value
+        }
+      }
+      socket.send(JSON.stringify(packet))
+    }
   }
 
   const drawCard = async () => {
