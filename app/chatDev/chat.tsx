@@ -117,7 +117,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     data: T
   }
 
-  const pack : Packet<card> = {
+  const pack: Packet<card> = {
     type: "card",
     room_id: roomId,
     data: {
@@ -129,7 +129,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [socket, setSocket] = useState<WebSocket>(null!)
   const url = 'wss://rtchat.0am.jp/ws/'
 
-  const createSocket = () => {
+  const createSocket = (opt: RoomOption) => {
     console.log(process.env.NEXT_PUBLIC_MY_SUPABASE_URL!)
     const _socket = new WebSocket(url + "?roomId=" + roomId)
     _socket.onopen = () => {
@@ -139,14 +139,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
     _socket.onmessage = (event) => {
       const packet: Packet<Message> = JSON.parse(event.data)
-      console.log("Received:", packet)
       if (packet.type === "message") {
-        const opt = getRoomOption()
         if (opt.private && !isEntered) {
           setMessageText([])
           return
-        }
-        if (packet.data.room_id == roomId) {
+        } else if (packet.data.room_id == roomId) {
           setPendingMessageText([])
           setMessageText((messageText) => [packet.data, ...messageText])
           recievedMessages.push(packet.data.id)
@@ -381,9 +378,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       await getUsers()
 
-      createSocket()
       const variables: any = tempRoomData?.variables || {}
       const opt: any = tempRoomData?.options || {}
+      createSocket(opt)
+
       if (tempRoomData) {
         if (opt.private) {
           const chk = await checkEntered()
@@ -540,6 +538,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const getRoomOption = () => {
     const rd: RoomOption = { private: false, use_trump: false, user_limit: 10, all_clear: "", variables: [] }
+    console.log(roomData)
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.use_trump = (roomData.options as any).use_trump
