@@ -126,15 +126,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
   }
 
-  const [socket, setSocket] = useState<WebSocket>(null!)
+  const [socket, setSocket] = useState<WebSocket | null>(null)
+  const [messageSocket, setMmessageSocket] = useState<WebSocket | null>(null)
   const url = 'wss://rtchat.0am.jp/ws/'
 
   const onMessagePacketRecieved = (packet: Packet<Message>) => {
-    const opt = getRoomOption()
-    if (opt.private && !isEntered) {
-      setMessageText([])
-      return
-    }
     if (packet.data.room_id == roomId) {
       setPendingMessageText([])
       setMessageText((messageText) => [packet.data, ...messageText])
@@ -143,63 +139,79 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
   }
 
-  const createSocket = (opt: RoomOption) => {
-    console.log(process.env.NEXT_PUBLIC_MY_SUPABASE_URL!)
-    const _socket = new WebSocket(url + "?roomId=" + roomId)
-    _socket.onopen = () => {
-      console.log("Connected to WebSocket server");
-      setSocket(_socket);
+  const createSocket = (message: boolean) => {
+    const newsocket = new WebSocket(url + "?roomId=" + roomId)
+    newsocket.onopen = () => {
+      if (message) {
+        console.log("Connected to WebSocket server: message")
+        setMmessageSocket(newsocket)
+      } else {
+        console.log("Connected to WebSocket server: other")
+        setSocket(newsocket)
+      }
     }
 
-    _socket.onmessage = (event) => {
-      const packet: Packet<Message> = JSON.parse(event.data)
-      if (packet.type === "message") {
-        onMessagePacketRecieved(packet)
-      }
-      const packet2: Packet<EnterRoomResponse> = JSON.parse(event.data)
-      if (packet2.type === "EnterRoomResponse") {
-        if (packet2.data.success) {
-          localStorage.setItem("userId", packet2.data.id)
-          setIsEntered(true)
-          const opt = getRoomOption()
-          if (opt.private) {
+    newsocket.onmessage = (event) => {
+      if (message) {
+        const packet: Packet<Message> = JSON.parse(event.data)
+        if (packet.type === "message") {
+          onMessagePacketRecieved(packet)
+        }
+      } else {
+        const packet2: Packet<EnterRoomResponse> = JSON.parse(event.data)
+        if (packet2.type === "EnterRoomResponse") {
+          if (packet2.data.success) {
+            localStorage.setItem("userId", packet2.data.id)
+            setIsEntered(true)
+            onEnter()
             fetchMessages()
             fetchRealtimeData()
+          } else {
+            alert("入室に失敗しました: " + packet2.data.reason)
           }
-        } else {
-          alert("入室に失敗しました: " + packet2.data.reason)
+          setButtonDisable(false)
         }
-        setButtonDisable(false)
-      }
-      const packet3: Packet<_User> = JSON.parse(event.data)
-      if (packet3.type === "enterRoom") {
-        if (!users.find(user => (user.id === packet3.data.id))) {
-          setUsers((users) => [
-            {
-              id: packet3.data.id,
-              name: packet3.data.name || "Unknown",
-              color: packet3.data.color || 0
-            },
-            ...users
-          ])
+        const packet3: Packet<_User> = JSON.parse(event.data)
+        if (packet3.type === "enterRoom") {
+          getUsers().then(() => { })
+          /*
+          if (!users.find(user => (user.id === packet3.data.id))) {
+            setUsers((users) => [
+              {
+                id: packet3.data.id,
+                name: packet3.data.name || "Unknown",
+                color: packet3.data.color || 0
+              },
+              ...users
+            ])
+          }
+          */
+        } else if (packet3.type === "exitRoom") {
+          getUsers().then(() => { })
+          /*
+          setUsers((users) => users.filter(user => user.id != packet3.data.id))
+          */
         }
-      } else if (packet3.type === "exitRoom") {
-        setUsers((users) => users.filter(user => user.id != packet3.data.id))
       }
     }
 
-    _socket.onclose = () => {
-      console.log("Disconnected from WebSocket server");
-      alert("サーバーとの接続が切れました。再度ページを読み込んでください。")
+    newsocket.onclose = () => {
+      if (message) {
+        console.log("Disconnected from WebSocket server: message")
+        setMmessageSocket(null)
+      } else {
+        console.log("Disconnected from WebSocket server: other")
+        setSocket(null)
+      }
     }
 
-    _socket.onerror = (err) => {
+    newsocket.onerror = (err) => {
       console.error("WebSocket error:", err);
       alert("サーバーとの接続中にエラーが発生しました。")
     }
 
     return () => {
-      socket.close();
+      if (socket) socket.close();
     }
   }
 
@@ -245,6 +257,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       }
       socket.send(JSON.stringify(packet))
     }
+    if (messageSocket) messageSocket.close()
+    setMmessageSocket(null)
+  }
+
+  const onEnter = () => {
+    if (!messageSocket) createSocket(true)
   }
 
   const isAdmin = async () => {
@@ -271,7 +289,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (realtimeDataStarted) return
     setRealtimeDataStarted(true)
     try {
-
       userChannel = supabase
         .channel(`users_${roomId}`)
         .on(
@@ -388,7 +405,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       const variables: any = tempRoomData?.variables || {}
       const opt: any = tempRoomData?.options || {}
-      createSocket(opt)
+      createSocket(false)
 
       if (tempRoomData) {
         if (opt.private) {
@@ -396,11 +413,13 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           if (chk.entered || await isAdmin()) {
             fetchMessages(tempRoomData.all_clear_at)
             fetchRealtimeData()
+            createSocket(true)
           }
         } else {
           await checkEntered()
           fetchMessages(tempRoomData.all_clear_at)
           fetchRealtimeData()
+          createSocket(true)
         }
         if (opt.variables) {
           setVariableKeys(opt.variables)
@@ -415,6 +434,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         await checkEntered()
         fetchMessages()
         fetchRealtimeData()
+        createSocket(true)
       }
 
       if (localStorage.getItem('playSound') === 'true') {
@@ -546,7 +566,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const getRoomOption = () => {
     const rd: RoomOption = { private: false, use_trump: false, user_limit: 10, all_clear: "", variables: [] }
-    console.log(roomData)
     if (roomData && roomData.options) {
       rd.private = (roomData.options as any).private
       rd.use_trump = (roomData.options as any).use_trump
@@ -566,6 +585,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     const opt = getRoomOption()
     if (users.find(user => (user.name === createTrip(inputName)))) {
       alert('同じ名前の人が入室しています。')
+      return
+    }
+    if (!socket) {
+      alert('サーバーに接続されていません。しばらく待ってからもう一度お試しください。')
       return
     }
     handlingDb = true
@@ -617,6 +640,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (responseData.entered) {
         setUsername(responseData.username || "Unknown")
         setColor(intToColorCode(responseData.color || 0))
+        onEnter()
       }
       return {
         username: responseData.username,
@@ -739,7 +763,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
               className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
               name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" className={styles.button} disabled={!socket || buttonDisable || inputName === ""}>
+            <button type="submit" className={styles.button} disabled={buttonDisable || inputName === ""}>
               入室
             </button>
           </form>
