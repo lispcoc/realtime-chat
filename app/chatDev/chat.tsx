@@ -101,12 +101,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     name: string;
     command: string;
   }
+  type _User = Database["public"]["Tables"]["Users"]["Row"]
 
   type Packet<T> = {
     type: T extends Message
     ? "message"
     : T extends SendMessage
     ? "message"
+    : T extends _User
+    ? "enterRoom" | "exitRoom"
     : T extends SendUser
     ? "enterRoom" | "exitRoom"
     : T extends EnterRoomResponse
@@ -137,6 +140,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       const packet: Packet<Message> = JSON.parse(event.data)
       console.log("Received:", packet)
       if (packet.type === "message") {
+        const opt = getRoomOption()
+        if (opt.private && !isEntered) {
+          setMessageText([])
+          return
+        }
         if (packet.data.room_id == roomId) {
           setPendingMessageText([])
           setMessageText((messageText) => [packet.data, ...messageText])
@@ -158,6 +166,21 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           alert("入室に失敗しました: " + packet2.data.reason)
         }
         setButtonDisable(false)
+      }
+      const packet3: Packet<_User> = JSON.parse(event.data)
+      if (packet3.type === "enterRoom") {
+        if (!users.find(user => (user.id === packet3.data.id))) {
+          setUsers((users) => [
+            {
+              id: packet3.data.id,
+              name: packet3.data.name || "Unknown",
+              color: packet3.data.color || 0
+            },
+            ...users
+          ])
+        }
+      } else if (packet3.type === "exitRoom") {
+        setUsers((users) => users.filter(user => user.id != packet3.data.id))
       }
     }
 
@@ -242,7 +265,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (realtimeDataStarted) return
     setRealtimeDataStarted(true)
     try {
-      createSocket()
 
       userChannel = supabase
         .channel(`users_${roomId}`)
@@ -358,6 +380,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       await getUsers()
 
+      createSocket()
       const variables: any = tempRoomData?.variables || {}
       const opt: any = tempRoomData?.options || {}
       if (tempRoomData) {
@@ -562,7 +585,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
         const chk = await checkEntered()
         if (!chk.entered) {
-          if (messageChannel) messageChannel.unsubscribe()
           if (userChannel) userChannel.unsubscribe()
           if (roomChannel) roomChannel.unsubscribe()
           console.log("自動更新の終了")
