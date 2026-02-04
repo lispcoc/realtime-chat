@@ -184,10 +184,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
     _socket.onclose = () => {
       console.log("Disconnected from WebSocket server");
+      alert("サーバーとの接続が切れました。再度ページを読み込んでください。")
     }
 
     _socket.onerror = (err) => {
       console.error("WebSocket error:", err);
+      alert("サーバーとの接続中にエラーが発生しました。")
     }
 
     return () => {
