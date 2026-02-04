@@ -203,6 +203,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         console.log("Disconnected from WebSocket server: other")
         setSocket(null)
       }
+      console.log("try reconnect")
+      createSocket(message)
     }
 
     newsocket.onerror = (err) => {
@@ -263,6 +265,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const onEnter = () => {
     if (!messageSocket) createSocket(true)
+    if (roomData) fetchMessages(roomData.all_clear_at)
   }
 
   const isAdmin = async () => {
@@ -401,42 +404,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       }
       setRoomDataLoaded(true)
 
-      await getUsers()
-
-      const variables: any = tempRoomData?.variables || {}
-      const opt: any = tempRoomData?.options || {}
-      createSocket(false)
-
-      if (tempRoomData) {
-        if (opt.private) {
-          const chk = await checkEntered()
-          if (chk.entered || await isAdmin()) {
-            fetchMessages(tempRoomData.all_clear_at)
-            fetchRealtimeData()
-            createSocket(true)
-          }
-        } else {
-          await checkEntered()
-          fetchMessages(tempRoomData.all_clear_at)
-          fetchRealtimeData()
-          createSocket(true)
-        }
-        if (opt.variables) {
-          setVariableKeys(opt.variables)
-        }
-        if (variables) {
-          setVariables(variables)
-        }
-        if (opt.use_trump) {
-          setUseTrump(opt.use_trump)
-        }
-      } else {
-        await checkEntered()
-        fetchMessages()
-        fetchRealtimeData()
-        createSocket(true)
-      }
-
       if (localStorage.getItem('playSound') === 'true') {
         setPlaySound(true)
       }
@@ -445,6 +412,45 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       return () => clearInterval(timer)
     })()
   }, [])
+
+  useEffect(() => {
+    if (!roomDataLoaded) return
+    console.log('roomDataLoaded')
+    getUsers()
+    const variables: any = roomData?.variables || {}
+    const opt: any = roomData?.options || {}
+    createSocket(false)
+    if (roomData) {
+      if (opt.private) {
+        checkEntered().catch(chk => {
+          if (chk.entered) {
+            fetchMessages(roomData.all_clear_at)
+            fetchRealtimeData()
+            createSocket(true)
+          }
+        })
+      } else {
+        checkEntered()
+        fetchMessages(roomData.all_clear_at)
+        fetchRealtimeData()
+        createSocket(true)
+      }
+      if (opt.variables) {
+        setVariableKeys(opt.variables)
+      }
+      if (variables) {
+        setVariables(variables)
+      }
+      if (opt.use_trump) {
+        setUseTrump(opt.use_trump)
+      }
+    } else {
+      checkEntered()
+      fetchMessages()
+      fetchRealtimeData()
+      createSocket(true)
+    }
+  }, [roomDataLoaded])
 
   useEffect(() => {
     if (recievedMessage) {
