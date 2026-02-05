@@ -550,13 +550,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         system: msg.system
       })
       if (specialMsg) {
-        sendMessage({
-          room_id: specialMsg.room_id,
-          name: specialMsg.name,
-          text: specialMsg.text,
-          color: specialMsg.color,
-          system: specialMsg.system
-        })
+        setTimeout(() => {
+          sendMessage({
+            room_id: specialMsg.room_id,
+            name: specialMsg.name,
+            text: specialMsg.text,
+            color: specialMsg.color,
+            system: specialMsg.system
+          })
+        }, 200)
       } else {
       }
       supabase.from("Users").upsert({
