@@ -9,11 +9,6 @@ import RoomList from "./roomList"
 
 export default function Index() {
   const router = useRouter()
-  const afterLoginPath = localStorage.getItem('afterLoginPath')
-  if (afterLoginPath) {
-    localStorage.removeItem('afterLoginPath')
-    router.push(afterLoginPath)
-  }
 
   type RoomData = {
     id: number,
@@ -27,6 +22,11 @@ export default function Index() {
   }
 
   useEffect(() => {
+    const afterLoginPath = localStorage.getItem('afterLoginPath')
+    if (afterLoginPath) {
+      localStorage.removeItem('afterLoginPath')
+      router.push(afterLoginPath)
+    }
   }, [])
 
   return (

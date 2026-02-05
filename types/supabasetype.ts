@@ -68,6 +68,27 @@ export type Database = {
         }
         Relationships: []
       }
+      Reports: {
+        Row: {
+          created_at: string
+          id: number
+          name: string | null
+          text: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name?: string | null
+          text?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string | null
+          text?: string | null
+        }
+        Relationships: []
+      }
       Rooms: {
         Row: {
           all_clear_at: string | null
@@ -107,6 +128,21 @@ export type Database = {
           special_keys?: Json | null
           title?: string | null
           variables?: Json
+        }
+        Relationships: []
+      }
+      Test: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
         }
         Relationships: []
       }
