@@ -656,8 +656,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     })
     if (response.data) {
       const responseData = response.data
-      if (!isEntered && responseData.entered) {
-        setIsEntered(true)
+      if (responseData.entered) {
+        if (!isEntered) setIsEntered(true)
         setUsername(responseData.username || "Unknown")
         setColor(intToColorCode(responseData.color || 0))
       }
