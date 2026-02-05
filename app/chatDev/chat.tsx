@@ -165,7 +165,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         if (packet2.type === "EnterRoomResponse") {
           if (packet2.data.success) {
             localStorage.setItem("userId", packet2.data.id)
-            setIsEntered(true)
+            checkEntered()
             fetchMessages()
             fetchRealtimeData()
           } else {
