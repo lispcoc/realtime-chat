@@ -1,12 +1,20 @@
 
 "use client"
 import { Suspense, useEffect, useState, useReducer } from "react"
+import { useRouter } from 'next/navigation'
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink from '@/components/roomLink'
 import { intToColorCode } from "@/utils/color/color"
 import RoomList from "./roomList"
 
 export default function Index() {
+  const router = useRouter()
+  const afterLoginPath = localStorage.getItem('afterLoginPath')
+  if (afterLoginPath) {
+    localStorage.removeItem('afterLoginPath')
+    router.push(afterLoginPath)
+  }
+
   type RoomData = {
     id: number,
     title: string | null,

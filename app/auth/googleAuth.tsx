@@ -4,7 +4,7 @@
 import { supabase } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react"
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import styles from '@/components/style'
 
 const scopes = [
@@ -19,23 +19,11 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
   const [userName, setUserName] = useState("")
   const [checkLogedIn, setCheckLogedIn] = useState(false)
   const router = useRouter()
+  const pathName = usePathname()
 
-  const handleLogin = async () => {
-    const { data: user, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        scopes: scopes.join(" "),
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent'
-        }
-      }
-    })
-    if (error) {
-      console.error('Error logging in:', error);
-    } else {
-      console.log('User logged in:', user);
-    }
+  const handleLogin = () => {
+    localStorage.setItem('afterLoginPath', pathName)
+    router.push('/api/auth/google-oauth')
   }
 
   const getUserName = async () => {
@@ -118,7 +106,7 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
             </>
           )}
           {checkLogedIn && !userName && (
-            <button className={styles.button} onClick={() => router.push('/api/auth/google-oauth')}>
+            <button className={styles.button} onClick={handleLogin}>
               ログイン
             </button>
           )}
