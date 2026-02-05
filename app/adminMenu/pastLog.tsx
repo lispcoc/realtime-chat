@@ -22,7 +22,7 @@ export default function PastLog() {
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageChannel, setMessageChannel] = useState<RealtimeChannel | null>(null)
   const [play, { stop, pause }] = useSound(se)
-  const [roomFilter, setRoomFilter] = useState(0)
+  const [roomFilter, setRoomFilter] = useState(-1)
 
   const fetchRealtimeData = () => {
     try {
@@ -61,6 +61,7 @@ export default function PastLog() {
   }, [])
 
   useEffect(() => {
+    if (roomFilter < 0) return
     (async () => {
       const res = await fetch('/api/adminPastLog', {
         method: 'POST',
