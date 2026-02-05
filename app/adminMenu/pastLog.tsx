@@ -20,14 +20,13 @@ export default function PastLog() {
   let page = parseInt(searchParams.get("p")!!) || 0
   const [messages, setMessages] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
-  let messageChannel: RealtimeChannel | null = null
+  const [messageChannel, setMessageChannel] = useState<RealtimeChannel | null>(null)
   const [play, { stop, pause }] = useSound(se)
   const [roomFilter, setRoomFilter] = useState(0)
 
   const fetchRealtimeData = () => {
     try {
-      if (messageChannel) messageChannel.unsubscribe()
-      messageChannel = supabase
+      const channel = supabase
         .channel('all_logs')
         .on(
           "postgres_changes",
@@ -44,6 +43,7 @@ export default function PastLog() {
           }
         )
         .subscribe()
+      setMessageChannel(channel)
 
       console.log("自動更新の開始")
       return () => {
@@ -78,6 +78,10 @@ export default function PastLog() {
       const data = await res.json()
       if (data.messages != null) {
         setMessages(data.messages)
+        if (messageChannel) {
+          console.log('unsubscribe')
+          messageChannel.unsubscribe()
+        }
         fetchRealtimeData()
       } else {
         alert('管理者アカウントではありません。ログインしてください。')
