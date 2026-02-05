@@ -140,7 +140,7 @@ async function getUsers(roomId: number) {
 }
 
 async function allClear(roomId: number, send_msg = true) {
-    await supabase.from("Rooms").update({
+    await supabaseServiceRole.from("Rooms").update({
         all_clear_at: new Date().toISOString()
     }).eq('id', roomId)
     if (send_msg) {

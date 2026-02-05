@@ -74,7 +74,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [recievedMessage, setRecievedMessage] = useState(false)
+  const [recievedMessage, setRecievedMessage] = useState<Database["public"]["Tables"]["Messages"]["Row"] | null>(null)
+  const [allClearAt, setAllClearAt] = useState('')
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
@@ -134,9 +135,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onMessagePacketRecieved = (packet: Packet<Message>) => {
     if (packet.data.room_id == roomId) {
       setPendingMessageText([])
-      setMessageText((messageText) => [packet.data, ...messageText])
       recievedMessages.push(packet.data.id)
-      setRecievedMessage(true)
+      setRecievedMessage(packet.data)
     }
   }
 
@@ -328,8 +328,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           },
           (payload) => {
             if (payload.eventType === "UPDATE") {
+              setAllClearAt(payload.new.all_clear_at)
               setVariables(payload.new.variables)
-              fetchMessages(payload.new.all_clear_at)
             }
           }
         )
@@ -448,14 +448,21 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   useEffect(() => {
     if (recievedMessage) {
       if (playSound) play()
-      setRecievedMessage(false)
+      if (allClearAt) {
+        setMessageText((messageText) => [recievedMessage, ...messageText.filter(message => message.created_at > allClearAt)])
+      } else {
+        setMessageText((messageText) => [recievedMessage, ...messageText])
+      }
+      setRecievedMessage(null)
+      console.log(allClearAt)
     }
   }, [recievedMessage])
 
   useEffect(() => {
+    if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
-      if (!messageSocket) createSocket(true)
+      if (getRoomOption().private && !messageSocket) createSocket(true)
       if (roomData) fetchMessages(roomData.all_clear_at)
     } else {
       console.log("退室時の処理")
