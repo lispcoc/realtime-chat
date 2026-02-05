@@ -5,7 +5,7 @@ type Props = {
     message: Database["public"]["Tables"]["Messages"]["Row"],
     index: number,
     showRoomId?: boolean
-    onClick: (room_id: number) => void
+    onClick?: (room_id: number) => void
 }
 
 export default function ChatLine({ message, index, showRoomId = false, onClick = () => { } }: Props) {
