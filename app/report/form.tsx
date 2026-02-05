@@ -1,6 +1,6 @@
 'use client'
 import styles from '@/components/style'
-import { handleSubmit } from './server'
+import { handleSubmit } from './middle'
 
 export default function Form() {
   const handleSubmitClient = async (formData: FormData) => {
