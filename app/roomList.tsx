@@ -74,9 +74,14 @@ export default function RoomList({ }: Props) {
         setServerError(true)
       }
       setLoaded(true)
-      fetchRealtimeData()
     })()
   }, [])
+
+  useEffect(() => {
+    (async () => {
+      if (loaded) fetchRealtimeData()
+    })()
+  }, [loaded])
 
   return (
     <>

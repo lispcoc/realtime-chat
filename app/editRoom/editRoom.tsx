@@ -49,6 +49,7 @@ export default function EditRoom() {
   const [inputPrivate, setInputPrivate] = useState(false)
   const [inputUseTrump, setInputUseTrump] = useState(false)
   const [autoAllClear, setAutoAllClear] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const [inputUsersLimit, setInputUsersLimit] = useState<Option | null>(null);
   const [inputDeleteRoom, setInputDeleteRoom] = useState(false)
   const [buttonDisable, setButtonDisable] = useState(false)
@@ -109,6 +110,7 @@ export default function EditRoom() {
           if (tempRoomData.description) {
             setInputDescription(tempRoomData.description)
           }
+          setHidden(tempRoomData.hidden)
           if (tempRoomData.special_keys) {
             for (const [key, text] of Object.entries((tempRoomData.special_keys || {}))) {
               roomSpecialFieldArray.append({ key: key, text: text })
@@ -197,6 +199,7 @@ export default function EditRoom() {
         description: inputDecsription,
         owner: ownerEmail,
         password: hashedPassword,
+        hidden: hidden,
         options: {
           private: inputPrivate,
           auto_all_clear: autoAllClear,
@@ -304,6 +307,11 @@ export default function EditRoom() {
               value={inputNewPassword} onChange={(event) => setInputNewPassword(() => event.target.value)}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="hidden" className="block mb-2 text-sm font-medium text-gray-900">ルーム一覧に表示しない</label>
+            <input type="checkbox" id="hidden" name="hidden" onChange={(event) => setHidden(() => event.target.checked)} checked={hidden} />
           </div>
 
           <div className="mb-5">

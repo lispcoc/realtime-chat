@@ -116,6 +116,7 @@ export default function CreateRoom() {
         description: inputDecsription,
         owner: ownerEmail,
         password: hashedPassword,
+        hidden: false,
         options: {
           private: inputPrivate,
           auto_all_clear: autoAllClear,

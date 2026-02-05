@@ -94,6 +94,7 @@ export type Database = {
           all_clear_at: string | null
           created_at: string
           description: string | null
+          hidden: boolean
           id: number
           last_enter: string | null
           options: Json | null
@@ -107,6 +108,7 @@ export type Database = {
           all_clear_at?: string | null
           created_at?: string
           description?: string | null
+          hidden?: boolean
           id?: number
           last_enter?: string | null
           options?: Json | null
@@ -120,6 +122,7 @@ export type Database = {
           all_clear_at?: string | null
           created_at?: string
           description?: string | null
+          hidden?: boolean
           id?: number
           last_enter?: string | null
           options?: Json | null

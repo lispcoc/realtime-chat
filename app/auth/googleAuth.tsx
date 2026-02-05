@@ -4,7 +4,7 @@
 import { supabase } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react"
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import styles from '@/components/style'
 
 const scopes = [
@@ -20,9 +20,12 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
   const [checkLogedIn, setCheckLogedIn] = useState(false)
   const router = useRouter()
   const pathName = usePathname()
+  const searchParams = useSearchParams()
+  let roomId = parseInt(searchParams.get("roomId")!!)
 
   const handleLogin = () => {
     localStorage.setItem('afterLoginPath', pathName)
+    localStorage.setItem('afterLoginRoomId', String(roomId))
     router.push('/api/auth/google-oauth')
   }
 

@@ -23,9 +23,15 @@ export default function Index() {
 
   useEffect(() => {
     const afterLoginPath = localStorage.getItem('afterLoginPath')
+    const afterLoginRoomId = localStorage.getItem('afterLoginRoomId')
+    localStorage.removeItem('afterLoginPath')
+    localStorage.removeItem('afterLoginRoomId')
     if (afterLoginPath) {
-      localStorage.removeItem('afterLoginPath')
-      router.push(afterLoginPath)
+      if (afterLoginRoomId) {
+        router.push(`${afterLoginPath}?roomId=${afterLoginRoomId}`)
+      } else {
+        router.push(afterLoginPath)
+      }
     }
   }, [])
 

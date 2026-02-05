@@ -6,6 +6,7 @@ export type RoomData = {
     description: string,
     owner: string,
     password: string,
+    hidden: boolean,
     options: RoomOption,
     special_keys: Json,
     variables: Json
