@@ -13,6 +13,7 @@ import MessageDialog from '@/components/modal'
 import { createTrip } from "2ch-trip"
 import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
+import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
 
 type Prop = {
@@ -143,6 +144,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     const newsocket = new WebSocket(url + "?roomId=" + roomId)
     newsocket.onopen = () => {
       if (message) {
+        toast.removeAll()
+        toast.success("チャットの接続を開始しました。")
         console.log("Connected to WebSocket server: message")
         setMmessageSocket(newsocket)
       } else {
@@ -163,7 +166,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           if (packet2.data.success) {
             localStorage.setItem("userId", packet2.data.id)
             setIsEntered(true)
-            onEnter()
             fetchMessages()
             fetchRealtimeData()
           } else {
@@ -197,14 +199,18 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
     newsocket.onclose = () => {
       if (message) {
+        toast.error("チャットの接続が切断されました。")
         console.log("Disconnected from WebSocket server: message")
         setMmessageSocket(null)
+        if (isEntered) {
+          toast.loading("再接続中…")
+          createSocket(message)
+        }
       } else {
         console.log("Disconnected from WebSocket server: other")
         setSocket(null)
+        createSocket(message)
       }
-      console.log("try reconnect")
-      createSocket(message)
     }
 
     newsocket.onerror = (err) => {
@@ -263,15 +269,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     setMmessageSocket(null)
   }
 
-  const onEnter = () => {
-    if (!messageSocket) createSocket(true)
-    if (roomData) fetchMessages(roomData.all_clear_at)
-  }
-
-  const isAdmin = async () => {
-    return false
-  }
-
   const colorPicker = (username: string) => {
     return (
       <div className="p-2">
@@ -308,14 +305,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
                 setUsers((users) => [{ id, name, color }, ...users])
               }
             } else if (payload.eventType === "DELETE") {
+              checkEntered()
               const { id } = payload.old
               setUsers((users) => users.filter(user => user.id != id))
               if (isEntered && !users.find(user => user.id === localStorage.getItem("userId"))) {
-                if (userChannel) userChannel.unsubscribe()
-                if (roomChannel) roomChannel.unsubscribe()
-                console.log("自動更新の終了")
-                setIsEntered(false)
-                alert("入室していません。")
+                toast.error("入室していません。")
               }
             }
           }
@@ -426,7 +420,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           if (chk.entered) {
             fetchMessages(roomData.all_clear_at)
             fetchRealtimeData()
-            createSocket(true)
           }
         })
       } else {
@@ -458,6 +451,22 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       setRecievedMessage(false)
     }
   }, [recievedMessage])
+
+  useEffect(() => {
+    if (isEntered) {
+      console.log("入室時の処理")
+      if (!messageSocket) createSocket(true)
+      if (roomData) fetchMessages(roomData.all_clear_at)
+    } else {
+      console.log("退室時の処理")
+      if (messageSocket) messageSocket.close()
+      setMmessageSocket(null)
+      if (userChannel) userChannel.unsubscribe()
+      if (roomChannel) roomChannel.unsubscribe()
+      console.log("自動更新の終了")
+    }
+  }, [isEntered])
+
 
   const onSoundChanged = (option: boolean) => {
     setPlaySound(option)
@@ -620,14 +629,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       setUsers(responseData.users)
 
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
-        const chk = await checkEntered()
-        if (!chk.entered) {
-          if (userChannel) userChannel.unsubscribe()
-          if (roomChannel) roomChannel.unsubscribe()
-          console.log("自動更新の終了")
-          setIsEntered(false)
-          alert("入室していません。")
-        }
+        await checkEntered()
       }
     }
   }
@@ -642,11 +644,14 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     })
     if (response.data) {
       const responseData = response.data
-      setIsEntered(responseData.entered)
-      if (responseData.entered) {
+      if (!isEntered && responseData.entered) {
+        setIsEntered(true)
         setUsername(responseData.username || "Unknown")
         setColor(intToColorCode(responseData.color || 0))
-        onEnter()
+      }
+      if (isEntered && !responseData.entered) {
+        setIsEntered(false)
+        toast.error("入室していません。")
       }
       return {
         username: responseData.username,
@@ -745,6 +750,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   return (
     <div className="w-full max-w-4xl">
+      <Toaster position="top-center" />
       <title>{roomData?.title}</title>
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
