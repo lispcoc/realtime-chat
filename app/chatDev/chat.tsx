@@ -454,9 +454,14 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setMessageText((messageText) => [recievedMessage, ...messageText])
       }
       setRecievedMessage(null)
-      console.log(allClearAt)
     }
   }, [recievedMessage])
+
+  useEffect(() => {
+    if (allClearAt) {
+      setMessageText((messageText) => messageText.filter(message => message.created_at > allClearAt))
+    }
+  }, [allClearAt])
 
   useEffect(() => {
     if (!roomDataLoaded) return
