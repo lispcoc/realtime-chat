@@ -106,9 +106,11 @@ export default function PastLog() {
   return (
     <div>
       <div className="w-full max-w-3xl">
-        <span onClick={() => setRoomFilter(0)}>
-          フィルターをクリア {roomFilter > 0 && (<>({roomFilter})</>)}
-        </span>
+        {messageText.length && (
+          <span onClick={() => setRoomFilter(0)}>
+            フィルターをクリア {roomFilter > 0 && (<>({roomFilter})</>)}
+          </span>
+        )}
         {messageText.map((item, index) => (
           <ChatLine message={item} index={index} key={index} showRoomId={true} onClick={setRoomFilter}></ChatLine>
         ))}
