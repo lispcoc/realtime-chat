@@ -786,6 +786,19 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       <title>{roomData?.title}</title>
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
+      <div className="text-right text-xs grid grid-cols-1">
+        {(socket && socket.readyState == socket.OPEN) ? (
+          <span className="text-xs">ルーム情報の接続✅</span>
+        ) : (
+          <span className="text-xs">ルーム情報の接続❌</span>
+        )}
+        {(messageSocket && messageSocket.readyState == messageSocket.OPEN) ? (
+          <span className="text-xs">メッセージの取得✅</span>
+        ) : (
+          <span className="text-xs">メッセージの取得❌</span>
+        )}
+      </div>
+
       {!roomDataLoaded && (
         <div className="m-2 p-2">
           部屋データを読み込み中...
