@@ -215,7 +215,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
     newsocket.onerror = (err) => {
       console.error("WebSocket error:", err);
-      alert("サーバーとの接続中にエラーが発生しました。")
+      if (message) {
+        toast.error("サーバーとの接続中にエラーが発生しました。")
+        if (isEntered) {
+          toast.loading("再接続中…")
+          createSocket(message)
+        }
+      } else {
+        createSocket(message)
+      }
     }
 
     return () => {
@@ -405,6 +413,16 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       return () => clearInterval(timer)
     })()
+
+    return () => {
+      if (socket) {
+        socket.close()
+      }
+      if (messageSocket) {
+        console.log('Closing WebSocket...')
+        messageSocket.close()
+      }
+    }
   }, [])
 
   useEffect(() => {
