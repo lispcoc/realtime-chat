@@ -233,7 +233,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         data: data,
       }
       socket.send(JSON.stringify(packet))
+      return true
     }
+    return false
   }
 
   const diceRoll = (data: dice) => {
@@ -560,13 +562,17 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setButtonDisable(false)
         return
       }
-      sendMessage({
+      const sendMessageResult = sendMessage({
         room_id: msg.room_id,
         name: msg.name,
         text: msg.text,
         color: msg.color,
         system: msg.system
       })
+      if (!sendMessageResult) {
+        toast.error('メッセージの送信に失敗しました。')
+        throw new Error("メッセージの送信に失敗しました。")
+      }
       if (specialMsg) {
         setTimeout(() => {
           sendMessage({
