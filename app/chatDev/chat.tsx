@@ -822,13 +822,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
             {showColorPicker && colorPicker(inputName)}
-            <input type="text" id="name"
-              className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+            <div className="flex">
+              <input type="text" id="name"
+                className="flex-grow text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-              name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" className={styles.button} disabled={buttonDisable || inputName === ""}>
-              入室
-            </button>
+                name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
+              <button type="submit" className={`${styles.button} whitespace-nowrap`} disabled={buttonDisable || inputName === ""}>
+                入室
+              </button>
+            </div>
           </form>
         )}
 
