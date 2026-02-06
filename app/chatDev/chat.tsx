@@ -202,10 +202,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         toast.error("チャットの接続が切断されました。")
         console.log("Disconnected from WebSocket server: message")
         setMmessageSocket(null)
-        if (isEntered) {
-          toast.loading("再接続中…")
-          createSocket(message)
-        }
       } else {
         console.log("Disconnected from WebSocket server: other")
         setSocket(null)
@@ -217,11 +213,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.error("WebSocket error:", err);
       if (message) {
         toast.error("サーバーとの接続中にエラーが発生しました。")
-        if (isEntered) {
-          toast.loading("再接続中…")
-          createSocket(message)
-        }
+        setMmessageSocket(null)
       } else {
+        setSocket(null)
         createSocket(message)
       }
     }
@@ -497,6 +491,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
   }, [isEntered])
 
+  useEffect(() => {
+    if (!messageSocket && isEntered) {
+      toast.loading("再接続中…")
+      createSocket(true)
+    }
+  }, [messageSocket])
 
   const onSoundChanged = (option: boolean) => {
     setPlaySound(option)
