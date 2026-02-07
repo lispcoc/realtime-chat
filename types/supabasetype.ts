@@ -89,6 +89,21 @@ export type Database = {
         }
         Relationships: []
       }
+      RoomData: {
+        Row: {
+          id: number
+          variables: Json | null
+        }
+        Insert: {
+          id?: number
+          variables?: Json | null
+        }
+        Update: {
+          id?: number
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       Rooms: {
         Row: {
           all_clear_at: string | null

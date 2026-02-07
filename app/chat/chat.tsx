@@ -15,6 +15,7 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
 import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
+import { getRoomVariable, setRoomVariable, incrementRoomVariable, decrementRoomVariable, type RoomVariable } from "./middleware"
 
 type Prop = {
   onSetTitle?: (title: string) => void
@@ -26,10 +27,6 @@ type RoomOption = {
   all_clear: string,
   use_trump: boolean,
   variables: string[]
-}
-
-type VariableObject = {
-  [key: string]: number
 }
 
 type User = {
@@ -58,7 +55,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [variableKeys, setVariableKeys] = useState<string[]>([])
-  const [variables, setVariables] = useState<VariableObject>({})
+  const [variables, setVariables] = useState<RoomVariable>({})
   const [useTrump, setUseTrump] = useState(false)
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
@@ -189,18 +186,31 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           (payload) => {
             if (payload.eventType === "UPDATE") {
               setAllClearAt(payload.new.all_clear_at)
+            }
+          }
+        )
+        .subscribe()
+
+      const roomDataChannel = supabase
+        .channel(`roomdata_${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "RoomData",
+            filter: `id=eq.${roomId}`
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE") {
               setVariables(payload.new.variables)
             }
           }
         )
         .subscribe()
-      messageChannel.on("presence", {
-        event: "leave"
-      }, () => {
-        toast.error('セッションが切断されました。')
-      })
+
       console.log("自動更新の開始")
-      setchannels([messageChannel, userChannel, roomChannel])
+      setchannels([messageChannel, userChannel, roomChannel, roomDataChannel])
     } catch (error) {
       console.error(error)
     }
@@ -291,8 +301,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         if (opt.variables) {
           setVariableKeys(opt.variables)
         }
-        if (variables) {
-          setVariables(variables)
+        const vars = await getRoomVariable(roomId)
+        if (vars) {
+          toast.success(JSON.stringify(vars))
+          setVariables(vars)
         }
         if (opt.use_trump) {
           setUseTrump(opt.use_trump)
@@ -635,28 +647,20 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const setVar = async (op: string, key: string, value: number) => {
     setButtonDisable(true)
     setTimeout(() => setButtonDisable(false), 2 * 1000)
-    const data = {
-      action: 'changeVariable',
-      roomId: roomId,
-      arg: {
-        op: op,
-        key: key,
-        value: value
-      }
+    switch (op) {
+      case "mod":
+        if (value > 0) {
+          await incrementRoomVariable(roomId, key, value)
+        } else {
+          await decrementRoomVariable(roomId, key, -value)
+        }
+        break
+      case "set":
+        await setRoomVariable(roomId, key, value)
+        break
+      default:
+        break
     }
-
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify(data),
-    }).then(res => {
-      res.json().then(data => {
-        if (data.variables) setVariables(data.variables)
-      })
-    })
   }
 
   const drawCard = async () => {
