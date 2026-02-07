@@ -128,7 +128,26 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             }
           }
         )
-        .subscribe()
+        .subscribe((status) => {
+          switch (status) {
+            case "SUBSCRIBED":
+              toast.success('チャットに接続しました。')
+              break
+            case "TIMED_OUT":
+              toast.error('チャットの接続がタイムアウトしました。')
+              console.log("Message Channel Timed Out")
+              break
+            case "CHANNEL_ERROR":
+              toast.error('チャットでエラーが発生しました。')
+              console.log("Message Channel Error")
+              break
+            case "CLOSED":
+              toast.error('チャットを切断しました。')
+              console.log("Message Channel Closed")
+              break
+          }
+          console.log("Channel status: ", status)
+        })
 
       const userChannel = supabase
         .channel(`users_${roomId}`)
@@ -676,6 +695,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   return (
     <div className="w-full max-w-4xl">
+      <Toaster position="top-center" />
       <title>{roomData?.title}</title>
       <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
 
