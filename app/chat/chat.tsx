@@ -313,7 +313,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         }
         const vars = await getRoomVariable(roomId)
         if (vars) {
-          toast.success(JSON.stringify(vars))
           setVariables(vars)
         }
         if (opt.use_trump) {
