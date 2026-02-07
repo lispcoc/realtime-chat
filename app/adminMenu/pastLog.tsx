@@ -37,7 +37,9 @@ export default function PastLog() {
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
+              console.log(payload.new)
               const { id, room_id, name, text, color, created_at, system } = payload.new
+              console.log(new Date().getTime() - new Date(created_at).getTime())
               setMessages((messages) => [{ id, room_id, name, text, color, created_at, system }, ...messages])
             }
           }
@@ -46,9 +48,6 @@ export default function PastLog() {
       setMessageChannel(channel)
 
       console.log("自動更新の開始")
-      return () => {
-        supabase.channel(String(roomId)).unsubscribe()
-      }
     } catch (error) {
       console.error(error)
     }
@@ -58,6 +57,10 @@ export default function PastLog() {
     (async () => {
       setRoomFilter(roomId)
     })()
+
+    return () => {
+      supabase.channel(String(roomId)).unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
@@ -91,7 +94,6 @@ export default function PastLog() {
   }, [roomFilter])
 
   useEffect(() => {
-    console.log(roomFilter)
     if (roomFilter) {
       setMessageText(messages.filter(message => message.room_id == roomFilter))
     } else {
@@ -106,9 +108,9 @@ export default function PastLog() {
   return (
     <div>
       <div className="w-full max-w-3xl">
-        {messageText.length && (
+        {roomFilter > 0 && (
           <span onClick={() => setRoomFilter(0)}>
-            フィルターをクリア {roomFilter > 0 && (<>({roomFilter})</>)}
+            フィルターをクリア ({roomFilter})
           </span>
         )}
         {messageText.map((item, index) => (
