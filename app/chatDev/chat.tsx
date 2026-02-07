@@ -397,13 +397,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         return
       }
       setRoomDataLoaded(true)
-
-      if (localStorage.getItem('playSound') === 'true') {
-        setPlaySound(true)
-      }
-      const timer = setInterval(getUsers, 5 * 60 * 1000)
-
-      return () => clearInterval(timer)
     })()
 
     return () => {
@@ -419,37 +412,46 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   useEffect(() => {
     if (!roomDataLoaded) return
-    console.log('roomDataLoaded')
-    getUsers()
-    const variables: any = roomData?.variables || {}
-    const opt: any = roomData?.options || {}
-    createSocket(false)
-    if (roomData) {
-      if (opt.private) {
-        checkEntered().catch(chk => {
+    (async () => {
+      console.log('roomDataLoaded')
+      getUsers()
+      const variables: any = roomData?.variables || {}
+      const opt: any = roomData?.options || {}
+      createSocket(false)
+      if (roomData) {
+        if (opt.private) {
+          const chk = await checkEntered()
           if (chk.entered) {
             fetchMessages(roomData.all_clear_at)
             fetchRealtimeData()
           }
-        })
+        } else {
+          checkEntered()
+          fetchMessages(roomData.all_clear_at)
+          fetchRealtimeData()
+          createSocket(true)
+        }
+        if (opt.variables) {
+          setVariableKeys(opt.variables)
+        }
+        if (variables) {
+          setVariables(variables)
+        }
+        if (opt.use_trump) {
+          setUseTrump(opt.use_trump)
+        }
       } else {
-        checkEntered()
-        fetchMessages(roomData.all_clear_at)
-        fetchRealtimeData()
-        createSocket(true)
+        toast.error('ルームデータを取得できませんでした。')
       }
-      if (opt.variables) {
-        setVariableKeys(opt.variables)
+
+      if (localStorage.getItem('playSound') === 'true') {
+        setPlaySound(true)
       }
-      if (variables) {
-        setVariables(variables)
-      }
-      if (opt.use_trump) {
-        setUseTrump(opt.use_trump)
-      }
-    } else {
-      toast.error('ルームデータを取得できませんでした。')
-    }
+    })()
+
+    const timer = setInterval(getUsers, 5 * 60 * 1000)
+
+    return () => clearInterval(timer)
   }, [roomDataLoaded])
 
   useEffect(() => {

@@ -15,7 +15,6 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
 import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
-import { channel } from "diagnostics_channel"
 
 type Prop = {
   onSetTitle?: (title: string) => void
@@ -287,6 +286,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setPlaySound(true)
       }
     })()
+
     const timer = setInterval(getUsers, 5 * 60 * 1000)
 
     return () => clearInterval(timer)
