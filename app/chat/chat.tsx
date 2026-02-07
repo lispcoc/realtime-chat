@@ -13,7 +13,9 @@ import MessageDialog from '@/components/modal'
 import { createTrip } from "2ch-trip"
 import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
+import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
+import { channel } from "diagnostics_channel"
 
 type Prop = {
   onSetTitle?: (title: string) => void
@@ -74,16 +76,13 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [recievedMessage, setRecievedMessage] = useState(false)
+  const [allClearAt, setAllClearAt] = useState('')
+  const [channels, setchannels] = useState<RealtimeChannel[]>([])
+
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
-  let messageChannel: RealtimeChannel | null = null
-  let userChannel: RealtimeChannel | null = null
-  let roomChannel: RealtimeChannel | null = null
 
-  const isAdmin = async () => {
-    return false
-  }
 
   const colorPicker = (username: string) => {
     return (
@@ -105,7 +104,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (realtimeDataStarted) return
     setRealtimeDataStarted(true)
     try {
-      messageChannel = supabase
+      const messageChannel = supabase
         .channel(String(roomId))
         .on(
           "postgres_changes",
@@ -132,7 +131,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         )
         .subscribe()
 
-      userChannel = supabase
+      const userChannel = supabase
         .channel(`users_${roomId}`)
         .on(
           "postgres_changes",
@@ -148,22 +147,18 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
                 setUsers((users) => [{ id, name, color }, ...users])
               }
             } else if (payload.eventType === "DELETE") {
+              checkEntered().then(() => { })
               const { id } = payload.old
               setUsers((users) => users.filter(user => user.id != id))
               if (isEntered && !users.find(user => user.id === localStorage.getItem("userId"))) {
-                if (messageChannel) messageChannel.unsubscribe()
-                if (userChannel) userChannel.unsubscribe()
-                if (roomChannel) roomChannel.unsubscribe()
-                console.log("自動更新の終了")
-                setIsEntered(false)
-                alert("入室していません。")
+                toast.error("入室していません。")
               }
             }
           }
         )
         .subscribe()
 
-      roomChannel = supabase
+      const roomChannel = supabase
         .channel(`roominfo_${roomId}`)
         .on(
           "postgres_changes",
@@ -175,17 +170,19 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           },
           (payload) => {
             if (payload.eventType === "UPDATE") {
+              setAllClearAt(payload.new.all_clear_at)
               setVariables(payload.new.variables)
-              fetchMessages(payload.new.all_clear_at)
             }
           }
         )
         .subscribe()
+      messageChannel.on("presence", {
+        event: "leave"
+      }, () => {
+        toast.error('セッションが切断されました。')
+      })
       console.log("自動更新の開始")
-      return () => {
-        supabase.channel(String(roomId)).unsubscribe()
-        supabase.channel(`users_${roomId}`).unsubscribe()
-      }
+      setchannels([messageChannel, userChannel, roomChannel])
     } catch (error) {
       console.error(error)
     }
@@ -244,53 +241,88 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         return
       }
       setRoomDataLoaded(true)
+    })()
 
-      await getUsers()
+    return () => {
+      channels.forEach(channel => {
+        console.log('unsubscribe...')
+        channel.unsubscribe()
+      })
+    }
+  }, [])
 
-      const variables: any = tempRoomData?.variables || {}
-      const opt: any = tempRoomData?.options || {}
-      if (tempRoomData) {
-        if (opt.private) {
-          const chk = await checkEntered()
-          if (chk.entered || await isAdmin()) {
-            fetchMessages(tempRoomData.all_clear_at)
+  useEffect(() => {
+    if (!roomDataLoaded) return
+    console.log('roomDataLoaded')
+    getUsers()
+    const variables: any = roomData?.variables || {}
+    const opt: any = roomData?.options || {}
+    if (roomData) {
+      if (opt.private) {
+        checkEntered().catch(chk => {
+          if (chk.entered) {
+            fetchMessages(roomData.all_clear_at)
             fetchRealtimeData()
           }
-        } else {
-          await checkEntered()
-          fetchMessages(tempRoomData.all_clear_at)
-          fetchRealtimeData()
-        }
-        if (opt.variables) {
-          setVariableKeys(opt.variables)
-        }
-        if (variables) {
-          setVariables(variables)
-        }
-        if (opt.use_trump) {
-          setUseTrump(opt.use_trump)
-        }
+        })
       } else {
-        await checkEntered()
-        fetchMessages()
+        checkEntered()
+        fetchMessages(roomData.all_clear_at)
         fetchRealtimeData()
       }
-
-      if (localStorage.getItem('playSound') === 'true') {
-        setPlaySound(true)
+      if (opt.variables) {
+        setVariableKeys(opt.variables)
       }
-      const timer = setInterval(getUsers, 5 * 60 * 1000)
+      if (variables) {
+        setVariables(variables)
+      }
+      if (opt.use_trump) {
+        setUseTrump(opt.use_trump)
+      }
+    } else {
+      toast.error('ルームデータを取得できませんでした。')
+    }
 
-      return () => clearInterval(timer)
-    })()
-  }, [])
+    if (localStorage.getItem('playSound') === 'true') {
+      setPlaySound(true)
+    }
+    const timer = setInterval(getUsers, 5 * 60 * 1000)
+
+    return () => clearInterval(timer)
+  }, [roomDataLoaded])
 
   useEffect(() => {
     if (recievedMessage) {
       if (playSound) play()
+      if (allClearAt) {
+        setMessageText((messageText) => messageText.filter(message => message.created_at > allClearAt))
+      } else {
+        setMessageText((messageText) => messageText)
+      }
       setRecievedMessage(false)
     }
   }, [recievedMessage])
+
+  useEffect(() => {
+    if (allClearAt) {
+      setMessageText((messageText) => messageText.filter(message => message.created_at > allClearAt))
+    }
+  }, [allClearAt])
+
+  useEffect(() => {
+    if (!roomDataLoaded) return
+    if (isEntered) {
+      console.log("入室時の処理")
+    } else {
+      console.log("退室時の処理")
+      channels.forEach(channel => {
+        console.log('unsubscribe...')
+        channel.unsubscribe()
+      })
+      console.log("自動更新の終了")
+    }
+  }, [isEntered])
+
 
   const onSoundChanged = (option: boolean) => {
     setPlaySound(option)
@@ -299,9 +331,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const handleBeforeUnload = () => {
-    if (messageChannel) messageChannel.unsubscribe()
-    if (userChannel) userChannel.unsubscribe()
-    if (roomChannel) roomChannel.unsubscribe()
+    channels.forEach(channel => {
+      console.log('unsubscribe...')
+      channel.unsubscribe()
+    })
     console.log("自動更新の終了")
   }
 
@@ -427,7 +460,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         last_activity: new Date().toISOString()
       }).then(() => { })
 
-
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
         const data = {
           action: 'allClear',
@@ -472,7 +504,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (handlingDb) return
     const opt = getRoomOption()
     if (users.find(user => (user.name === createTrip(inputName)))) {
-      alert('同じ名前の人が入室しています。')
+      toast.error('同じ名前の人が入室しています。')
       return
     }
     handlingDb = true
@@ -515,15 +547,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       setUsers(responseData.users)
 
       if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
-        const chk = await checkEntered()
-        if (!chk.entered) {
-          if (messageChannel) messageChannel.unsubscribe()
-          if (userChannel) userChannel.unsubscribe()
-          if (roomChannel) roomChannel.unsubscribe()
-          console.log("自動更新の終了")
-          setIsEntered(false)
-          alert("入室していません。")
-        }
+        await checkEntered()
       }
     }
   }
@@ -564,7 +588,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         action: 'exitRoom',
         roomId: roomId,
         userId: localStorage.getItem("userId") || null
-      },
+      }
     })
     setUsers((users) => users.filter(user => user.id != localStorage.getItem("userId")))
     setIsEntered(false)

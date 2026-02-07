@@ -76,12 +76,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [recievedMessage, setRecievedMessage] = useState<Database["public"]["Tables"]["Messages"]["Row"] | null>(null)
   const [allClearAt, setAllClearAt] = useState('')
+  const [channels, setchannels] = useState<RealtimeChannel[]>([])
+
   let handlingDb = false
   let initialized = false
   let recievedMessages: any[] = []
-  let messageChannel: RealtimeChannel | null = null
-  let userChannel: RealtimeChannel | null = null
-  let roomChannel: RealtimeChannel | null = null
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
   type SendUser = Database["public"]["Tables"]["Users"]["Row"]
@@ -293,7 +292,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (realtimeDataStarted) return
     setRealtimeDataStarted(true)
     try {
-      userChannel = supabase
+      const userChannel = supabase
         .channel(`users_${roomId}`)
         .on(
           "postgres_changes",
@@ -320,7 +319,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         )
         .subscribe()
 
-      roomChannel = supabase
+      const roomChannel = supabase
         .channel(`roominfo_${roomId}`)
         .on(
           "postgres_changes",
@@ -339,10 +338,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         )
         .subscribe()
       console.log("自動更新の開始")
-      return () => {
-        supabase.channel(String(roomId)).unsubscribe()
-        supabase.channel(`users_${roomId}`).unsubscribe()
-      }
+      setchannels([userChannel, roomChannel])
     } catch (error) {
       console.error(error)
     }
@@ -452,10 +448,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setUseTrump(opt.use_trump)
       }
     } else {
-      checkEntered()
-      fetchMessages()
-      fetchRealtimeData()
-      createSocket(true)
+      toast.error('ルームデータを取得できませんでした。')
     }
   }, [roomDataLoaded])
 
@@ -487,8 +480,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.log("退室時の処理")
       if (messageSocket) messageSocket.close()
       setMmessageSocket(null)
-      if (userChannel) userChannel.unsubscribe()
-      if (roomChannel) roomChannel.unsubscribe()
+      channels.forEach(channel => {
+        console.log('unsubscribe...')
+        channel.unsubscribe()
+      })
       console.log("自動更新の終了")
     }
   }, [isEntered])
@@ -507,8 +502,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const handleBeforeUnload = () => {
-    if (userChannel) userChannel.unsubscribe()
-    if (roomChannel) roomChannel.unsubscribe()
+    channels.forEach(channel => {
+      console.log('unsubscribe...')
+      channel.unsubscribe()
+    })
     console.log("自動更新の終了")
   }
 
@@ -637,11 +634,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (handlingDb) return
     const opt = getRoomOption()
     if (users.find(user => (user.name === createTrip(inputName)))) {
-      alert('同じ名前の人が入室しています。')
+      toast.error('同じ名前の人が入室しています。')
       return
     }
     if (!socket) {
-      alert('サーバーに接続されていません。しばらく待ってからもう一度お試しください。')
+      toast.error('サーバーに接続されていません。しばらく待ってからもう一度お試しください。')
       return
     }
     handlingDb = true
