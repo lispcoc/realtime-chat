@@ -244,14 +244,24 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       let tempRoomData = null
       try {
-
-        const { response, data } = await supabase.functions.invoke('roomInfo', {
-          body: { roomId: roomId },
+        let roomData: Database["public"]["Tables"]["Rooms"]["Row"] | null = null
+        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
+          method: 'GET',
+          cache: 'no-store'
         })
-        if (data) {
-          setRoomData(data.info)
-          tempRoomData = data.info
-          setRoomAuthenticated(data.authenticated)
+        if (res.ok) {
+          roomData = await new Response(res.body).json()
+          if (roomData) setRoomData(roomData)
+          setRoomAuthenticated(true)
+        } else {
+          const { response, data } = await supabase.functions.invoke('roomInfo', {
+            body: { roomId: roomId },
+          })
+          if (data) {
+            setRoomData(data.info)
+            tempRoomData = data.info
+            setRoomAuthenticated(data.authenticated)
+          }
         }
       } catch (error) {
         console.error(error)
