@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation"
 import { useEffect, useState, useReducer, } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink, { RoomData, UserData } from '@/components/roomLink'
+import { RealtimeChannel } from "@supabase/supabase-js"
 
 type Props = {
 }
@@ -22,11 +23,12 @@ export default function RoomList({ }: Props) {
   const [loaded, setLoaded] = useState(false)
   const [serverError, setServerError] = useState(false)
   const [page, setPage] = useState(0)
-  const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
+  const [channels, setChannels] = useState<RealtimeChannel[]>([])
+  const [ignored, forceUpdate] = useReducer(x => x + 1, 0)
 
   const fetchRealtimeData = () => {
     try {
-      supabase
+      const _channel = supabase
         .channel('roomList')
         .on(
           "postgres_changes",
@@ -44,9 +46,7 @@ export default function RoomList({ }: Props) {
         )
         .subscribe()
       console.log("自動更新の開始")
-      return () => {
-        supabase.channel('roomList').unsubscribe()
-      }
+      setChannels([_channel])
     } catch (error) {
       console.error(error)
     }
@@ -82,6 +82,15 @@ export default function RoomList({ }: Props) {
       if (loaded) fetchRealtimeData()
     })()
   }, [loaded])
+
+  useEffect(() => {
+    return () => {
+      channels.forEach(channel => {
+        console.log('自動更新の終了')
+        channel.unsubscribe()
+      })
+    }
+  }, [channels])
 
   return (
     <>
