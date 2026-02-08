@@ -277,10 +277,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         if (opt.use_trump) {
           setUseTrump(opt.use_trump)
         }
+        checkEntered()
       } else {
         toast.error('ルームデータを取得できませんでした。')
       }
-      checkEntered()
 
       if (localStorage.getItem('playSound') === 'true') {
         setPlaySound(true)
