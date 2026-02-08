@@ -3,6 +3,7 @@ import { Database } from "@/types/supabasetype"
 import { supabase } from '@/utils/supabase/supabase'
 
 export type RoomInfo = Omit<Database["public"]["Tables"]["Rooms"]["Row"], 'password' | 'owner'>
+export type SendMessage = Database["public"]["Tables"]["Messages"]["Insert"]
 
 export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, authenticated: boolean } | null> {
   try {
@@ -27,4 +28,8 @@ export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, aut
     alert("部屋データの取得に失敗しました。")
     return null
   }
+}
+
+export async function sendMessage(data: SendMessage) {
+  return supabase.from("Messages").insert(data)
 }

@@ -23,6 +23,7 @@ import {
   type RoomVariable
 } from "./server"
 import {
+  sendMessage,
   getRoomInfo,
   type RoomInfo
 } from "./client"
@@ -454,27 +455,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setButtonDisable(false)
         return
       }
-      supabase.functions.invoke('database-access', {
-        body: {
-          action: 'addMessage',
-          roomId: msg.room_id,
-          username: msg.name,
-          text: msg.text,
-          color: msg.color,
-          system: msg.system
-        },
-      }).then((res) => {
+      sendMessage(msg).then((res) => {
         if (specialMsg) {
-          supabase.functions.invoke('database-access', {
-            body: {
-              action: 'addMessage',
-              roomId: specialMsg.room_id,
-              username: specialMsg.name,
-              text: specialMsg.text,
-              color: specialMsg.color,
-              system: specialMsg.system
-            },
-          }).then(() => { })
+          sendMessage(specialMsg)
         } else {
           supabase.functions.invoke('dice', {
             body: {
@@ -811,7 +794,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
         <div className="p-2 w-full mb-10">
           {pendingMessageText.map((item, index) => (
-            <ChatLine key={index} message={item} index={index}></ChatLine>
+            <ChatLine key={index} message={item} index={index} bgcolor={'#FFFFC0'}></ChatLine>
           ))}
           {messageText.map((item, index) => (
             <ChatLine key={index} message={item} index={index}></ChatLine>

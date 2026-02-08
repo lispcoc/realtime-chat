@@ -24,6 +24,7 @@ import {
 } from "./server"
 import {
   getRoomInfo,
+  sendMessage,
   type RoomInfo
 } from "./client"
 
@@ -91,7 +92,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
   type SendUser = Database["public"]["Tables"]["Users"]["Row"]
-  type SendMessage = Omit<Message, 'id' | 'created_at'>
   type EnterRoomResponse = {
     success: boolean;
     reason: string;
@@ -113,7 +113,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   type Packet<T> = {
     type: T extends Message ? "message"
-    : T extends SendMessage ? "message"
     : T extends _User ? "enterRoom" | "exitRoom"
     : T extends SendUser ? "enterRoom" | "exitRoom"
     : T extends EnterRoomResponse ? "EnterRoomResponse"
@@ -229,19 +228,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     return () => {
       if (socket) socket.close();
     }
-  }
-
-  const sendMessage = (data: SendMessage) => {
-    if (socket) {
-      const packet: Packet<SendMessage> = {
-        type: "message",
-        room_id: roomId,
-        data: data,
-      }
-      socket.send(JSON.stringify(packet))
-      return true
-    }
-    return false
   }
 
   const diceRoll = (data: dice) => {
@@ -578,7 +564,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setButtonDisable(false)
         return
       }
-      const sendMessageResult = sendMessage({
+      const sendMessageResult = await sendMessage(socket, {
         room_id: msg.room_id,
         name: msg.name,
         text: msg.text,
@@ -590,8 +576,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         throw new Error("メッセージの送信に失敗しました。")
       }
       if (specialMsg) {
-        setTimeout(() => {
-          sendMessage({
+        setTimeout(async () => {
+          await sendMessage(socket, {
             room_id: specialMsg.room_id,
             name: specialMsg.name,
             text: specialMsg.text,
@@ -931,7 +917,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
         <div className="p-2 w-full mb-10">
           {pendingMessageText.map((item, index) => (
-            <ChatLine key={index} message={item} index={index}></ChatLine>
+            <ChatLine key={index} message={item} index={index} bgcolor={'#FFFFC0'}></ChatLine>
           ))}
           {messageText.map((item, index) => (
             <ChatLine key={index} message={item} index={index}></ChatLine>

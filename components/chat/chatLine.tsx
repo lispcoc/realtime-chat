@@ -5,10 +5,11 @@ type Props = {
     message: Database["public"]["Tables"]["Messages"]["Row"],
     index: number,
     showRoomId?: boolean
+    bgcolor?: string | null
     onClick?: (room_id: number) => void
 }
 
-export default function ChatLine({ message, index, showRoomId = false, onClick = () => { } }: Props) {
+export default function ChatLine({ message, index, showRoomId = false, onClick = () => { }, bgcolor = null }: Props) {
     const namecolor = message.system ? "gray" : intToColorCode(message.color || 0)
     const messagecolor = message.system ? "gray" : "#000000"
     const dispName = message.system ? `` : ` > ${message.name}`
@@ -17,7 +18,7 @@ export default function ChatLine({ message, index, showRoomId = false, onClick =
     return (
         <div className="w-full break-words">
             <hr style={{ height: 1 }} className="" />
-            <div className="p-1 w-full" onClick={() => { onClick(message.room_id || 0) }}>
+            <div className="p-1 w-full" onClick={() => { onClick(message.room_id || 0) }} style={bgcolor ? { backgroundColor: bgcolor } : {}}>
                 {showRoomId && (
                     <span className="font-bold text-xs text-gray-900"> ({message.room_id})</span>
                 )}
