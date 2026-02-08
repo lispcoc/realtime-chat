@@ -23,8 +23,12 @@ import {
   type RoomVariable
 } from "./server"
 import {
-  sendMessage,
+  enterRoom,
+  exitRoom,
+  isEnteredRoom,
+  getUsers,
   getRoomInfo,
+  sendMessage,
   type RoomInfo
 } from "./client"
 
@@ -285,7 +289,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     (async () => {
       console.log('roomDataLoaded')
-      getUsers()
+      getUsersAndCheckEntered()
       const variables: any = roomData?.variables || {}
       const opt: any = roomData?.options || {}
       if (roomData) {
@@ -319,7 +323,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       }
     })()
 
-    const timer = setInterval(getUsers, 5 * 60 * 1000)
+    const timer = setInterval(getUsersAndCheckEntered, 5 * 60 * 1000)
 
     return () => clearInterval(timer)
   }, [roomDataLoaded])
@@ -346,6 +350,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
+      if (getRoomOption().private) {
+        fetchMessages()
+        fetchRealtimeData()
+      }
     } else {
       console.log("退室時の処理")
       channels.forEach(channel => {
@@ -451,7 +459,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
       const chk = await checkEntered()
       if (!chk.entered) {
-        alert("入室していません。")
+        toast.error("入室していません。")
         setButtonDisable(false)
         return
       }
@@ -517,7 +525,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     event.preventDefault()
     if (inputName === "") return
     if (handlingDb) return
-    const opt = getRoomOption()
     if (users.find(user => (user.name === createTrip(inputName)))) {
       toast.error('同じ名前の人が入室しています。')
       return
@@ -526,66 +533,42 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
-    const response = await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'enterRoom',
-        roomId: roomId,
-        color: colorCodeToInt(color),
-        username: createTrip(inputName),
-        userId: localStorage.getItem("userId") || null
-      },
-    })
-    if (response.data) {
-      const responseData = response.data
-      if (responseData.success) {
-        localStorage.setItem("userId", responseData.id)
+    const response = await enterRoom(roomId, inputName, color)
+    if (response) {
+      if (response.success) {
+        localStorage.setItem("userId", response.id)
         const chk = await checkEntered()
-        if (opt.private && chk.entered) {
-          await fetchMessages()
-          fetchRealtimeData()
-        }
       } else {
-        alert(responseData.reason)
+        toast.error(response.reason)
       }
     }
-    await getUsers()
+    await getUsersAndCheckEntered()
     setButtonDisable(false)
     handlingDb = false
   }
 
-  const getUsers = async () => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: { action: 'getUsers', roomId: roomId },
-    })
-    if (response.data) {
-      const responseData = response.data
-      setUsers(responseData.users)
-
-      if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
+  const getUsersAndCheckEntered = async () => {
+    const users = await getUsers(roomId)
+    if (users) {
+      setUsers(users)
+      if (isEntered && !users.find(user => (user.name === username))) {
         await checkEntered()
       }
     }
   }
 
   const checkEntered = async () => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'checkEntered',
-        roomId: roomId,
-        userId: localStorage.getItem("userId") || null
-      },
-    })
-    if (response.data) {
-      const responseData = response.data
-      setIsEntered(responseData.entered)
-      if (responseData.entered) {
-        setUsername(responseData.username || "Unknown")
-        setColor(intToColorCode(responseData.color || 0))
+    const response = await isEnteredRoom(roomId)
+    if (response) {
+      setIsEntered(response.entered)
+      if (response.entered) {
+        setUsername(response.username || "Unknown")
+        setColor(intToColorCode(response.color || 0))
       }
       return {
-        username: responseData.username,
-        entered: responseData.entered,
-        id: responseData.id
+        username: response.username,
+        entered: response.entered,
+        id: response.id
       }
     }
 
@@ -598,13 +581,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'exitRoom',
-        roomId: roomId,
-        userId: localStorage.getItem("userId") || null
-      }
-    })
+    await exitRoom(roomId)
     setUsers((users) => users.filter(user => user.id != localStorage.getItem("userId")))
     setIsEntered(false)
   }
@@ -703,13 +680,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             <label htmlFor="name" className="inline-block mb-2 text-sm font-medium text-gray-900"></label>
             <span style={{ color: color }} className="mb-2 text-sm font-medium text-gray-900" onClick={(event) => { setShowColorPicker(!showColorPicker) }}>お名前 [文字色]</span>
             {showColorPicker && colorPicker(inputName)}
-            <input type="text" id="name"
-              className="text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
+            <div className="sm:flex">
+              <input type="text" id="name"
+                className="flex-grow text-base bg-gray-50 border border-gray-300 text-gray-900 rounded-lg 
               focus:ring-blue-500 focus:border-blue-500 inline-block w-full p-2.5"
-              name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
-            <button type="submit" className={styles.button} disabled={buttonDisable || inputName === ""}>
-              入室
-            </button>
+                name="name" value={inputName} onChange={(event) => setInputName(() => event.target.value)}></input>
+              <button type="submit" className={`${styles.button} whitespace-nowrap`} disabled={!roomAuthenticated || buttonDisable || inputName === ""}>
+                入室
+              </button>
+            </div>
           </form>
         )}
 

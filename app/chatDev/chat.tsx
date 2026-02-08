@@ -23,6 +23,10 @@ import {
   type RoomVariable
 } from "./server"
 import {
+  enterRoom,
+  exitRoom,
+  isEnteredRoom,
+  getUsers,
   getRoomInfo,
   sendMessage,
   type RoomInfo
@@ -91,7 +95,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   let recievedMessages: any[] = []
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
-  type SendUser = Database["public"]["Tables"]["Users"]["Row"]
   type EnterRoomResponse = {
     success: boolean;
     reason: string;
@@ -114,7 +117,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   type Packet<T> = {
     type: T extends Message ? "message"
     : T extends _User ? "enterRoom" | "exitRoom"
-    : T extends SendUser ? "enterRoom" | "exitRoom"
     : T extends EnterRoomResponse ? "EnterRoomResponse"
     : T extends changeVariable ? "changeVariable"
     : T extends card ? "card"
@@ -180,7 +182,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         }
         const packet3: Packet<_User> = JSON.parse(event.data)
         if (packet3.type === "enterRoom") {
-          getUsers().then(() => { })
+          getUsersAndCheckEntered().then(() => { })
           /*
           if (!users.find(user => (user.id === packet3.data.id))) {
             setUsers((users) => [
@@ -194,7 +196,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           }
           */
         } else if (packet3.type === "exitRoom") {
-          getUsers().then(() => { })
+          getUsersAndCheckEntered().then(() => { })
           /*
           setUsers((users) => users.filter(user => user.id != packet3.data.id))
           */
@@ -241,30 +243,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
   }
 
-  const enterRoom = (data: SendUser) => {
-    if (socket) {
-      const packet: Packet<SendUser> = {
-        type: "enterRoom",
-        room_id: roomId,
-        data: data,
-      }
-      socket.send(JSON.stringify(packet))
-    }
-  }
-
-  const exitRoom = (data: SendUser) => {
-    if (socket) {
-      const packet: Packet<SendUser> = {
-        type: "exitRoom",
-        room_id: roomId,
-        data: data,
-      }
-      socket.send(JSON.stringify(packet))
-    }
-    if (messageSocket) messageSocket.close()
-    setMmessageSocket(null)
-  }
-
   const colorPicker = (username: string) => {
     return (
       <div className="p-2">
@@ -301,7 +279,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
                 setUsers((users) => [{ id, name, color }, ...users])
               }
             } else if (payload.eventType === "DELETE") {
-              checkEntered()
+              checkEntered().then(() => { })
               const { id } = payload.old
               setUsers((users) => users.filter(user => user.id != id))
               if (isEntered && !users.find(user => user.id === localStorage.getItem("userId"))) {
@@ -416,7 +394,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     (async () => {
       console.log('roomDataLoaded')
-      getUsers()
+      getUsersAndCheckEntered()
       const variables: any = roomData?.variables || {}
       const opt: any = roomData?.options || {}
       createSocket(false)
@@ -452,7 +430,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       }
     })()
 
-    const timer = setInterval(getUsers, 5 * 60 * 1000)
+    const timer = setInterval(getUsersAndCheckEntered, 5 * 60 * 1000)
 
     return () => clearInterval(timer)
   }, [roomDataLoaded])
@@ -650,7 +628,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
-    enterRoom({
+    enterRoom(socket, {
       room_id: roomId,
       color: colorCodeToInt(color),
       name: createTrip(inputName),
@@ -660,43 +638,33 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     handlingDb = false
   }
 
-  const getUsers = async () => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: { action: 'getUsers', roomId: roomId },
-    })
-    if (response.data) {
-      const responseData = response.data
-      setUsers(responseData.users)
-
-      if (isEntered && !(responseData.users as User[]).find(user => (user.name === username))) {
+  const getUsersAndCheckEntered = async () => {
+    const users = await getUsers(roomId)
+    if (users) {
+      setUsers(users)
+      if (isEntered && !users.find(user => (user.name === username))) {
         await checkEntered()
       }
     }
   }
 
   const checkEntered = async () => {
-    const response = await supabase.functions.invoke('database-access', {
-      body: {
-        action: 'checkEntered',
-        roomId: roomId,
-        userId: localStorage.getItem("userId") || null
-      },
-    })
-    if (response.data) {
-      const responseData = response.data
-      if (responseData.entered) {
+    const response = await isEnteredRoom(roomId)
+    if (response) {
+      setIsEntered(response.entered)
+      if (response.entered) {
         if (!isEntered) setIsEntered(true)
-        setUsername(responseData.username || "Unknown")
-        setColor(intToColorCode(responseData.color || 0))
+        setUsername(response.username || "Unknown")
+        setColor(intToColorCode(response.color || 0))
       }
-      if (isEntered && !responseData.entered) {
+      if (isEntered && !response.entered) {
         setIsEntered(false)
         toast.error("入室していません。")
       }
       return {
-        username: responseData.username,
-        entered: responseData.entered,
-        id: responseData.id
+        username: response.username,
+        entered: response.entered,
+        id: response.id
       }
     }
 
@@ -709,13 +677,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const onSubmitLeave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    exitRoom({
+    exitRoom(socket, {
       room_id: roomId,
       color: colorCodeToInt(color),
       name: createTrip(inputName),
       id: localStorage.getItem("userId") || "",
       last_activity: new Date().toISOString()
     })
+    if (messageSocket) messageSocket.close()
+    setMmessageSocket(null)
     setUsers((users) => users.filter(user => user.id != localStorage.getItem("userId")))
     setIsEntered(false)
   }
@@ -741,18 +711,19 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const setVar = async (op: string, key: string, value: number) => {
     setButtonDisable(true)
     setTimeout(() => setButtonDisable(false), 2 * 1000)
-
-    if (socket) {
-      const packet: Packet<changeVariable> = {
-        type: "changeVariable",
-        room_id: roomId,
-        data: {
-          op: op,
-          key: key,
-          value: value
+    switch (op) {
+      case "mod":
+        if (value > 0) {
+          await incrementRoomVariable(roomId, key, value)
+        } else {
+          await decrementRoomVariable(roomId, key, -value)
         }
-      }
-      socket.send(JSON.stringify(packet))
+        break
+      case "set":
+        await setRoomVariable(roomId, key, value)
+        break
+      default:
+        break
     }
   }
 
