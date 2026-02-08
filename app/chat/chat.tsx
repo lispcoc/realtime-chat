@@ -70,6 +70,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [roomInfo, setRoomInfo] = useState<RoomInfo>()
   const [roomAuthenticated, setRoomAuthenticated] = useState(false)
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
+  const [checkEnteredDone, setCheckEnteredDone] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [variableKeys, setVariableKeys] = useState<string[]>([])
   const [variables, setVariables] = useState<RoomVariable>({})
@@ -512,6 +513,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setUsername(response.username || "Unknown")
         setColor(intToColorCode(response.color || 0))
       }
+      setCheckEnteredDone(true)
       return {
         username: response.username,
         entered: response.entered,
@@ -616,7 +618,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         </div>
       )}
 
-      {roomDataLoaded && (<>
+      {checkEnteredDone && (<>
         {!isEntered && (
           <form className="m-2 p-2" onSubmit={onSubmitEnter}>
             {!roomAuthenticated && (
