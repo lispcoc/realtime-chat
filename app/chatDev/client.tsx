@@ -126,6 +126,16 @@ export async function getUsers(roomId: number): Promise<User[]> {
   return response.data.users
 }
 
+export async function updateUser(roomId: number, user: User): Promise<void> {
+  await supabase.from("Users").upsert({
+    id: user.id,
+    room_id: roomId,
+    name: user.name,
+    color: user.color,
+    last_activity: new Date().toISOString()
+  })
+}
+
 export async function allClear(socket: WebSocket | null, roomId: number): Promise<void> {
   await supabase.from("RoomData").upsert({
     id: roomId,

@@ -31,6 +31,7 @@ import {
   getRoomInfo,
   getRoomData,
   sendMessage,
+  updateUser,
   type RoomInfo
 } from "./client"
 
@@ -439,13 +440,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           }).then(() => { })
         }
       })
-      supabase.from("Users").upsert({
+      updateUser(roomId, {
         id: chk.id,
-        room_id: roomId,
         name: chk.username,
-        color: colorCodeToInt(color),
-        last_activity: new Date().toISOString()
-      }).then(() => { })
+        color: colorCodeToInt(color)
+      })
 
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
         allClear(roomId)
