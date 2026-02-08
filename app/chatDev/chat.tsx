@@ -15,7 +15,15 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
 import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
-import { getRoomVariable, setRoomVariable, incrementRoomVariable, decrementRoomVariable, type RoomVariable } from "./middleware"
+import {
+  getRoomInfo,
+  getRoomVariable,
+  setRoomVariable,
+  incrementRoomVariable,
+  decrementRoomVariable,
+  type RoomInfo,
+  type RoomVariable
+} from "./middleware"
 
 type Prop = {
   onSetTitle?: (title: string) => void
@@ -50,7 +58,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [inputName, setInputName] = useState("")
   const [pendingMessageText, setPendingMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
-  const [roomData, setRoomData] = useState<Database["public"]["Tables"]["Rooms"]["Row"]>()
+  const [roomData, setRoomData] = useState<RoomInfo>()
   const [roomAuthenticated, setRoomAuthenticated] = useState(false)
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
@@ -395,29 +403,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setColor(localStorage.getItem('username_color') || "#000000")
       }
 
-      try {
-        let roomData: Database["public"]["Tables"]["Rooms"]["Row"] | null = null
-        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
-          method: 'GET',
-          cache: 'no-store'
-        })
-        if (res.ok) {
-          roomData = await new Response(res.body).json()
-          if (roomData) setRoomData(roomData)
-          setRoomAuthenticated(true)
-        } else {
-          const { response, data } = await supabase.functions.invoke('roomInfo', {
-            body: { roomId: roomId },
-          })
-          if (data) {
-            setRoomData(data.info)
-            setRoomAuthenticated(data.authenticated)
-          }
-        }
-      } catch (error) {
-        console.error(error)
-        alert("部屋データの取得に失敗しました。")
-        return
+      const res = await getRoomInfo(roomId)
+      if (res) {
+        setRoomData(res.info)
+        setRoomAuthenticated(res.authenticated)
+      } else {
+        toast.error("部屋データの取得に失敗しました。")
       }
       setRoomDataLoaded(true)
     })()
