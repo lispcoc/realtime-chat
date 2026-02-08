@@ -92,8 +92,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [allClearAt, setAllClearAt] = useState('')
   const [channels, setchannels] = useState<RealtimeChannel[]>([])
 
-  let handlingDb = false
-  let initialized = false
   let recievedMessages: any[] = []
 
 
@@ -476,12 +474,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
-    if (handlingDb) return
     if (users.find(user => (user.name === createTrip(inputName)))) {
       toast.error('同じ名前の人が入室しています。')
       return
     }
-    handlingDb = true
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
@@ -496,7 +492,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
     await getUsersAndCheckEntered()
     setButtonDisable(false)
-    handlingDb = false
   }
 
   const getUsersAndCheckEntered = async () => {

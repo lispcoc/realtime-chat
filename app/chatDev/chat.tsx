@@ -92,8 +92,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [allClearAt, setAllClearAt] = useState('')
   const [channels, setchannels] = useState<RealtimeChannel[]>([])
 
-  let handlingDb = false
-  let initialized = false
   let recievedMessages: any[] = []
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
@@ -569,7 +567,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputName === "") return
-    if (handlingDb) return
     if (users.find(user => (user.name === createTrip(inputName)))) {
       toast.error('同じ名前の人が入室しています。')
       return
@@ -578,7 +575,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       toast.error('サーバーに接続されていません。しばらく待ってからもう一度お試しください。')
       return
     }
-    handlingDb = true
     setButtonDisable(true)
     localStorage.setItem('username', inputName)
     localStorage.setItem('username_color', color)
@@ -589,7 +585,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       id: localStorage.getItem("userId") || "",
       last_activity: new Date().toISOString()
     })
-    handlingDb = false
   }
 
   const getUsersAndCheckEntered = async () => {
