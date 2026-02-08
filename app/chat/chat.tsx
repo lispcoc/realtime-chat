@@ -65,7 +65,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [inputName, setInputName] = useState("")
   const [pendingMessageText, setPendingMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
   const [messageText, setMessageText] = useState<Database["public"]["Tables"]["Messages"]["Row"][]>([])
-  const [roomData, setRoomData] = useState<RoomInfo>()
+  const [roomInfo, setRoomInfo] = useState<RoomInfo>()
   const [roomAuthenticated, setRoomAuthenticated] = useState(false)
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
@@ -233,8 +233,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const fetchMessages = async (all_clear_at: string | null = "") => {
     let allMessages = null
     let allClearAt: string | null = all_clear_at
-    if (roomData && roomData.all_clear_at) {
-      allClearAt = roomData.all_clear_at
+    if (roomInfo && roomInfo.all_clear_at) {
+      allClearAt = roomInfo.all_clear_at
     }
     try {
       if (allClearAt) {
@@ -261,7 +261,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       setColor(localStorage.getItem('username_color') || "#000000")
       const res = await getRoomInfo(roomId)
       if (res) {
-        setRoomData(res.info)
+        setRoomInfo(res.info)
         setRoomAuthenticated(res.authenticated)
       } else {
         toast.error("部屋データの取得に失敗しました。")
@@ -282,17 +282,17 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     (async () => {
       console.log('roomDataLoaded')
       getUsersAndCheckEntered()
-      const opt: any = roomData?.options || {}
-      if (roomData) {
+      const opt: any = roomInfo?.options || {}
+      if (roomInfo) {
         if (opt.private) {
           const chk = await checkEntered()
           if (chk.entered) {
-            fetchMessages(roomData.all_clear_at)
+            fetchMessages(roomInfo.all_clear_at)
             fetchRealtimeData()
           }
         } else {
           checkEntered()
-          fetchMessages(roomData.all_clear_at)
+          fetchMessages(roomInfo.all_clear_at)
           fetchRealtimeData()
         }
         if (opt.variables) {
@@ -341,7 +341,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
-      fetchMessages(roomData?.all_clear_at)
+      fetchMessages(roomInfo?.all_clear_at)
       fetchRealtimeData()
     } else {
       console.log("退室時の処理")
@@ -389,7 +389,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         system: false
       }
       let specialMsg: any = null
-      const rd: any = roomData
+      const rd: any = roomInfo
       if (rd && rd.special_keys && rd.special_keys[inputText]) {
         const special_text: String = rd.special_keys[inputText] || ""
         const array = special_text.split("\n")
@@ -499,14 +499,14 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const getRoomOption = () => {
     const rd: RoomOption = { private: false, use_trump: false, user_limit: 10, all_clear: "", variables: [] }
-    if (roomData && roomData.options) {
-      rd.private = (roomData.options as any).private
-      rd.use_trump = (roomData.options as any).use_trump
-      rd.user_limit = parseInt((roomData.options as any).user_limit)
+    if (roomInfo && roomInfo.options) {
+      rd.private = (roomInfo.options as any).private
+      rd.use_trump = (roomInfo.options as any).use_trump
+      rd.user_limit = parseInt((roomInfo.options as any).user_limit)
       if (isNaN(rd.user_limit)) rd.user_limit = 10
       if (rd.user_limit < 3) rd.user_limit = 3
-      rd.all_clear = (roomData.options as any).all_clear || ""
-      rd.variables = (roomData.options as any).variables || []
+      rd.all_clear = (roomInfo.options as any).all_clear || ""
+      rd.variables = (roomInfo.options as any).variables || []
     }
     return rd
   }
@@ -650,8 +650,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   return (
     <div className="w-full max-w-4xl">
       <Toaster position="top-center" />
-      <title>{roomData?.title}</title>
-      <h2 className="text-xl font-bold pt-5 pb-5">{roomData ? roomData.title : ""}</h2>
+      <title>{roomInfo?.title}</title>
+      <h2 className="text-xl font-bold pt-5 pb-5">{roomInfo ? roomInfo.title : ""}</h2>
 
       {!roomDataLoaded && (
         <div className="m-2 p-2">
@@ -700,7 +700,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             </span>
           ))}
           <span className="flex items-end text-xs font-xs">
-            {roomData && `(${users.length} / ${getRoomOption().user_limit} 人)`}
+            {roomInfo && `(${users.length} / ${getRoomOption().user_limit} 人)`}
           </span>
         </div>
 
@@ -747,15 +747,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             {showRoomDescription && (
               <Linkify as="div" className="text-xs" options={linkifyOptions}>
                 {
-                  roomData
-                    ? linedDescription(roomData.description || "")
+                  roomInfo
+                    ? linedDescription(roomInfo.description || "")
                     : ""}
               </Linkify>
             )}
           </div>
         )}
 
-        {roomData?.options && (roomData?.options as any).private && !isEntered && (
+        {roomInfo?.options && (roomInfo?.options as any).private && !isEntered && (
           <div className="p-2 w-full pb-10">
             未入室閲覧禁止設定です。
           </div>
@@ -801,8 +801,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         message={(
           <Linkify as="div" className="" options={linkifyOptions}>
             {
-              roomData
-                ? linedDescription(roomData.description || "")
+              roomInfo
+                ? linedDescription(roomInfo.description || "")
                 : ""}
           </Linkify>
         )}

@@ -91,15 +91,21 @@ export type Database = {
       }
       RoomData: {
         Row: {
+          all_clear_at: string | null
           id: number
+          last_enter: string | null
           variables: Json | null
         }
         Insert: {
+          all_clear_at?: string | null
           id?: number
+          last_enter?: string | null
           variables?: Json | null
         }
         Update: {
+          all_clear_at?: string | null
           id?: number
+          last_enter?: string | null
           variables?: Json | null
         }
         Relationships: []
