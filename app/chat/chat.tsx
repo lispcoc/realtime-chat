@@ -360,6 +360,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         console.log('unsubscribe...')
         channel.unsubscribe()
       })
+      setRealtimeDataStarted(false)
       console.log("自動更新の終了")
     }
   }, [isEntered])
