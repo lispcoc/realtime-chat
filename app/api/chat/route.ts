@@ -143,6 +143,10 @@ async function allClear(roomId: number, send_msg = true) {
     await supabaseServiceRole.from("Rooms").update({
         all_clear_at: new Date().toISOString()
     }).eq('id', roomId)
+    await supabase.from("RoomData").upsert({
+        id: roomId,
+        all_clear_at: new Date().toISOString()
+    }).eq('id', roomId)
     if (send_msg) {
         await addMessage({
             color: 0,

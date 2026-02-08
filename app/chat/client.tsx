@@ -5,6 +5,7 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import { createTrip } from "2ch-trip"
 
 export type RoomInfo = Omit<Database["public"]["Tables"]["Rooms"]["Row"], 'password' | 'owner'>
+export type RoomData = Database["public"]["Tables"]["RoomData"]["Row"]
 export type SendMessage = Database["public"]["Tables"]["Messages"]["Insert"]
 
 export type EnterRoomResponse = {
@@ -49,6 +50,15 @@ export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, aut
     alert("部屋データの取得に失敗しました。")
     return null
   }
+}
+
+export async function getRoomData(roomId: number): Promise<RoomData | null> {
+  const { data, error } = await supabase
+    .from("RoomData")
+    .select("*")
+    .eq("id", roomId)
+    .single()
+  return data || null
 }
 
 export async function sendMessage(data: SendMessage) {

@@ -28,8 +28,10 @@ import {
   isEnteredRoom,
   getUsers,
   getRoomInfo,
+  getRoomData,
   sendMessage,
-  type RoomInfo
+  type RoomInfo,
+  type RoomData
 } from "./client"
 
 type Prop = {
@@ -187,24 +189,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         )
         .subscribe()
 
-      const roomChannel = supabase
-        .channel(`roominfo_${roomId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "Rooms",
-            filter: `id=eq.${roomId}`
-          },
-          (payload) => {
-            if (payload.eventType === "UPDATE") {
-              setAllClearAt(payload.new.all_clear_at)
-            }
-          }
-        )
-        .subscribe()
-
       const roomDataChannel = supabase
         .channel(`roomdata_${roomId}`)
         .on(
@@ -216,26 +200,23 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             filter: `id=eq.${roomId}`
           },
           (payload) => {
-            if (payload.eventType === "UPDATE") {
+            if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
               setVariables(payload.new.variables)
+              setAllClearAt(payload.new.all_clear_at)
             }
           }
         )
         .subscribe()
 
       console.log("自動更新の開始")
-      setchannels([messageChannel, userChannel, roomChannel, roomDataChannel])
+      setchannels([messageChannel, userChannel, roomDataChannel])
     } catch (error) {
       console.error(error)
     }
   }
 
-  const fetchMessages = async (all_clear_at: string | null = "") => {
+  const fetchMessages = async () => {
     let allMessages = null
-    let allClearAt: string | null = all_clear_at
-    if (roomInfo && roomInfo.all_clear_at) {
-      allClearAt = roomInfo.all_clear_at
-    }
     try {
       if (allClearAt) {
         const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).gt("created_at", allClearAt).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
@@ -263,10 +244,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (res) {
         setRoomInfo(res.info)
         setRoomAuthenticated(res.authenticated)
+        const roomData = await getRoomData(roomId)
+        setAllClearAt(roomData?.all_clear_at || '')
+        setRoomDataLoaded(true)
       } else {
         toast.error("部屋データの取得に失敗しました。")
       }
-      setRoomDataLoaded(true)
     })()
 
     return () => {
@@ -285,23 +268,15 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       const opt: any = roomInfo?.options || {}
       if (roomInfo) {
         if (opt.private) {
-          const chk = await checkEntered()
-          if (chk.entered) {
-            fetchMessages(roomInfo.all_clear_at)
-            fetchRealtimeData()
-          }
         } else {
           checkEntered()
-          fetchMessages(roomInfo.all_clear_at)
+          fetchMessages()
           fetchRealtimeData()
         }
         if (opt.variables) {
           setVariableKeys(opt.variables)
         }
-        const vars = await getRoomVariable(roomId)
-        if (vars) {
-          setVariables(vars)
-        }
+        setVariables(await getRoomVariable(roomId))
         if (opt.use_trump) {
           setUseTrump(opt.use_trump)
         }
@@ -341,7 +316,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
-      fetchMessages(roomInfo?.all_clear_at)
+      fetchMessages()
       fetchRealtimeData()
     } else {
       console.log("退室時の処理")
