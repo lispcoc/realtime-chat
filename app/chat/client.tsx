@@ -105,3 +105,17 @@ export async function getUsers(roomId: number): Promise<User[]> {
   })
   return response.data.users
 }
+
+export async function allClear(roomId: number): Promise<void> {
+  await supabase.from("RoomData").upsert({
+    id: roomId,
+    all_clear_at: new Date().toISOString()
+  })
+  sendMessage({
+    color: 0,
+    name: "system",
+    room_id: roomId,
+    system: true,
+    text: `ルームログが消去されました。`
+  })
+}

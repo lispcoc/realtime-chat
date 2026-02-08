@@ -23,6 +23,7 @@ import {
   type RoomVariable
 } from "./server"
 import {
+  allClear,
   enterRoom,
   exitRoom,
   isEnteredRoom,
@@ -31,7 +32,6 @@ import {
   getRoomData,
   sendMessage,
   type RoomInfo,
-  type RoomData
 } from "./client"
 
 type Prop = {
@@ -542,20 +542,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       }).then(() => { })
 
       if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
-        const data = {
-          action: 'allClear',
-          roomId: roomId
-        }
-
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            cache: 'no-store',
-          },
-          body: JSON.stringify(data),
-        })
-
+        allClear(socket, roomId).then(() => { })
         setMessageText([])
       }
     } catch (error) {
