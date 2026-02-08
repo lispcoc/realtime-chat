@@ -16,14 +16,16 @@ import Linkify from "linkify-react"
 import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
 import {
-  getRoomInfo,
   getRoomVariable,
   setRoomVariable,
   incrementRoomVariable,
   decrementRoomVariable,
-  type RoomInfo,
   type RoomVariable
 } from "./server"
+import {
+  getRoomInfo,
+  type RoomInfo
+} from "./client"
 
 type Prop = {
   onSetTitle?: (title: string) => void
