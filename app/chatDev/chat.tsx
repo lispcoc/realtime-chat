@@ -15,6 +15,7 @@ import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
 import Linkify from "linkify-react"
 import toast, { Toaster } from "react-hot-toast"
 import styles from '@/components/style'
+import { getRoomVariable, setRoomVariable, incrementRoomVariable, decrementRoomVariable, type RoomVariable } from "./middleware"
 
 type Prop = {
   onSetTitle?: (title: string) => void
@@ -26,10 +27,6 @@ type RoomOption = {
   all_clear: string,
   use_trump: boolean,
   variables: string[]
-}
-
-type VariableObject = {
-  [key: string]: number
 }
 
 type User = {
@@ -58,7 +55,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [roomDataLoaded, setRoomDataLoaded] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [variableKeys, setVariableKeys] = useState<string[]>([])
-  const [variables, setVariables] = useState<VariableObject>({})
+  const [variables, setVariables] = useState<RoomVariable>({})
   const [useTrump, setUseTrump] = useState(false)
   const [isEntered, setIsEntered] = useState(false)
   const [username, setUsername] = useState("")
@@ -332,13 +329,31 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           (payload) => {
             if (payload.eventType === "UPDATE") {
               setAllClearAt(payload.new.all_clear_at)
+            }
+          }
+        )
+        .subscribe()
+
+      const roomDataChannel = supabase
+        .channel(`roomdata_${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "RoomData",
+            filter: `id=eq.${roomId}`
+          },
+          (payload) => {
+            if (payload.eventType === "UPDATE") {
               setVariables(payload.new.variables)
             }
           }
         )
         .subscribe()
+
       console.log("自動更新の開始")
-      setchannels([userChannel, roomChannel])
+      setchannels([userChannel, roomChannel, roomDataChannel])
     } catch (error) {
       console.error(error)
     }
@@ -380,16 +395,24 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setColor(localStorage.getItem('username_color') || "#000000")
       }
 
-      let tempRoomData = null
       try {
-
-        const { response, data } = await supabase.functions.invoke('roomInfo', {
-          body: { roomId: roomId },
+        let roomData: Database["public"]["Tables"]["Rooms"]["Row"] | null = null
+        const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
+          method: 'GET',
+          cache: 'no-store'
         })
-        if (data) {
-          setRoomData(data.info)
-          tempRoomData = data.info
-          setRoomAuthenticated(data.authenticated)
+        if (res.ok) {
+          roomData = await new Response(res.body).json()
+          if (roomData) setRoomData(roomData)
+          setRoomAuthenticated(true)
+        } else {
+          const { response, data } = await supabase.functions.invoke('roomInfo', {
+            body: { roomId: roomId },
+          })
+          if (data) {
+            setRoomData(data.info)
+            setRoomAuthenticated(data.authenticated)
+          }
         }
       } catch (error) {
         console.error(error)
@@ -434,8 +457,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         if (opt.variables) {
           setVariableKeys(opt.variables)
         }
-        if (variables) {
-          setVariables(variables)
+        const vars = await getRoomVariable(roomId)
+        if (vars) {
+          setVariables(vars)
         }
         if (opt.use_trump) {
           setUseTrump(opt.use_trump)

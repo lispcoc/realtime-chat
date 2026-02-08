@@ -252,7 +252,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         setColor(localStorage.getItem('username_color') || "#000000")
       }
 
-      let tempRoomData = null
       try {
         let roomData: Database["public"]["Tables"]["Rooms"]["Row"] | null = null
         const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
@@ -269,7 +268,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           })
           if (data) {
             setRoomData(data.info)
-            tempRoomData = data.info
             setRoomAuthenticated(data.authenticated)
           }
         }
