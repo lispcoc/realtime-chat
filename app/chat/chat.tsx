@@ -350,10 +350,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
-      if (getRoomOption().private) {
-        fetchMessages()
-        fetchRealtimeData()
-      }
+      fetchMessages()
+      fetchRealtimeData()
     } else {
       console.log("退室時の処理")
       channels.forEach(channel => {
