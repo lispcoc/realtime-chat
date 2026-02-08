@@ -267,7 +267,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (roomInfo) {
         if (opt.private) {
         } else {
-          checkEntered()
           fetchMessages()
           fetchRealtimeData()
         }
@@ -281,6 +280,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       } else {
         toast.error('ルームデータを取得できませんでした。')
       }
+      checkEntered()
 
       if (localStorage.getItem('playSound') === 'true') {
         setPlaySound(true)
