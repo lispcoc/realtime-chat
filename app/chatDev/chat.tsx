@@ -359,16 +359,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   useEffect(() => {
     (async () => {
-      if (initialized) return
-      initialized = true
-
-      if (localStorage.getItem('username')) {
-        setInputName(localStorage.getItem('username') || "")
-      }
-      if (localStorage.getItem('username_color')) {
-        setColor(localStorage.getItem('username_color') || "#000000")
-      }
-
+      if (roomDataLoaded) return
+      setInputName(localStorage.getItem('username') || "")
+      setColor(localStorage.getItem('username_color') || "#000000")
       const res = await getRoomInfo(roomId)
       if (res) {
         setRoomData(res.info)
@@ -395,7 +388,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     (async () => {
       console.log('roomDataLoaded')
       getUsersAndCheckEntered()
-      const variables: any = roomData?.variables || {}
       const opt: any = roomData?.options || {}
       createSocket(false)
       if (roomData) {
@@ -458,7 +450,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (isEntered) {
       console.log("入室時の処理")
       if (getRoomOption().private && !messageSocket) createSocket(true)
-      if (roomData) fetchMessages(roomData.all_clear_at)
+      fetchMessages(roomData?.all_clear_at)
     } else {
       console.log("退室時の処理")
       if (messageSocket) messageSocket.close()
@@ -615,7 +607,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     event.preventDefault()
     if (inputName === "") return
     if (handlingDb) return
-    const opt = getRoomOption()
     if (users.find(user => (user.name === createTrip(inputName)))) {
       toast.error('同じ名前の人が入室しています。')
       return
@@ -653,13 +644,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (response) {
       setIsEntered(response.entered)
       if (response.entered) {
-        if (!isEntered) setIsEntered(true)
         setUsername(response.username || "Unknown")
         setColor(intToColorCode(response.color || 0))
-      }
-      if (isEntered && !response.entered) {
-        setIsEntered(false)
-        toast.error("入室していません。")
       }
       return {
         username: response.username,

@@ -158,7 +158,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
               console.log("Message Channel Closed")
               break
           }
-          console.log("Channel status: ", status)
         })
 
       const userChannel = supabase
@@ -257,16 +256,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   useEffect(() => {
     (async () => {
-      if (initialized) return
-      initialized = true
-
-      if (localStorage.getItem('username')) {
-        setInputName(localStorage.getItem('username') || "")
-      }
-      if (localStorage.getItem('username_color')) {
-        setColor(localStorage.getItem('username_color') || "#000000")
-      }
-
+      if (roomDataLoaded) return
+      setInputName(localStorage.getItem('username') || "")
+      setColor(localStorage.getItem('username_color') || "#000000")
       const res = await getRoomInfo(roomId)
       if (res) {
         setRoomData(res.info)
@@ -290,7 +282,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     (async () => {
       console.log('roomDataLoaded')
       getUsersAndCheckEntered()
-      const variables: any = roomData?.variables || {}
       const opt: any = roomData?.options || {}
       if (roomData) {
         if (opt.private) {
@@ -350,7 +341,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (!roomDataLoaded) return
     if (isEntered) {
       console.log("入室時の処理")
-      fetchMessages()
+      fetchMessages(roomData?.all_clear_at)
       fetchRealtimeData()
     } else {
       console.log("退室時の処理")
