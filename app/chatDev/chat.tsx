@@ -23,7 +23,7 @@ import {
   decrementRoomVariable,
   type RoomInfo,
   type RoomVariable
-} from "./middleware"
+} from "./server"
 
 type Prop = {
   onSetTitle?: (title: string) => void

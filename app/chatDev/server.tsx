@@ -1,64 +1,61 @@
-import 'server-only'
-import { Database } from '@/types/supabasetype'
+'use server'
+import { Database } from "@/types/supabasetype"
 import { supabase } from '@/utils/supabase/supabase'
+import { getRoomVariableServer, setRoomVariableServer } from './serverOnly'
+
+export type RoomInfo = Omit<Database["public"]["Tables"]["Rooms"]["Row"], 'password' | 'owner'>
 
 export type RoomVariable = {
   [key: string]: number
 }
 
-type RoomOption = {
-  private: boolean
-  user_limit: number,
-  all_clear: string,
-  use_trump: boolean,
-  variables: string[]
+export async function getRoomVariable(roomId: number): Promise<RoomVariable> {
+  const vars = await getRoomVariableServer(roomId)
+  return vars
 }
 
-type Message = Database["public"]["Tables"]["Messages"]["Insert"]
-
-export async function addMessageServer(msg: Message) {
-  await supabase.from("Messages").insert(msg)
+export async function setRoomVariable(roomId: number, key: string, value: number): Promise<RoomVariable> {
+  const vars = await setRoomVariableServer(roomId, key, value)
+  return vars
 }
 
-async function initRoomVariables(roomId: number): Promise<RoomVariable> {
-  const { data: roomInfo } = await supabase.from("Rooms").select("*").eq("id", roomId).single()
-  if (roomInfo) {
-    const options = roomInfo.options as RoomOption || {}
-    if (options.variables) {
-      const vars: RoomVariable = {}
-      options.variables.forEach((key) => {
-        vars[key] = 0
+export async function incrementRoomVariable(roomId: number, key: string, incrementBy: number): Promise<RoomVariable> {
+  const vars = await getRoomVariableServer(roomId)
+  const currentValue = vars[key] || 0
+  const newValue = currentValue + incrementBy
+  const updatedVars = await setRoomVariableServer(roomId, key, newValue)
+  return updatedVars
+}
+
+export async function decrementRoomVariable(roomId: number, key: string, decrementBy: number): Promise<RoomVariable> {
+  const vars = await getRoomVariableServer(roomId)
+  const currentValue = vars[key] || 0
+  const newValue = currentValue - decrementBy
+  const updatedVars = await setRoomVariableServer(roomId, key, newValue)
+  return updatedVars
+}
+
+export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, authenticated: boolean } | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
+      method: 'GET',
+      cache: 'no-store'
+    })
+    if (res.ok) {
+      const info = await new Response(res.body).json()
+      if (info) return { info, authenticated: true }
+    } else {
+      const { response, data } = await supabase.functions.invoke('roomInfo', {
+        body: { roomId: roomId },
       })
-      await supabase.from("RoomData").upsert({ id: roomId, variables: vars })
-      return vars
+      if (data) {
+        return data.info
+      }
     }
+    return null
+  } catch (error) {
+    console.error(error)
+    alert("部屋データの取得に失敗しました。")
+    return null
   }
-  return {}
-}
-
-export async function getRoomVariableServer(roomId: number): Promise<RoomVariable> {
-  const { data } = await supabase.from("RoomData").select("*").eq("id", roomId).single()
-  if (!data) {
-    return initRoomVariables(roomId)
-  }
-  return data?.variables as RoomVariable || {}
-}
-
-export async function setRoomVariableServer(roomId: number, key: string, value: number): Promise<RoomVariable> {
-  const { data } = await supabase.from("RoomData").select("*").eq("id", roomId).single()
-  if (!data) {
-    return initRoomVariables(roomId)
-  }
-  const variables = data?.variables as RoomVariable || {}
-  const oldValue = variables[key] || 0
-  variables[key] = value
-  await supabase.from("RoomData").update({ variables }).eq("id", roomId)
-  await addMessageServer({
-    color: 0,
-    name: "system",
-    room_id: roomId,
-    system: true,
-    text: `${key} : ${oldValue} → ${value}`
-  })
-  return variables
 }
