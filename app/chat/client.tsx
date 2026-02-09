@@ -27,6 +27,8 @@ type User = {
   id: string;
 }
 
+const url = process.env.NEXT_PUBLIC_MY_SUPABASE_URL!
+
 export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, authenticated: boolean } | null> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
@@ -66,53 +68,62 @@ export async function sendMessage(data: SendMessage) {
 }
 
 export async function enterRoom(roomId: number, name: string, color: string): Promise<EnterRoomResponse | null> {
-  const response = await supabase.functions.invoke('database-access', {
-    body: {
-      action: 'enterRoom',
-      roomId: roomId,
-      color: colorCodeToInt(color),
-      username: createTrip(name),
-      userId: localStorage.getItem("userId") || null
-    }
+  const res = await fetch(`${url}/ws/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      'action': 'enterRoom',
+      'user': {
+        name: name,
+        room_id: roomId,
+        color: colorCodeToInt(color)
+      }
+    })
   })
-  return response.data
+  return await res.json()
 }
 
 export async function exitRoom(roomId: number): Promise<void> {
-  await supabase.functions.invoke('database-access', {
-    body: {
-      action: 'exitRoom',
+  const res = await fetch(`${url}/ws/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      'action': 'exitRoom',
       roomId: roomId,
       userId: localStorage.getItem("userId") || null
-    }
+    })
   })
 }
 
 export async function isEnteredRoom(roomId: number): Promise<IsEnteredRoomResponse> {
-  const response = await supabase.functions.invoke('database-access', {
-    body: {
-      action: 'checkEntered',
+  const res = await fetch(`${url}/ws/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      'action': 'isEnteredRoom',
       roomId: roomId,
       userId: localStorage.getItem("userId") || null
-    },
+    })
   })
-  return response.data
+  return await res.json()
 }
 
 export async function getUsers(roomId: number): Promise<User[]> {
-  const response = await supabase.functions.invoke('database-access', {
-    body: { action: 'getUsers', roomId: roomId },
+  const res = await fetch(`${url}/ws/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      'action': 'getUsers',
+      roomId: roomId,
+    })
   })
-  return response.data.users
+  return (await res.json()).users
 }
 
 export async function updateUser(roomId: number, user: User): Promise<void> {
-  await supabase.from("Users").upsert({
-    id: user.id,
-    room_id: roomId,
-    name: user.name,
-    color: user.color,
-    last_activity: new Date().toISOString()
+  const res = await fetch(`${url}/ws/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      'action': 'updateUser',
+      roomId: roomId,
+      user: user
+    })
   })
 }
 
