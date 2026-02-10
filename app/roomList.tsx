@@ -5,6 +5,7 @@ import { useEffect, useState, useReducer, } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 import { RealtimeChannel } from "@supabase/supabase-js"
+import { getUsers } from "./chat/client"
 
 type Props = {
 }
@@ -60,6 +61,17 @@ export default function RoomList({ }: Props) {
         cache: 'no-store'
       })
       const data: AllData = await new Response(res.body).json()
+      data.users = []
+      for (const room of data.rooms) {
+        const users = await getUsers(room.id)
+        for (const user of users) {
+          data.users.push({
+            name: user.name,
+            color: user.color,
+            room_id: room.id
+          })
+        }
+      }
       setRoomList(data)
       return true
     } catch (error) {
