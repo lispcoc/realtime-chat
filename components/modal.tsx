@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from '@/components/style'
+import Link from 'next/link'
 import './modal.css'
 
 export type ModalProps = {

@@ -5,6 +5,8 @@ import { useEffect, useState, useReducer, } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 import { RealtimeChannel } from "@supabase/supabase-js"
+import Link from "next/link"
+import style from "@/components/style"
 import { getUsers } from "./chat/client"
 
 type Props = {
@@ -129,19 +131,20 @@ export default function RoomList({ }: Props) {
           </ul>
           <div className="w-full flex flex-col items-center p-2 space-x-2">
             <div className="flex space-x-4">
-              {page > 0 && (
-                <span onClick={() => { setPage(page - 1) }}>前の{PER_PAGE}件</span>
-              )}
-              {page <= 0 && (
+              {page > 0 ? (
+                <Link href="#" onClick={(event) => { event.preventDefault(); setPage(page - 1) }} className={style.linkThin}>前の{PER_PAGE}件</Link>
+              ) : (
                 <span className="opacity-20 text-gray-700">前の{PER_PAGE}件</span>
               )}
               <span> &lt; </span>
               {Array.from({ length: Math.ceil(roomList.rooms.length / PER_PAGE) }, (_, i) => i).map(i => (
-                <span key={i} onClick={() => { setPage(i) }} className={i === page ? "font-bold" : ""}>{i + 1}</span>
+                <Link href="#" key={i} onClick={(event) => { event.preventDefault(); setPage(i) }} className={i === page ? `${style.link} underline` : style.linkThin}>{i + 1}</Link>
               ))}
               <span> &gt; </span>
-              {roomList.rooms.length > (page + 1) * PER_PAGE && (
-                <span onClick={() => { setPage(page + 1) }}>次の{PER_PAGE}件</span>
+              {roomList.rooms.length > (page + 1) * PER_PAGE ? (
+                <Link href="#" onClick={(event) => { event.preventDefault(); setPage(page + 1) }} className={style.linkThin}>次の{PER_PAGE}件</Link>
+              ) : (
+                <span className="opacity-20 text-gray-700">次の{PER_PAGE}件</span>
               )}
             </div>
           </div>
