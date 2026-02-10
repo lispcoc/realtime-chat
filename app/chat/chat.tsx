@@ -728,11 +728,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           ))}
         </div>
 
-        <div className="w-full mb-4">
+        <div className="w-full mb-12">
           <a href={"/editRoom?roomId=" + roomId} >部屋を編集</a>
-        </div>
-        <div className="w-full mb-8">
-          <a href={"/adminMenu?roomId=" + roomId} >管理者用メニュー</a>
         </div>
       </>)}
 
