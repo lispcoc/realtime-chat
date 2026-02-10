@@ -61,17 +61,11 @@ export default function RoomList({ }: Props) {
         cache: 'no-store'
       })
       const data: AllData = await new Response(res.body).json()
-      data.users = []
-      for (const room of data.rooms) {
-        const users = await getUsers(room.id)
-        for (const user of users) {
-          data.users.push({
-            name: user.name,
-            color: user.color,
-            room_id: room.id
-          })
-        }
-      }
+      const url = process.env.NEXT_PUBLIC_MY_SUPABASE_URL!
+      const res2 = await fetch(`${url}/ws/`, {
+        method: 'GET'
+      })
+      data.users = (await res2.json()).users || []
       setRoomList(data)
       return true
     } catch (error) {
