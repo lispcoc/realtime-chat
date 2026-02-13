@@ -72,7 +72,8 @@ export async function enterRoom(roomId: number, name: string, color: string): Pr
     method: 'POST',
     body: JSON.stringify({
       'action': 'enterRoom',
-      'user': {
+      user: {
+        id: localStorage.getItem("userId") || null,
         name: name,
         room_id: roomId,
         color: colorCodeToInt(color)
