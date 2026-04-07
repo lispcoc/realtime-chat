@@ -2,7 +2,7 @@
 "use client"
 import { Database, Json } from "@/types/supabasetype"
 import { RealtimeChannel } from "@supabase/realtime-js"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import useSound from 'use-sound'
 import se from "../sound.mp3"
 import { supabase } from "@/utils/supabase/supabase"
@@ -60,7 +60,7 @@ const linkifyOptions = {
 }
 
 export default function Chat({ onSetTitle = () => { } }: Prop) {
-  const [play, { stop, pause }] = useSound(se)
+  const [play] = useSound(se)
 
   const searchParams = useSearchParams()
   let roomId = parseInt(searchParams.get("roomId")!!)
@@ -90,11 +90,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [playSound, setPlaySound] = useState(false)
   const [color, setColor] = useState("#000000")
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [recievedMessage, setRecievedMessage] = useState<Database["public"]["Tables"]["Messages"]["Row"] | null>(null)
+  const [receivedMessage, setReceivedMessage] = useState<Database["public"]["Tables"]["Messages"]["Row"] | null>(null)
   const [allClearAt, setAllClearAt] = useState('')
-  const [channels, setchannels] = useState<RealtimeChannel[]>([])
+  const [channels, setChannels] = useState<RealtimeChannel[]>([])
 
-  let recievedMessages: any[] = []
+  const receivedMessages = useRef<number[]>([])
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
   type EnterRoomResponse = {
@@ -144,8 +144,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onMessagePacketRecieved = (packet: Packet<Message>) => {
     if (packet.data.room_id == roomId) {
       setPendingMessageText([])
-      recievedMessages.push(packet.data.id)
-      setRecievedMessage(packet.data)
+      receivedMessages.current.push(packet.data.id)
+      setReceivedMessage(packet.data)
     }
   }
 
@@ -312,7 +312,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         .subscribe()
 
       console.log("自動更新の開始")
-      setchannels([userChannel, roomDataChannel])
+      setChannels([userChannel, roomDataChannel])
     } catch (error) {
       console.error(error)
     }
@@ -332,9 +332,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.error(error)
     }
     if (allMessages != null) {
-      recievedMessages.splice(0)
+      receivedMessages.current = []
       setMessageText(allMessages)
-      allMessages.forEach(e => recievedMessages.push(e.id))
+      allMessages.forEach(e => receivedMessages.current.push(e.id))
     }
   }
 
@@ -403,16 +403,16 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }, [roomDataLoaded])
 
   useEffect(() => {
-    if (recievedMessage) {
+    if (receivedMessage) {
       if (playSound) play()
       if (allClearAt) {
-        setMessageText((messageText) => [recievedMessage, ...messageText.filter(message => message.created_at > allClearAt)])
+        setMessageText((messageText) => [receivedMessage, ...messageText.filter(message => message.created_at > allClearAt)])
       } else {
-        setMessageText((messageText) => [recievedMessage, ...messageText])
+        setMessageText((messageText) => [receivedMessage, ...messageText])
       }
-      setRecievedMessage(null)
+      setReceivedMessage(null)
     }
-  }, [recievedMessage])
+  }, [receivedMessage])
 
   useEffect(() => {
     if (allClearAt) {
@@ -451,20 +451,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     localStorage.setItem('playSound', option ? 'true' : 'false')
     play()
   }
-
-  const handleBeforeUnload = () => {
-    channels.forEach(channel => {
-      console.log('unsubscribe...')
-      channel.unsubscribe()
-    })
-    console.log("自動更新の終了")
-  }
-
-  useEffect(() => {
-    return () => {
-      handleBeforeUnload()
-    }
-  }, [])
 
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -890,10 +876,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
                   トランプ機能
                 </div>
                 <div className="m-2 mb-1 flex items-center grid grid-cols-2 space-x-2">
-                  <button type="submit" className={styles.button} onClick={() => { if (!buttonDisable) drawCard(); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                  <button type="button" className={styles.button} onClick={() => { if (!buttonDisable) drawCard(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     1枚引く
                   </button>
-                  <button type="submit" className={styles.button} onClick={() => { if (!buttonDisable) resetDeck(); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                  <button type="button" className={styles.button} onClick={() => { if (!buttonDisable) resetDeck(); setShowVariableCommand(false) }} disabled={buttonDisable}>
                     山札をリセット
                   </button>
                 </div>
@@ -914,16 +900,16 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
                         ({variables[key] || 0})
                       </span>
                     </span>
-                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="button" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, 1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       +1
                     </button>
-                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="button" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("mod", key, -1); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       -1
                     </button>
-                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="button" className={`col-span-2 ${styles.button}`} onClick={() => { setInputVariableKey(key); setInputVariableValue(variables[key]); if (!buttonDisable) setInputVariableOpen(true); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       値を入力
                     </button>
-                    <button type="submit" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0); setShowVariableCommand(false) }} disabled={buttonDisable}>
+                    <button type="button" className={`col-span-2 ${styles.button}`} onClick={() => { if (!buttonDisable) setVar("set", key, 0); setShowVariableCommand(false) }} disabled={buttonDisable}>
                       リセット
                     </button>
                   </div>

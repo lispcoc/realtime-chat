@@ -1,8 +1,7 @@
 
 "use client"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useForm, useFieldArray } from 'react-hook-form';
-import { supabase } from "@/utils/supabase/supabase"
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
@@ -38,7 +37,7 @@ const USER_LIMITS: Option[] = [
 
 export default function CreateRoom() {
   const [inputTitle, setInputTitle] = useState("")
-  const [inputDecsription, setInputDescription] = useState("")
+  const [inputDescription, setInputDescription] = useState("")
   const [inputPassword, setInputPassword] = useState("")
   const [inputRoomAllClearKey, setInputRoomAllClearKey] = useState("")
   const [inputPrivate, setInputPrivate] = useState(false)
@@ -68,8 +67,6 @@ export default function CreateRoom() {
     const selected = USER_LIMITS.find((option) => option.value === selectedValue);
     setInputUsersLimit(selected || null);
   };
-
-  useEffect(() => { }, [])
 
   const getUserName = async () => {
     const res = await fetch('/api/auth/google-oauth/getUserData', {
@@ -113,7 +110,7 @@ export default function CreateRoom() {
 
       const newRoomData: RoomData = {
         title: inputTitle,
-        description: inputDecsription,
+        description: inputDescription,
         owner: ownerEmail,
         password: hashedPassword,
         hidden: false,
@@ -183,7 +180,7 @@ export default function CreateRoom() {
             <textarea id="description" name="description" rows={4}
               className="block p-2.5 w-full text-sm text-gray-900
               bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
+              placeholder="" value={inputDescription} onChange={(event) => setInputDescription(() => event.target.value)}>
             </textarea>
           </div>
 

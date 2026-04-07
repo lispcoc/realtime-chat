@@ -1,6 +1,6 @@
 
 "use client"
-import { Suspense, useEffect, useState, useReducer } from "react"
+import { Suspense } from "react"
 import IndexPage from "./index"
 
 export default function Index() {

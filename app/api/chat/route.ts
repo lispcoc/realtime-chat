@@ -12,14 +12,13 @@ async function addMessage(msg: any) {
 }
 
 async function removeInactiveUser(roomId: number) {
-    let tenMinutesAgo = new Date()
-    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - INACTIVE_MINUTES)
-    tenMinutesAgo.toISOString()
+    const inactiveCutoff = new Date()
+    inactiveCutoff.setMinutes(inactiveCutoff.getMinutes() - INACTIVE_MINUTES)
 
     const { data } = await supabase.from('Users')
         .select('*')
         .eq("room_id", roomId)
-        .lte('last_activity', tenMinutesAgo.toISOString())
+        .lte('last_activity', inactiveCutoff.toISOString())
     if (data) {
         const reminder: any[] = []
         data.forEach(user => {

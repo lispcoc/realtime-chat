@@ -34,7 +34,7 @@ export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, aut
       cache: 'no-store'
     })
     if (res.ok) {
-      const info = await new Response(res.body).json()
+      const info = await res.json()
       if (info) return { info, authenticated: true }
     } else {
       const { response, data } = await supabase.functions.invoke('roomInfo', {

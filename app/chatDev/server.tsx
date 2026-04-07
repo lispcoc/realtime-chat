@@ -1,7 +1,5 @@
 'use server'
-import { Database } from "@/types/supabasetype"
-import { supabase } from '@/utils/supabase/supabase'
-import { getRoomVariableServer, setRoomVariableServer } from './serverOnly'
+import { getRoomVariableServer, setRoomVariableServer, modifyRoomVariableServer } from './serverOnly'
 
 export type RoomVariable = {
   [key: string]: number
@@ -18,17 +16,9 @@ export async function setRoomVariable(roomId: number, key: string, value: number
 }
 
 export async function incrementRoomVariable(roomId: number, key: string, incrementBy: number): Promise<RoomVariable> {
-  const vars = await getRoomVariableServer(roomId)
-  const currentValue = vars[key] || 0
-  const newValue = currentValue + incrementBy
-  const updatedVars = await setRoomVariableServer(roomId, key, newValue)
-  return updatedVars
+  return modifyRoomVariableServer(roomId, key, incrementBy)
 }
 
 export async function decrementRoomVariable(roomId: number, key: string, decrementBy: number): Promise<RoomVariable> {
-  const vars = await getRoomVariableServer(roomId)
-  const currentValue = vars[key] || 0
-  const newValue = currentValue - decrementBy
-  const updatedVars = await setRoomVariableServer(roomId, key, newValue)
-  return updatedVars
+  return modifyRoomVariableServer(roomId, key, -decrementBy)
 }

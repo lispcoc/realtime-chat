@@ -1,20 +1,16 @@
 
 "use client"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useState, useReducer, } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/supabase"
 import RoomLink, { RoomData, UserData } from '@/components/roomLink'
 import { RealtimeChannel } from "@supabase/supabase-js"
 import Link from "next/link"
 import style from "@/components/style"
-import { getUsers } from "./chat/client"
-
-type Props = {
-}
 
 const PER_PAGE = 10
 
-export default function RoomList({ }: Props) {
+export default function RoomList() {
   const searchParams = useSearchParams()
 
   type AllData = {
@@ -27,7 +23,6 @@ export default function RoomList({ }: Props) {
   const [serverError, setServerError] = useState(false)
   const [page, setPage] = useState(0)
   const [channels, setChannels] = useState<RealtimeChannel[]>([])
-  const [ignored, forceUpdate] = useReducer(x => x + 1, 0)
 
   const fetchRealtimeData = () => {
     try {
@@ -41,7 +36,7 @@ export default function RoomList({ }: Props) {
             table: "Users"
           },
           (payload) => {
-            if (payload.schema !== 'UPDATE') {
+            if (payload.eventType !== 'UPDATE') {
               console.log('update after 10 seconds...')
               setTimeout(fetchRoomList, 10000)
             }
@@ -62,7 +57,7 @@ export default function RoomList({ }: Props) {
         method: 'GET',
         cache: 'no-store'
       })
-      const data: AllData = await new Response(res.body).json()
+      const data: AllData = await res.json()
       const url = process.env.NEXT_PUBLIC_MY_SUPABASE_URL!
       const res2 = await fetch(`${url}/ws/`, {
         method: 'GET'
