@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     (await cookies()).set('session', JSON.stringify(tokens), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 400, // 400日（ブラウザの上限）
       path: '/'
     })
   }

@@ -10,9 +10,11 @@ const scopes = [
 export async function GET(req: NextRequest) {
 
   // Google 認証へのリンク生成
+  // prompt: "consent" により毎回 refresh_token を確実に取得する
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: scopes
+    scope: scopes,
+    prompt: "consent"
   })
 
   // Google認証リンクへリダイレクト

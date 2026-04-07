@@ -84,9 +84,8 @@ export default function Google({ onSetUserName = () => { } }: Prop) {
   }
 
   useEffect(() => {
-    (async () => {
-      const timer = setInterval(refreshToken, 30 * 60 * 1000)
-    })()
+    const timer = setInterval(refreshToken, 30 * 60 * 1000)
+    return () => clearInterval(timer)
   }, [])
 
   return (
