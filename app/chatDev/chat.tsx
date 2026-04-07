@@ -94,7 +94,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [allClearAt, setAllClearAt] = useState('')
   const [channels, setChannels] = useState<RealtimeChannel[]>([])
 
-  const receivedMessages = useRef<number[]>([])
+  const receivedMessages = useRef<Set<number>>(new Set())
 
   type Message = Database["public"]["Tables"]["Messages"]["Row"]
   type EnterRoomResponse = {
@@ -144,7 +144,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onMessagePacketRecieved = (packet: Packet<Message>) => {
     if (packet.data.room_id == roomId) {
       setPendingMessageText([])
-      receivedMessages.current.push(packet.data.id)
+      receivedMessages.current.add(packet.data.id)
       setReceivedMessage(packet.data)
     }
   }
@@ -272,7 +272,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           {
             event: "*",
             schema: "public",
-            table: "Users"
+            table: "Users",
+            filter: `room_id=eq.${roomId}`
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
@@ -332,9 +333,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.error(error)
     }
     if (allMessages != null) {
-      receivedMessages.current = []
+      receivedMessages.current = new Set()
       setMessageText(allMessages)
-      allMessages.forEach(e => receivedMessages.current.push(e.id))
+      allMessages.forEach(e => receivedMessages.current.add(e.id))
     }
   }
 

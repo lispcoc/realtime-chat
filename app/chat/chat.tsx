@@ -94,7 +94,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [allClearAt, setAllClearAt] = useState('')
   const [channels, setChannels] = useState<RealtimeChannel[]>([])
 
-  const receivedMessages = useRef<number[]>([])
+  const receivedMessages = useRef<Set<number>>(new Set())
 
 
   const colorPicker = (username: string) => {
@@ -132,10 +132,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
               const { id, room_id, name, text, color, created_at, system } = payload.new
               console.log(payload)
               if (room_id === roomId) {
-                if (!receivedMessages.current.includes(id)) {
+                if (!receivedMessages.current.has(id)) {
                   setPendingMessageText([])
                   setMessageText((messageText) => [{ id, room_id, name, text, color, created_at, system }, ...messageText.filter(msg => msg.id >= 0 && msg.id != id)])
-                  receivedMessages.current.push(id)
+                  receivedMessages.current.add(id)
                   setReceivedMessage(true)
                 }
               }
@@ -169,7 +169,8 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
           {
             event: "*",
             schema: "public",
-            table: "Users"
+            table: "Users",
+            filter: `room_id=eq.${roomId}`
           },
           (payload) => {
             if (payload.eventType === "INSERT") {
@@ -229,9 +230,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       console.error(error)
     }
     if (allMessages != null) {
-      receivedMessages.current = []
+      receivedMessages.current = new Set()
       setMessageText(allMessages)
-      allMessages.forEach(e => receivedMessages.current.push(e.id))
+      allMessages.forEach(e => receivedMessages.current.add(e.id))
     }
   }
 

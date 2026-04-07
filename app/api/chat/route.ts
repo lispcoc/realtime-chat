@@ -19,23 +19,18 @@ async function removeInactiveUser(roomId: number) {
         .select('*')
         .eq("room_id", roomId)
         .lte('last_activity', inactiveCutoff.toISOString())
-    if (data) {
-        const reminder: any[] = []
-        data.forEach(user => {
-            reminder.push({ "id": user.id, "name": user.name, "room_id": user.room_id })
-        })
-        for (const a of reminder) {
-            const res = await supabase.from("Users")
-                .delete()
-                .match(a)
-            addMessage({
-                color: 0,
-                name: "system",
-                room_id: a.room_id,
-                system: true,
-                text: `${a.name}さんが非アクティブのため自動退室しました。`
-            })
-        }
+    if (data && data.length > 0) {
+        // まとめて削除（1リクエストに削減）
+        const ids = data.map(user => user.id)
+        await supabase.from("Users").delete().in("id", ids)
+        // 退室メッセージを並列挿入
+        await Promise.all(data.map(user => addMessage({
+            color: 0,
+            name: "system",
+            room_id: user.room_id,
+            system: true,
+            text: `${user.name}さんが非アクティブのため自動退室しました。`
+        })))
     }
 }
 
