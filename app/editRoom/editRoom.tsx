@@ -1,4 +1,4 @@
-
+﻿
 "use client"
 import { useEffect, useState } from "react"
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -40,7 +40,10 @@ const USER_LIMITS: Option[] = [
 
 export default function EditRoom() {
   const searchParams = useSearchParams()
-  let roomId = parseInt(searchParams.get("roomId")!!)
+  const roomIdParam = searchParams.get("roomId")
+  const roomId = parseInt(roomIdParam!)
+  const isCreateMode = isNaN(roomId)
+
   const [inputTitle, setInputTitle] = useState("")
   const [inputDecsription, setInputDescription] = useState("")
   const [inputPassword, setInputPassword] = useState("")
@@ -167,49 +170,96 @@ export default function EditRoom() {
     }
   }
 
-  const onSubmitCreateRoom = async (data: FormData) => {
+  const buildRoomData = (data: FormData, owner: string, hashedPassword: string): RoomData => {
+    const special_keys: any = {}
+    const variable_keys: string[] = []
+    const variables: any = {}
+    data.roomSpecials.forEach((value) => {
+      special_keys[value.key] = value.text
+    })
+    data.variables.forEach((value) => {
+      const trimed = value.key.trim()
+      if (trimed) {
+        variable_keys.push(trimed)
+        variables[trimed] = 0
+      }
+    })
+    return {
+      title: inputTitle,
+      description: inputDecsription,
+      owner,
+      password: hashedPassword,
+      hidden,
+      options: {
+        private: inputPrivate,
+        auto_all_clear: autoAllClear,
+        use_trump: inputUseTrump,
+        user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
+        all_clear: inputRoomAllClearKey,
+        variables: variable_keys
+      },
+      special_keys,
+      variables
+    }
+  }
+
+  const onSubmitNewRoom = async (data: FormData) => {
     if (inputTitle === "") return
     if (inputPassword === "") return
     setButtonDisable(true)
     try {
-      const ownerEmail = await getUserName()
-      if (!ownerEmail) {
+      const owner = await getUserName()
+      if (!owner) {
         alert('認証されていません。')
+        setButtonDisable(false)
+        return
+      }
+      const hashedPassword = await bcrypt.hash(inputPassword, 10)
+      const newRoomData = buildRoomData(data, owner, hashedPassword)
+
+      const res = await fetch('/api/editRoom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          cache: 'no-store',
+        },
+        body: JSON.stringify({
+          mode: 'create',
+          roomData: newRoomData
+        })
+      })
+
+      if (res.status == 200) {
+        alert("部屋を作成しました。")
+        const resData = await res.json()
+        window.location.href = `/chat?roomId=${resData.newRoomId}`
+      } else {
+        alert("部屋の作成に失敗しました。")
+        setButtonDisable(false)
+      }
+    } catch (error) {
+      console.error(error)
+      alert("部屋の作成に失敗しました。")
+      setButtonDisable(false)
+    }
+  }
+
+  const onSubmitEditRoom = async (data: FormData) => {
+    if (inputTitle === "") return
+    if (inputPassword === "") return
+    setButtonDisable(true)
+    try {
+      const owner = await getUserName()
+      if (!owner) {
+        alert('認証されていません。')
+        setButtonDisable(false)
         return
       }
       const password = inputNewPassword === "" ? inputPassword : inputNewPassword
       const hashedPassword = await bcrypt.hash(password, 10)
-      const special_keys: any = {}
-      const variable_keys: string[] = []
-      const variables: any = {}
-      data.roomSpecials.forEach((value) => {
-        special_keys[value.key] = value.text
-      })
-      data.variables.forEach((value) => {
-        const trimed = value.key.trim()
-        if (trimed) {
-          variable_keys.push(trimed)
-          variables[trimed] = 0
-        }
-      })
-
       const newRoomData: RoomData = {
+        ...buildRoomData(data, owner, hashedPassword),
         id: roomData?.id,
-        title: inputTitle,
-        description: inputDecsription,
-        owner: ownerEmail,
-        password: hashedPassword,
-        hidden: hidden,
-        options: {
-          private: inputPrivate,
-          auto_all_clear: autoAllClear,
-          use_trump: inputUseTrump,
-          user_limit: inputUsersLimit ? parseInt(inputUsersLimit.value) : 5,
-          all_clear: inputRoomAllClearKey,
-          variables: variable_keys
-        },
-        special_keys: special_keys,
-        variables: variables
       }
 
       const res = await fetch('/api/editRoom', {
@@ -230,6 +280,7 @@ export default function EditRoom() {
         window.location.href = `/chat?roomId=${roomId}`
       } else {
         alert("部屋の更新に失敗しました。")
+        setButtonDisable(false)
       }
     } catch (error) {
       console.error(error)
@@ -238,9 +289,196 @@ export default function EditRoom() {
     }
   }
 
+  const roomFormContent = (isCreate: boolean) => (
+    <>
+      <div className="mb-5">
+        <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900">ルーム名</label>
+        <input type="text" id="title" name="title"
+          value={inputTitle} onChange={(event) => setInputTitle(() => event.target.value)}
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+        />
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900">ルーム説明</label>
+        <textarea id="description" name="description" rows={4}
+          className="block p-2.5 w-full text-sm text-gray-900
+          bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
+        </textarea>
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="roomPassword" className="block mb-2 text-sm font-medium text-gray-900">
+          {isCreate ? "パスワード (必須)" : "現在のパスワード (必須)"}
+        </label>
+        <input
+          type="password" id="roomPassword" name="roomPassword" placeholder="パスワード"
+          value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
+          required
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+        />
+      </div>
+
+      {!isCreate && (
+        <div className="mb-5">
+          <label htmlFor="roomNewPassword" className="block mb-2 text-sm font-medium text-gray-900">新しいパスワード</label>
+          <input
+            type="password" id="roomNewPassword" name="roomNewPassword" placeholder="パスワード"
+            value={inputNewPassword} onChange={(event) => setInputNewPassword(() => event.target.value)}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          />
+        </div>
+      )}
+
+      {!isCreate && (
+        <div className="mb-5">
+          <label htmlFor="hidden" className="block mb-2 text-sm font-medium text-gray-900">ルーム一覧に表示しない</label>
+          <input type="checkbox" id="hidden" name="hidden" onChange={(event) => setHidden(() => event.target.checked)} checked={hidden} />
+        </div>
+      )}
+
+      <div className="mb-5">
+        <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">未入室の閲覧を禁止する</label>
+        {inputPrivate && (
+          <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} checked />
+        )}
+        {!inputPrivate && (
+          <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
+        )}
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">全員退室時にチャットログを消去する</label>
+        {autoAllClear && (
+          <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} checked />
+        )}
+        {!autoAllClear && (
+          <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} />
+        )}
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">トランプ機能を使う</label>
+        {inputUseTrump && (
+          <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} checked />
+        )}
+        {!inputUseTrump && (
+          <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} />
+        )}
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">入室人数制限</label>
+        <select
+          value={inputUsersLimit?.value || '5'}
+          onChange={onInputUsersLimitChange}
+        >
+          {USER_LIMITS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-5">
+        <label htmlFor="roomAllClearKey" className="block mb-2 text-sm font-medium text-gray-900">全消去キーの設定</label>
+        <input type="text" id="roomAllClearKey" name="roomAllClearKey"
+          placeholder="特定の発言を検知するとチャットログを消去します。(例: 全消去) 使用しない場合は空欄にしてください。"
+          value={inputRoomAllClearKey} onChange={(event) => setInputRoomAllClearKey(() => event.target.value)}
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+        />
+      </div>
+
+      {roomSpecialFieldArray.fields.map((field, index) => {
+        const isFirstField = index === 0;
+        return (
+          <div className="mb-5" key={field.id}>
+            <label htmlFor={`roomSpecial.${index}.key`} className="block mb-2 text-sm font-medium text-gray-900">特殊キーの設定</label>
+            <input type="text"
+              placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              {...register(
+                `roomSpecials.${index}.key`
+              )}
+            />
+            <div className="mb-5">
+              <label htmlFor={`roomSpecial.${index}.text`} className="block mb-2 text-sm font-medium text-gray-900">特殊テキストの設定 (<a className="text-blue-700 hover:border-blue-700 hover:text-blue-700" onClick={() => setShowSpecialKeyDetail(true)}>詳細</a>)</label>
+              <textarea rows={4}
+                placeholder={roomSpecialTextPlaceHolder}
+                className="block p-2.5 w-full text-sm text-gray-900
+              bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                {...register(
+                  `roomSpecials.${index}.text`
+                )}
+              />
+            </div>
+            {
+              !isFirstField && (
+                <button type="button" className={styles.button}
+                  onClick={() => roomSpecialFieldArray.remove(index)}
+                >
+                  削除
+                </button>
+              )
+            }
+          </div>
+        )
+      })}
+
+      <div className="mb-5">
+        <button type="button" className={styles.button}
+          onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}
+        >
+          特殊キーの設定追加
+        </button>
+      </div>
+
+      {roomVariableFieldArray.fields.map((field, index) => {
+        const isFirstField = index === 0;
+        return (
+          <div className="mb-5" key={field.id}>
+            <label htmlFor={`variables.${index}.key`} className="block mb-2 text-sm font-medium text-gray-900">変数の設定</label>
+            <input type="text"
+              placeholder="ルーム内で管理できる数値を設定します。(例:得点)"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+              focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              {...register(
+                `variables.${index}.key`
+              )}
+            />
+            {
+              !isFirstField && (
+                <button type="button" className={styles.button}
+                  onClick={() => roomVariableFieldArray.remove(index)}
+                >
+                  削除
+                </button>
+              )
+            }
+          </div>
+        )
+      })}
+
+      <div className="mb-5">
+        <button type="button" className={styles.button}
+          onClick={() => roomVariableFieldArray.append({ key: "" })}
+        >
+          変数の設定追加
+        </button>
+      </div>
+
+      <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className={styles.button}>
+        {isCreate ? "部屋を作成" : "変更を反映"}
+      </button>
+    </>
+  )
+
   return (
     <div className="flex-1 w-full max-w-md flex flex-col p-2">
-      <h2 className="text-xl font-bold pt-5">ルームの作成</h2>
+      <h2 className="text-xl font-bold pt-5">{isCreateMode ? "ルームの作成" : "ルームの編集"}</h2>
 
       <div className="w-full p-2">
         <div className="w-full p-2 text-center">
@@ -251,7 +489,15 @@ export default function EditRoom() {
         </div>
       </div>
 
-      {(ownerEmail && !login) && (
+      {/* 新規作成モード */}
+      {(isCreateMode && ownerEmail) && (
+        <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitNewRoom)}>
+          {roomFormContent(true)}
+        </form>
+      )}
+
+      {/* 編集モード: パスワード認証 */}
+      {(!isCreateMode && ownerEmail && !login) && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitAdmin}>
           <div className="mb-5">
             <label htmlFor="roomPassword">パスワード</label>
@@ -271,188 +517,15 @@ export default function EditRoom() {
         </form>
       )}
 
-      {(ownerEmail && login) && (
-        <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitCreateRoom)}>
-          <div className="mb-5">
-            <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900">ルーム名</label>
-            <input type="text" id="title" name="title"
-              value={inputTitle} onChange={(event) => setInputTitle(() => event.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            />
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900">ルーム説明</label>
-            <textarea id="description" name="description" rows={4}
-              className="block p-2.5 w-full text-sm text-gray-900
-              bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="" value={inputDecsription} onChange={(event) => setInputDescription(() => event.target.value)}>
-            </textarea>
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="roomPassword" className="block mb-2 text-sm font-medium text-gray-900">現在のパスワード (必須)</label>
-            <input
-              type="password" id="roomPassword" name="roomPassword" placeholder="パスワード"
-              value={inputPassword} onChange={(event) => setInputPassword(() => event.target.value)}
-              required
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            />
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="roomNewPassword" className="block mb-2 text-sm font-medium text-gray-900">新しいパスワード</label>
-            <input
-              type="password" id="roomNewPassword" name="roomNewPassword" placeholder="パスワード"
-              value={inputNewPassword} onChange={(event) => setInputNewPassword(() => event.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            />
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="hidden" className="block mb-2 text-sm font-medium text-gray-900">ルーム一覧に表示しない</label>
-            <input type="checkbox" id="hidden" name="hidden" onChange={(event) => setHidden(() => event.target.checked)} checked={hidden} />
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">未入室の閲覧を禁止する</label>
-            {inputPrivate && (
-              <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} checked />
-            )}
-            {!inputPrivate && (
-              <input type="checkbox" id="private" name="private" onChange={(event) => setInputPrivate(() => event.target.checked)} />
-            )}
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">全員退室時にチャットログを消去する</label>
-            {autoAllClear && (
-              <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} checked />
-            )}
-            {!autoAllClear && (
-              <input type="checkbox" id="autoAllClear" name="autoAllClear" onChange={(event) => setAutoAllClear(() => event.target.checked)} />
-            )}
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">トランプ機能を使う</label>
-            {inputUseTrump && (
-              <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} checked />
-            )}
-            {!inputUseTrump && (
-              <input type="checkbox" id="private" name="private" onChange={(event) => setInputUseTrump(() => event.target.checked)} />
-            )}
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="private" className="block mb-2 text-sm font-medium text-gray-900">入室人数制限</label>
-            <select
-              value={inputUsersLimit?.value || '5'}
-              onChange={onInputUsersLimitChange}
-            >
-              {USER_LIMITS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="roomAllClearKey" className="block mb-2 text-sm font-medium text-gray-900">全消去キーの設定</label>
-            <input type="text" id="roomAllClearKey" name="roomAllClearKey"
-              placeholder="特定の発言を検知するとチャットログを消去します。(例: 全消去) 使用しない場合は空欄にしてください。"
-              value={inputRoomAllClearKey} onChange={(event) => setInputRoomAllClearKey(() => event.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            />
-          </div>
-
-          {roomSpecialFieldArray.fields.map((field, index) => {
-            const isFirstField = index === 0;
-            return (
-              <div className="mb-5" key={field.id}>
-                <label htmlFor={`roomSpecial.${index}.key`} className="block mb-2 text-sm font-medium text-gray-900">特殊キーの設定</label>
-                <input type="text"
-                  placeholder="特定の発言を検知するとランダムにテキストを表示します。(例: おみくじ)"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register(
-                    `roomSpecials.${index}.key`
-                  )}
-                />
-                <div className="mb-5">
-                  <label htmlFor={`roomSpecial.${index}.text`} className="block mb-2 text-sm font-medium text-gray-900">特殊テキストの設定 (<a className="text-blue-700 hover:border-blue-700 hover:text-blue-700" onClick={() => setShowSpecialKeyDetail(true)}>詳細</a>)</label>
-                  <textarea rows={4}
-                    placeholder={roomSpecialTextPlaceHolder}
-                    className="block p-2.5 w-full text-sm text-gray-900
-                  bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                    {...register(
-                      `roomSpecials.${index}.text`
-                    )}
-                  />
-                </div>
-                {
-                  !isFirstField && (
-                    <button type="button" className={styles.button}
-                      onClick={() => roomSpecialFieldArray.remove(index)}
-                    >
-                      削除
-                    </button>
-                  )
-                }
-              </div>
-            )
-          })}
-
-          <div className="mb-5">
-            <button type="button" className={styles.button}
-              onClick={() => roomSpecialFieldArray.append(roomSpecialKeyInitialValue)}
-            >
-              特殊キーの設定追加
-            </button>
-          </div>
-
-          {roomVariableFieldArray.fields.map((field, index) => {
-            const isFirstField = index === 0;
-            return (
-              <div className="mb-5" key={field.id}>
-                <label htmlFor={`variables.${index}.key`} className="block mb-2 text-sm font-medium text-gray-900">変数の設定</label>
-                <input type="text"
-                  placeholder="ルーム内で管理できる数値を設定します。(例:得点)"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                  focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                  {...register(
-                    `variables.${index}.key`
-                  )}
-                />
-                {
-                  !isFirstField && (
-                    <button type="button" className={styles.button}
-                      onClick={() => roomVariableFieldArray.remove(index)}
-                    >
-                      削除
-                    </button>
-                  )
-                }
-              </div>
-            )
-          })}
-
-          <div className="mb-5">
-            <button type="button" className={styles.button}
-              onClick={() => roomVariableFieldArray.append({ key: "" })}
-            >
-              変数の設定追加
-            </button>
-          </div>
-
-          <button type="submit" disabled={buttonDisable || inputTitle === "" || inputPassword === ""} className={styles.button}>
-            変更を反映
-          </button>
+      {/* 編集モード: 編集フォーム */}
+      {(!isCreateMode && ownerEmail && login) && (
+        <form className="w-full max-w-md pb-10" onSubmit={handleSubmit(onSubmitEditRoom)}>
+          {roomFormContent(false)}
         </form>
       )}
 
-      {login && (
+      {/* 編集モード: 削除 */}
+      {(!isCreateMode && login) && (
         <form className="w-full max-w-md pb-10" onSubmit={onSubmitDeleteRoom}>
           <div className="rounded-lg flex flex-wrap space-x-2">
             <label htmlFor='deleteRoom' className="block mb-2 text-sm font-medium text-gray-900">部屋を削除する (確認)</label>

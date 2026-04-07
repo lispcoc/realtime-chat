@@ -16,7 +16,7 @@ export default function Header() {
           <Link className="text-gray-700 hover:text-blue-700" href="/" prefetch={false}>Home</Link>
         </li>
         <li className="text-center">
-          <Link className="text-gray-700 hover:text-blue-700" href="/createRoom" prefetch={false}>部屋の作成</Link>
+          <Link className="text-gray-700 hover:text-blue-700" href="/editRoom" prefetch={false}>部屋の作成</Link>
         </li>
         <li className="text-center">
           <span className="text-gray-700 hover:text-blue-700" onClick={(e) => setMessageDialogOpen(true)}>機能説明</span>
