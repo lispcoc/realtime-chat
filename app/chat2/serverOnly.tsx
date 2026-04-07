@@ -62,6 +62,7 @@ export async function setRoomVariableServer(roomId: number, key: string, value: 
   })
   return variables
 }
+
 export async function modifyRoomVariableServer(roomId: number, key: string, delta: number): Promise<RoomVariable> {
   const { data } = await supabase.from("RoomData").select("*").eq("id", roomId).single()
   if (!data) {
@@ -77,7 +78,7 @@ export async function modifyRoomVariableServer(roomId: number, key: string, delt
     name: "system",
     room_id: roomId,
     system: true,
-    text: `${key} : ${oldValue} \u2192 ${newValue}`
+    text: `${key} : ${oldValue} → ${newValue}`
   })
   return variables
 }
