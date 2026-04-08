@@ -72,6 +72,9 @@ const DEFAULT_TRUMP = [
 const roomClients = new Map<number, Set<WebSocket>>();
 // 切断時のクリーンアップ用逆引きマップ: socket → roomId
 const socketRoom = new Map<WebSocket, number>();
+// ルーム変数インメモリキャッシュ: roomId → { variables, allowedKeys }
+// SELECT を初回のみにし、変数変更の応答速度を改善する
+const roomVariableCache = new Map<number, { variables: Variable; allowedKeys: string[]; cachedAt: number }>()
 
 type Variable = {
   [key: string]: number
@@ -175,20 +178,12 @@ const roll = (command: string) => {
 
 const resetDeck = async (roomId: number, username: string) => {
   const current = await supabase.from("Cards").select('*').match({ 'type': 'trump', 'room_id': roomId })
-  if (current.data && current.data[0]) {
-    await supabase.from("Cards").upsert({
-      id: current.data[0].id,
-      room_id: roomId,
-      type: current.data[0].type,
-      remaining: DEFAULT_TRUMP
-    })
-  } else {
-    await supabase.from("Cards").upsert({
-      room_id: roomId,
-      type: 'trump',
-      remaining: DEFAULT_TRUMP
-    })
-  }
+  // UPSERT は fire-and-forget（WS 通知を優先）
+  const upsertData = current.data && current.data[0]
+    ? { id: current.data[0].id, room_id: roomId, type: current.data[0].type, remaining: DEFAULT_TRUMP }
+    : { room_id: roomId, type: 'trump', remaining: DEFAULT_TRUMP }
+  supabase.from("Cards").upsert(upsertData)
+    .catch(err => console.error('[resetDeck] UPSERT失敗:', err))
   await broadcastMessage({
     color: 0,
     name: "system",
@@ -217,12 +212,13 @@ const drawCard = async (roomId: number, username: string) => {
     const idx = Math.floor(Math.random() * remaining.length)
     const drawn = remaining[idx]
     const new_remaining = remaining.filter((_e, i) => i != idx)
-    await supabase.from("Cards").upsert({
+    // UPSERT は fire-and-forget（WS 通知を優先）
+    supabase.from("Cards").upsert({
       id: current.data[0].id,
       room_id: current.data[0].room_id,
       type: current.data[0].type,
       remaining: new_remaining
-    })
+    }).catch(err => console.error('[drawCard] UPSERT失敗:', err))
     await broadcastMessage({
       color: 0,
       name: "system",
@@ -258,12 +254,14 @@ async function broadcastMessage(message: SendMessage) {
       client.send(JSON.stringify(sendPacket))
     }
   }
-  // ダイスロール判定はinsert前に行い、insertと並行してbroadcastしない
+  // ダイスロール判定を先に行い、INSERT完了を待たずに結果を送信
   let diceResult: string | null = null
   if (!message.system && message.text) {
     diceResult = roll(message.text)
   }
-  await supabase.from('Messages').insert(message)
+  // INSERT は fire-and-forget（WS 送信済みのためクライアント体験に影響しない）
+  supabase.from('Messages').insert(message)
+    .catch(err => console.error('[broadcastMessage] INSERT失敗:', err))
   if (diceResult) {
     await broadcastMessage({
       color: 0,
@@ -327,10 +325,11 @@ const debouncedUpdateRoomList = () => {
 }
 
 const allClear = async (roomId: number) => {
-  await supabase.from("RoomData").upsert({
+  // UPSERT は fire-and-forget（WS 通知を優先）
+  supabase.from("RoomData").upsert({
     id: roomId,
     all_clear_at: new Date().toISOString()
-  })
+  }).catch(err => console.error('[allClear] UPSERT失敗:', err))
   await broadcastMessage({
     color: 0,
     name: "system",
@@ -385,13 +384,17 @@ const postHandler = async (req: Request) => {
           users.get(data.user.room_id)?.set(data.user.id, data.user)
           scheduleSave(users)
           res = JSON.stringify({ success: true, id: data.user.id, reason: 'OK' })
-          await broadcastMessage({
+          // 入室通知・DB更新は fire-and-forget（HTTP レスポンスを先に返すため）
+          const _roomIdForEnter = data.user.room_id
+          const _nameForEnter = data.user.name
+          broadcastMessage({
             name: 'system',
-            room_id: data.user.room_id,
+            room_id: _roomIdForEnter,
             system: true,
-            text: `${data.user.name}さんが入室しました。`
-          })
-          await supabase.from("Rooms").update({ last_enter: new Date().toISOString() }).eq('id', data.user.room_id)
+            text: `${_nameForEnter}さんが入室しました。`
+          }).catch(err => console.error('[enterRoom post] broadcast失敗:', err))
+          supabase.from("Rooms").update({ last_enter: new Date().toISOString() }).eq('id', _roomIdForEnter)
+            .catch(err => console.error('[enterRoom post] update失敗:', err))
           debouncedUpdateRoomList()
         }
       }
@@ -402,22 +405,26 @@ const postHandler = async (req: Request) => {
       users.get(data.roomId)?.delete(data.userId)
       scheduleSave(users)
       if (user) {
-        await broadcastMessage({
+        // 退室通知は fire-and-forget（HTTP レスポンスを先に返すため）
+        broadcastMessage({
           name: 'system',
           room_id: data.roomId,
           system: true,
           text: `${user.name}さんが退室しました。`
-        })
+        }).catch(err => console.error('[exitRoom post] broadcast失敗:', err))
       }
     }
     const currentUsersInRoom = users.get(data.roomId)?.size
     if (currentUsersInRoom === 0) {
-      // auto_all_clear オプションが有効な場合のみ全消去
-      const roomInfo = await getRoomInfo(data.roomId)
-      const opt = roomInfo ? (roomInfo.options as RoomOption) : null
-      if (opt && opt.auto_all_clear) {
-        await allClear(data.roomId)
-      }
+      // auto_all_clear チェックは fire-and-forget（HTTP レスポンスを先に返すため）
+      const _roomIdForExit = data.roomId
+      ;(async () => {
+        const roomInfo = await getRoomInfo(_roomIdForExit)
+        const opt = roomInfo ? (roomInfo.options as RoomOption) : null
+        if (opt && opt.auto_all_clear) {
+          await allClear(_roomIdForExit)
+        }
+      })().catch(err => console.error('[exitRoom post] allClear失敗:', err))
     }
   }
   return new Response(res, {
@@ -564,13 +571,14 @@ Deno.serve(
         }
       } else if (type === "exitRoom") {
         const packet = parsed as Packet<User>
-        await supabase.functions.invoke('database-access', {
+        // 退室 DB 処理は結果を使わないため fire-and-forget（WS 送信を優先）
+        supabase.functions.invoke('database-access', {
           body: {
             action: 'exitRoom',
             roomId: packet.data.room_id,
             userId: packet.data.id
           },
-        })
+        }).catch(err => console.error('[exitRoom ws] invoke失敗:', err))
         const exitPacket: Packet<User> = {
           type: "exitRoom",
           room_id: packet.room_id,
@@ -599,30 +607,56 @@ Deno.serve(
         })
       } else if (type === "changeVariable") {
         const packet = parsed as Packet<changeVariable>
-        const { data } = await supabase.from("Rooms").select('options, variables').eq('id', packet.room_id)
-        if (data && data[0]) {
-          const varData = data[0]
-          const variables: Variable = varData.variables as Variable
-          const opt: RoomOption = varData.options as RoomOption
-          if (opt && opt.variables && opt.variables.includes(packet.data.key)) {
-            if (!variables[packet.data.key]) variables[packet.data.key] = 0
-            const value_before = variables[packet.data.key]
-            if (packet.data.op === "mod") {
-              variables[packet.data.key] += packet.data.value
-            } else if (packet.data.op === "set") {
-              variables[packet.data.key] = packet.data.value
+
+        // キャッシュになければ、または5分経過で期限切れなら DB から取得
+        const CACHE_TTL_MS = 5 * 60 * 1000
+        const now = Date.now()
+        let entry = roomVariableCache.get(packet.room_id)
+        if (!entry || now - entry.cachedAt > CACHE_TTL_MS) {
+          const { data } = await supabase.from("Rooms").select('options, variables').eq('id', packet.room_id)
+          if (data && data[0]) {
+            const opt = data[0].options as RoomOption
+            roomVariableCache.set(packet.room_id, {
+              // TTL 更新時: DB よりインメモリ変数を優先（fire-and-forget 中の最新値を保持）
+              variables: entry ? entry.variables : ((data[0].variables as Variable) ?? {}),
+              allowedKeys: opt?.variables ?? [],
+              cachedAt: now,
+            })
+            entry = roomVariableCache.get(packet.room_id)!
+          }
+        }
+
+        if (entry && entry.allowedKeys.includes(packet.data.key)) {
+          if (!entry.variables[packet.data.key]) entry.variables[packet.data.key] = 0
+          const value_before = entry.variables[packet.data.key]
+          if (packet.data.op === "mod") {
+            entry.variables[packet.data.key] += packet.data.value
+          } else if (packet.data.op === "set") {
+            entry.variables[packet.data.key] = packet.data.value
+          }
+          if (value_before !== entry.variables[packet.data.key]) {
+            // クライアントへ即時 WS 送信（DB 完了を待たない）
+            const message: SendMessage = {
+              color: 0,
+              name: "system",
+              room_id: packet.room_id,
+              system: true,
+              text: `${packet.data.key} : ${value_before} → ${entry.variables[packet.data.key]}`,
+              created_at: new Date().toISOString(),
             }
-            if (value_before !== variables[packet.data.key]) {
-              await supabase.from("Rooms").update({ variables }).eq('id', packet.room_id)
-              await broadcastMessage({
-                color: 0,
-                name: "system",
-                room_id: packet.room_id,
-                system: true,
-                text: `${packet.data.key} : ${value_before} → ${variables[packet.data.key]}`,
-                created_at: new Date().toISOString(),
-              })
+            const sendPacket = { type: "message", room_id: packet.room_id, data: message }
+            const sockets = roomClients.get(packet.room_id) || new Set()
+            for (const client of sockets) {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(sendPacket))
+              }
             }
+            // DB 更新とメッセージ保存は並列・fire-and-forget
+            const variablesSnapshot = { ...entry.variables }
+            Promise.all([
+              supabase.from("Rooms").update({ variables: variablesSnapshot }).eq('id', packet.room_id),
+              supabase.from('Messages').insert(message),
+            ]).catch(err => console.error('[changeVariable] DB 更新失敗:', err))
           }
         }
       } else if (type === "dice") {
