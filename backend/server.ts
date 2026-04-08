@@ -182,8 +182,8 @@ const resetDeck = async (roomId: number, username: string) => {
   const upsertData = current.data && current.data[0]
     ? { id: current.data[0].id, room_id: roomId, type: current.data[0].type, remaining: DEFAULT_TRUMP }
     : { room_id: roomId, type: 'trump', remaining: DEFAULT_TRUMP }
-  supabase.from("Cards").upsert(upsertData)
-    .catch(err => console.error('[resetDeck] UPSERT失敗:', err))
+  void Promise.resolve(supabase.from("Cards").upsert(upsertData))
+    .catch((err: unknown) => console.error('[resetDeck] UPSERT失敗:', err))
   await broadcastMessage({
     color: 0,
     name: "system",
@@ -213,12 +213,12 @@ const drawCard = async (roomId: number, username: string) => {
     const drawn = remaining[idx]
     const new_remaining = remaining.filter((_e, i) => i != idx)
     // UPSERT は fire-and-forget（WS 通知を優先）
-    supabase.from("Cards").upsert({
+    void Promise.resolve(supabase.from("Cards").upsert({
       id: current.data[0].id,
       room_id: current.data[0].room_id,
       type: current.data[0].type,
       remaining: new_remaining
-    }).catch(err => console.error('[drawCard] UPSERT失敗:', err))
+    })).catch((err: unknown) => console.error('[drawCard] UPSERT失敗:', err))
     await broadcastMessage({
       color: 0,
       name: "system",
@@ -260,8 +260,8 @@ async function broadcastMessage(message: SendMessage) {
     diceResult = roll(message.text)
   }
   // INSERT は fire-and-forget（WS 送信済みのためクライアント体験に影響しない）
-  supabase.from('Messages').insert(message)
-    .catch(err => console.error('[broadcastMessage] INSERT失敗:', err))
+  void Promise.resolve(supabase.from('Messages').insert(message))
+    .catch((err: unknown) => console.error('[broadcastMessage] INSERT失敗:', err))
   if (diceResult) {
     await broadcastMessage({
       color: 0,
@@ -326,10 +326,10 @@ const debouncedUpdateRoomList = () => {
 
 const allClear = async (roomId: number) => {
   // UPSERT は fire-and-forget（WS 通知を優先）
-  supabase.from("RoomData").upsert({
+  void Promise.resolve(supabase.from("RoomData").upsert({
     id: roomId,
     all_clear_at: new Date().toISOString()
-  }).catch(err => console.error('[allClear] UPSERT失敗:', err))
+  })).catch((err: unknown) => console.error('[allClear] UPSERT失敗:', err))
   await broadcastMessage({
     color: 0,
     name: "system",
@@ -393,8 +393,8 @@ const postHandler = async (req: Request) => {
             system: true,
             text: `${_nameForEnter}さんが入室しました。`
           }).catch(err => console.error('[enterRoom post] broadcast失敗:', err))
-          supabase.from("Rooms").update({ last_enter: new Date().toISOString() }).eq('id', _roomIdForEnter)
-            .catch(err => console.error('[enterRoom post] update失敗:', err))
+          void Promise.resolve(supabase.from("Rooms").update({ last_enter: new Date().toISOString() }).eq('id', _roomIdForEnter))
+            .catch((err: unknown) => console.error('[enterRoom post] update失敗:', err))
           debouncedUpdateRoomList()
         }
       }
@@ -411,7 +411,7 @@ const postHandler = async (req: Request) => {
           room_id: data.roomId,
           system: true,
           text: `${user.name}さんが退室しました。`
-        }).catch(err => console.error('[exitRoom post] broadcast失敗:', err))
+        }).catch((err: unknown) => console.error('[exitRoom post] broadcast失敗:', err))
       }
     }
     const currentUsersInRoom = users.get(data.roomId)?.size
@@ -424,7 +424,7 @@ const postHandler = async (req: Request) => {
         if (opt && opt.auto_all_clear) {
           await allClear(_roomIdForExit)
         }
-      })().catch(err => console.error('[exitRoom post] allClear失敗:', err))
+      })().catch((err: unknown) => console.error('[exitRoom post] allClear失敗:', err))
     }
   }
   return new Response(res, {
@@ -578,7 +578,7 @@ Deno.serve(
             roomId: packet.data.room_id,
             userId: packet.data.id
           },
-        }).catch(err => console.error('[exitRoom ws] invoke失敗:', err))
+        }).catch((err: unknown) => console.error('[exitRoom ws] invoke失敗:', err))
         const exitPacket: Packet<User> = {
           type: "exitRoom",
           room_id: packet.room_id,
@@ -656,7 +656,7 @@ Deno.serve(
             Promise.all([
               supabase.from("Rooms").update({ variables: variablesSnapshot }).eq('id', packet.room_id),
               supabase.from('Messages').insert(message),
-            ]).catch(err => console.error('[changeVariable] DB 更新失敗:', err))
+            ]).catch((err: unknown) => console.error('[changeVariable] DB 更新失敗:', err))
           }
         }
       } else if (type === "dice") {
