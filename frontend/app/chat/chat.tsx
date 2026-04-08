@@ -95,6 +95,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const [channels, setChannels] = useState<RealtimeChannel[]>([])
 
   const receivedMessages = useRef<Set<number>>(new Set())
+  const setVarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 
   const colorPicker = (username: string) => {
@@ -258,6 +259,9 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         console.log('unsubscribe...')
         channel.unsubscribe()
       })
+      if (setVarTimerRef.current) {
+        clearTimeout(setVarTimerRef.current)
+      }
     }
   }, [])
 
@@ -340,6 +344,10 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   const onSubmitNewMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (inputText === "") return
+    if (!isEntered) {
+      toast.error("入室していません。")
+      return
+    }
     setButtonDisable(true)
 
     try {
@@ -409,27 +417,21 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         ])
       }
 
-      const chk = await checkEntered()
-      if (!chk.entered) {
-        toast.error("入室していません。")
-        setButtonDisable(false)
-        return
+      const userId = localStorage.getItem("userId")
+      await sendMessage(msg)
+      if (specialMsg) {
+        await sendMessage(specialMsg)
+      } else {
+        supabase.functions.invoke('dice', {
+          body: {
+            roomId: roomId,
+            command: inputText
+          }
+        }).then(() => { })
       }
-      sendMessage(msg).then((res) => {
-        if (specialMsg) {
-          sendMessage(specialMsg)
-        } else {
-          supabase.functions.invoke('dice', {
-            body: {
-              roomId: roomId,
-              command: inputText
-            }
-          }).then(() => { })
-        }
-      })
       updateUser(roomId, {
-        id: chk.id,
-        name: chk.username,
+        id: userId || "",
+        name: username,
         color: colorCodeToInt(color)
       })
 
@@ -541,7 +543,11 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const setVar = async (op: string, key: string, value: number) => {
     setButtonDisable(true)
-    setTimeout(() => setButtonDisable(false), 2 * 1000)
+    if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
+    setVarTimerRef.current = setTimeout(() => {
+      setButtonDisable(false)
+      setVarTimerRef.current = null
+    }, 2 * 1000)
     switch (op) {
       case "mod":
         if (value > 0) {
@@ -560,36 +566,50 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
 
   const drawCard = async () => {
     setButtonDisable(true)
-    setTimeout(() => setButtonDisable(false), 2 * 1000)
-    fetch('/api/card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        roomId: roomId,
-        command: 'drawCard',
-        username: username
-      }),
-    })
+    if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
+    setVarTimerRef.current = setTimeout(() => {
+      setButtonDisable(false)
+      setVarTimerRef.current = null
+    }, 2 * 1000)
+    try {
+      await fetch('/api/card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: roomId,
+          command: 'drawCard',
+          username: username
+        }),
+      })
+    } catch (error) {
+      toast.error('カードを引けませんでした。')
+    }
   }
 
   const resetDeck = async () => {
     setButtonDisable(true)
-    setTimeout(() => setButtonDisable(false), 2 * 1000)
-    fetch('/api/card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cache: 'no-store',
-      },
-      body: JSON.stringify({
-        roomId: roomId,
-        command: 'resetDeck',
-        username: username
-      }),
-    })
+    if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
+    setVarTimerRef.current = setTimeout(() => {
+      setButtonDisable(false)
+      setVarTimerRef.current = null
+    }, 2 * 1000)
+    try {
+      await fetch('/api/card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: roomId,
+          command: 'resetDeck',
+          username: username
+        }),
+      })
+    } catch (error) {
+      toast.error('デッキのリセットに失敗しました。')
+    }
   }
 
   return (

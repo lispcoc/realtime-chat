@@ -189,7 +189,7 @@ const resetDeck = async (roomId: number, username: string) => {
       remaining: DEFAULT_TRUMP
     })
   }
-  broadcastMessage({
+  await broadcastMessage({
     color: 0,
     name: "system",
     room_id: roomId,
@@ -204,7 +204,7 @@ const drawCard = async (roomId: number, username: string) => {
   if (current.data && current.data[0]) {
     const remaining = current.data[0].remaining || []
     if (!remaining.length) {
-      broadcastMessage({
+      await broadcastMessage({
         color: 0,
         name: "system",
         room_id: roomId,
@@ -223,7 +223,7 @@ const drawCard = async (roomId: number, username: string) => {
       type: current.data[0].type,
       remaining: new_remaining
     })
-    broadcastMessage({
+    await broadcastMessage({
       color: 0,
       name: "system",
       room_id: roomId,
@@ -236,7 +236,7 @@ const drawCard = async (roomId: number, username: string) => {
       remaining: new_remaining
     }
   }
-  broadcastMessage({
+  await broadcastMessage({
     color: 0,
     name: "system",
     room_id: roomId,
@@ -246,7 +246,7 @@ const drawCard = async (roomId: number, username: string) => {
   })
 }
 
-function broadcastMessage(message: SendMessage) {
+async function broadcastMessage(message: SendMessage) {
   const sendPacket: Packet<SendMessage> = {
     type: "message",
     room_id: message.room_id || 0,
@@ -258,21 +258,22 @@ function broadcastMessage(message: SendMessage) {
       client.send(JSON.stringify(sendPacket))
     }
   }
-  supabase.from('Messages').insert(message).then((_res) => {
-    if (!message.system && message.text) {
-      const result = roll(message.text)
-      if (result) {
-        broadcastMessage({
-          color: 0,
-          name: "system",
-          room_id: message.room_id,
-          system: true,
-          text: `ダイスロール : ${message.text} > ${result}`,
-          created_at: new Date().toISOString(),
-        })
-      }
-    }
-  })
+  // ダイスロール判定はinsert前に行い、insertと並行してbroadcastしない
+  let diceResult: string | null = null
+  if (!message.system && message.text) {
+    diceResult = roll(message.text)
+  }
+  await supabase.from('Messages').insert(message)
+  if (diceResult) {
+    await broadcastMessage({
+      color: 0,
+      name: "system",
+      room_id: message.room_id,
+      system: true,
+      text: `ダイスロール : ${message.text} > ${diceResult}`,
+      created_at: new Date().toISOString(),
+    })
+  }
 }
 
 type PostParams = {
@@ -321,7 +322,7 @@ const allClear = async (roomId: number) => {
     id: roomId,
     all_clear_at: new Date().toISOString()
   })
-  broadcastMessage({
+  await broadcastMessage({
     color: 0,
     name: "system",
     room_id: roomId,
@@ -344,22 +345,18 @@ const postHandler = async (req: Request) => {
         color: user.color
       })
     }
-  }
-  if (data.action === 'updateUser') {
+  } else if (data.action === 'updateUser') {
     if (users.get(data.roomId)?.get(data.user.id)) {
       data.user.last_activity = new Date().toISOString()
       data.user.room_id = data.roomId
       users.get(data.roomId)?.set(data.user.id, data.user)
     }
-  }
-  if (data.action === 'getUsers') {
+  } else if (data.action === 'getUsers') {
     const usersInRoom = users.get(data.roomId)?.values()
-    console.log(usersInRoom)
     res = JSON.stringify({
       users: Array.from(usersInRoom || [])
     })
-  }
-  if (data.action === 'enterRoom') {
+  } else if (data.action === 'enterRoom') {
     res = JSON.stringify({ success: false, id: null, reason: '入室できませんでした。' })
     if (data.user.room_id) {
       if (!users.get(data.user.room_id)) users.set(data.user.room_id, new Map<string, User>)
@@ -379,7 +376,7 @@ const postHandler = async (req: Request) => {
           users.get(data.user.room_id)?.set(data.user.id, data.user)
           scheduleSave(users)
           res = JSON.stringify({ success: true, id: data.user.id, reason: 'OK' })
-          broadcastMessage({
+          await broadcastMessage({
             name: 'system',
             room_id: data.user.room_id,
             system: true,
@@ -390,14 +387,13 @@ const postHandler = async (req: Request) => {
         }
       }
     }
-  }
-  if (data.action === 'exitRoom') {
+  } else if (data.action === 'exitRoom') {
     if (users.get(data.roomId)) {
       const user = users.get(data.roomId)?.get(data.userId)
       users.get(data.roomId)?.delete(data.userId)
       scheduleSave(users)
       if (user) {
-        broadcastMessage({
+        await broadcastMessage({
           name: 'system',
           room_id: data.roomId,
           system: true,
@@ -406,12 +402,15 @@ const postHandler = async (req: Request) => {
       }
     }
     const currentUsersInRoom = users.get(data.roomId)?.size
-    if (currentUsersInRoom == 0) {
-      allClear(data.roomId)
+    if (currentUsersInRoom === 0) {
+      // auto_all_clear オプションが有効な場合のみ全消去
+      const roomInfo = await getRoomInfo(data.roomId)
+      const opt = roomInfo ? (roomInfo.options as RoomOption) : null
+      if (opt && opt.auto_all_clear) {
+        await allClear(data.roomId)
+      }
     }
   }
-  console.log(data.action)
-  console.log(users)
   return new Response(res, {
     headers: {
       ...corsHeaders,
@@ -431,7 +430,7 @@ const removeInactiveUser = async () => {
       if (new Date(user.last_activity || 0) < tenMinutesAgo) {
         deleted.push(user)
         users.get(roomId)?.delete(userId)
-        broadcastMessage({
+        await broadcastMessage({
           color: 0,
           name: "system",
           room_id: roomId,
@@ -463,7 +462,7 @@ Deno.serve(
         users.keys().forEach((roomId) => {
           const roomUsers = users.get(roomId)
           if (roomUsers) {
-            roomUsers.forEach((user, userId) => {
+            roomUsers.forEach((user) => {
               userList.push(user)
             })
           }
@@ -488,135 +487,136 @@ Deno.serve(
       socketRoom.set(socket, roomId)
     };
 
-    socket.onmessage = (event) => {
+    socket.onmessage = async (event) => {
+      // JSON.parse は1回だけ実行する
+      let parsed: Packet<any>
+      try {
+        parsed = JSON.parse(event.data)
+      } catch (_e) {
+        console.error('[ws] invalid JSON:', event.data)
+        return
+      }
+      const type = parsed.type
 
-      const _packet: Packet<Message> = JSON.parse(event.data)
-      if (_packet.type === "message") {
-        const packet: Packet<Message> = JSON.parse(event.data)
+      if (type === "message") {
+        const packet = parsed as Packet<Message>
         packet.data.created_at = new Date().toISOString()
-        broadcastMessage(packet.data)
-      } else if (_packet.type === "enterRoom" || _packet.type === "exitRoom") {
-        const packet: Packet<User> = JSON.parse(event.data)
-
-        if (_packet.type === "enterRoom") {
-          supabase.functions.invoke('database-access', {
-            body: {
-              action: 'enterRoom',
-              roomId: packet.data.room_id,
-              color: packet.data.color,
-              username: packet.data.name,
-              userId: packet.data.id ? packet.data.id : null,
-            },
-          }).then((result) => {
-            const responseData = result.data
-            const _socket: WebSocket = socket
-            const __packet: Packet<EnterRoomResponse> = {
-              type: "EnterRoomResponse",
-              room_id: packet.room_id,
-              data: result.data
-            }
-            _socket.send(JSON.stringify(__packet))
-            if (responseData.success) {
-              const _packet: Packet<User> = {
-                type: "enterRoom",
-                room_id: packet.room_id,
-                data: {
-                  id: result.data.id,
-                  name: packet.data.name,
-                  color: packet.data.color,
-                  room_id: packet.data.room_id,
-                  last_activity: new Date().toISOString(),
-                }
-              }
-              const enterSockets = roomClients.get(packet.room_id) || new Set()
-              for (const client of enterSockets) {
-                if (client.readyState === WebSocket.OPEN) {
-                  client.send(JSON.stringify(_packet))
-                }
-              }
-
-              broadcastMessage({
-                room_id: packet.room_id,
-                color: 0,
-                name: packet.data.name,
-                text: packet.type === "enterRoom" ? `${packet.data.name}さんが入室しました。` : `${packet.data.name}さんが退室しました。`,
-                system: true,
-                created_at: new Date().toISOString(),
-              })
-            }
-          })
+        await broadcastMessage(packet.data)
+      } else if (type === "enterRoom") {
+        const packet = parsed as Packet<User>
+        const result = await supabase.functions.invoke('database-access', {
+          body: {
+            action: 'enterRoom',
+            roomId: packet.data.room_id,
+            color: packet.data.color,
+            username: packet.data.name,
+            userId: packet.data.id ? packet.data.id : null,
+          },
+        })
+        const responseData = result.data
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type: "EnterRoomResponse",
+            room_id: packet.room_id,
+            data: result.data
+          } as Packet<EnterRoomResponse>))
         }
-        if (_packet.type === "exitRoom") {
-          supabase.functions.invoke('database-access', {
-            body: {
-              action: 'exitRoom',
-              roomId: packet.data.room_id,
-              userId: packet.data.id
-            },
-          })
-          const _packet: Packet<User> = {
-            type: "exitRoom",
+        if (responseData.success) {
+          const enterPacket: Packet<User> = {
+            type: "enterRoom",
             room_id: packet.room_id,
             data: {
-              id: packet.data.id,
+              id: result.data.id,
               name: packet.data.name,
               color: packet.data.color,
               room_id: packet.data.room_id,
               last_activity: new Date().toISOString(),
             }
           }
-          const exitSockets = roomClients.get(packet.room_id) || new Set()
-          for (const client of exitSockets) {
+          const enterSockets = roomClients.get(packet.room_id) || new Set()
+          for (const client of enterSockets) {
             if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify(_packet))
+              client.send(JSON.stringify(enterPacket))
             }
           }
-          broadcastMessage({
+          // 入室メッセージは broadcastMessage で1回だけ送信 (DBへの保存も含む)
+          await broadcastMessage({
             room_id: packet.room_id,
             color: 0,
             name: packet.data.name,
-            text: packet.type === "enterRoom" ? `${packet.data.name}さんが入室しました。` : `${packet.data.name}さんが退室しました。`,
+            text: `${packet.data.name}さんが入室しました。`,
             system: true,
             created_at: new Date().toISOString(),
           })
         }
-      } else if (_packet.type === "changeVariable") {
-        const packet: Packet<changeVariable> = JSON.parse(event.data)
-        supabase.from("Rooms").select('options, variables').eq('id', packet.room_id).then(({ data }) => {
-          const _socket: WebSocket = socket
-          _socket.send(JSON.stringify(data))
-          if (data && data[0]) {
-            const varData = data[0]
-            const variables: Variable = varData.variables as Variable
-            const opt: RoomOption = varData.options as RoomOption
-            if (opt && opt.variables && opt.variables.includes(packet.data.key)) {
-              if (!variables[packet.data.key]) variables[packet.data.key] = 0
-              const value_before = variables[packet.data.key]
-              if (packet.data.op === "mod") {
-                variables[packet.data.key] += packet.data.value
-              } else if (packet.data.op === "set") {
-                variables[packet.data.key] = packet.data.value
-              }
-              if (value_before != variables[packet.data.key]) {
-                supabase.from("Rooms").update({ variables: variables }).eq('id', roomId).then((_res) => {
-                  broadcastMessage({
-                    color: 0,
-                    name: "system",
-                    room_id: packet.room_id,
-                    system: true,
-                    text: `${packet.data.key} : ${value_before} → ${variables[packet.data.key]}`,
-                    created_at: new Date().toISOString(),
-                  })
-                })
-              }
+      } else if (type === "exitRoom") {
+        const packet = parsed as Packet<User>
+        await supabase.functions.invoke('database-access', {
+          body: {
+            action: 'exitRoom',
+            roomId: packet.data.room_id,
+            userId: packet.data.id
+          },
+        })
+        const exitPacket: Packet<User> = {
+          type: "exitRoom",
+          room_id: packet.room_id,
+          data: {
+            id: packet.data.id,
+            name: packet.data.name,
+            color: packet.data.color,
+            room_id: packet.data.room_id,
+            last_activity: new Date().toISOString(),
+          }
+        }
+        const exitSockets = roomClients.get(packet.room_id) || new Set()
+        for (const client of exitSockets) {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(exitPacket))
+          }
+        }
+        // 退室メッセージは broadcastMessage で1回だけ送信
+        await broadcastMessage({
+          room_id: packet.room_id,
+          color: 0,
+          name: packet.data.name,
+          text: `${packet.data.name}さんが退室しました。`,
+          system: true,
+          created_at: new Date().toISOString(),
+        })
+      } else if (type === "changeVariable") {
+        const packet = parsed as Packet<changeVariable>
+        const { data } = await supabase.from("Rooms").select('options, variables').eq('id', packet.room_id)
+        if (data && data[0]) {
+          const varData = data[0]
+          const variables: Variable = varData.variables as Variable
+          const opt: RoomOption = varData.options as RoomOption
+          if (opt && opt.variables && opt.variables.includes(packet.data.key)) {
+            if (!variables[packet.data.key]) variables[packet.data.key] = 0
+            const value_before = variables[packet.data.key]
+            if (packet.data.op === "mod") {
+              variables[packet.data.key] += packet.data.value
+            } else if (packet.data.op === "set") {
+              variables[packet.data.key] = packet.data.value
+            }
+            if (value_before !== variables[packet.data.key]) {
+              await supabase.from("Rooms").update({ variables }).eq('id', packet.room_id)
+              await broadcastMessage({
+                color: 0,
+                name: "system",
+                room_id: packet.room_id,
+                system: true,
+                text: `${packet.data.key} : ${value_before} → ${variables[packet.data.key]}`,
+                created_at: new Date().toISOString(),
+              })
             }
           }
-        })
-      } else if (_packet.type === "dice") {
-        const packet: Packet<dice> = JSON.parse(event.data)
+        }
+      } else if (type === "dice") {
+        const packet = parsed as Packet<dice>
         const result = roll(packet.data.command)
         if (result) {
-          broadcastMessage({
+          await broadcastMessage({
             color: 0,
             name: "system",
             room_id: packet.room_id,
@@ -625,12 +625,12 @@ Deno.serve(
             created_at: new Date().toISOString(),
           })
         }
-      } else if (_packet.type === "card") {
-        const packet: Packet<card> = JSON.parse(event.data)
+      } else if (type === "card") {
+        const packet = parsed as Packet<card>
         if (packet.data.command === 'resetDeck') {
-          resetDeck(packet.room_id, packet.data.name)
+          await resetDeck(packet.room_id, packet.data.name)
         } else if (packet.data.command === 'drawCard') {
-          drawCard(packet.room_id, packet.data.name)
+          await drawCard(packet.room_id, packet.data.name)
         }
       }
     }

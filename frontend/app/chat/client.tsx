@@ -70,6 +70,7 @@ export async function sendMessage(data: SendMessage) {
 export async function enterRoom(roomId: number, name: string, color: string): Promise<EnterRoomResponse | null> {
   const res = await fetch(`${url}/ws/`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       'action': 'enterRoom',
       user: {
@@ -86,6 +87,7 @@ export async function enterRoom(roomId: number, name: string, color: string): Pr
 export async function exitRoom(roomId: number): Promise<void> {
   const res = await fetch(`${url}/ws/`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       'action': 'exitRoom',
       roomId: roomId,
@@ -97,6 +99,7 @@ export async function exitRoom(roomId: number): Promise<void> {
 export async function isEnteredRoom(roomId: number): Promise<IsEnteredRoomResponse> {
   const res = await fetch(`${url}/ws/`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       'action': 'isEnteredRoom',
       roomId: roomId,
@@ -109,6 +112,7 @@ export async function isEnteredRoom(roomId: number): Promise<IsEnteredRoomRespon
 export async function getUsers(roomId: number): Promise<User[]> {
   const res = await fetch(`${url}/ws/`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       'action': 'getUsers',
       roomId: roomId,
@@ -120,6 +124,7 @@ export async function getUsers(roomId: number): Promise<User[]> {
 export async function updateUser(roomId: number, user: User): Promise<void> {
   const res = await fetch(`${url}/ws/`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       'action': 'updateUser',
       roomId: roomId,
