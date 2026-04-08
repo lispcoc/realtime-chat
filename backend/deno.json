@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "bcryptjs": "npm:bcryptjs",
+    "@airjp73/dice-notation": "npm:@airjp73/dice-notation@^2.2.2",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.94.0"
+  }
+}
