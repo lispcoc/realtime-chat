@@ -301,10 +301,19 @@ const getRoomInfo = async (roomId: number): Promise<RoomInfo | null> => {
 // 起動時にファイルから状態を復元する（top-level await）
 const { users } = await loadState()
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+const ALLOWED_ORIGINS = new Set([
+  "https://realtime-chat-three-lemon.vercel.app",
+])
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? ""
+  const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : ""
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Vary': 'Origin',
+  }
 }
 
 // updateRoomList のデバウンス: 3秒以内の連続入室は1回のみ実行
@@ -413,7 +422,7 @@ const postHandler = async (req: Request) => {
   }
   return new Response(res, {
     headers: {
-      ...corsHeaders,
+      ...getCorsHeaders(req),
       'Content-Type': 'application/json'
     },
     status: 200
@@ -454,11 +463,14 @@ Deno.serve(
 
     // WebSocket ハンドシェイクを試みる
     if (req.headers.get("upgrade") !== "websocket") {
+      if (req.method === "OPTIONS") {
+        return new Response(null, { headers: getCorsHeaders(req), status: 204 })
+      }
       if (req.method === "POST") {
         return await postHandler(req)
       }
       if (req.method === "GET") {
-        let userList: User[] = []
+        const userList: User[] = []
         users.keys().forEach((roomId) => {
           const roomUsers = users.get(roomId)
           if (roomUsers) {
@@ -470,7 +482,7 @@ Deno.serve(
         const body = JSON.stringify({ users: userList })
         return new Response(body, {
           headers: {
-            ...corsHeaders,
+            ...getCorsHeaders(req),
             "Content-Type": "application/json"
           },
           status: 200
@@ -489,6 +501,7 @@ Deno.serve(
 
     socket.onmessage = async (event) => {
       // JSON.parse は1回だけ実行する
+      // deno-lint-ignore no-explicit-any
       let parsed: Packet<any>
       try {
         parsed = JSON.parse(event.data)
