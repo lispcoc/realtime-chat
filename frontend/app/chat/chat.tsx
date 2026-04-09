@@ -2,7 +2,7 @@
 "use client"
 import { Database, Json } from "@/types/supabasetype"
 import { RealtimeChannel } from "@supabase/realtime-js"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import useSound from 'use-sound'
 import se from "../sound.mp3"
 import { supabase } from "@/utils/supabase/supabase"
@@ -18,8 +18,7 @@ import styles from '@/components/style'
 import {
   getRoomVariable,
   setRoomVariable,
-  incrementRoomVariable,
-  decrementRoomVariable,
+  modifyRoomVariable,
   type RoomVariable
 } from "./server"
 import {
@@ -218,22 +217,17 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const fetchMessages = async () => {
-    let allMessages = null
     try {
-      if (allClearAt) {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).gt("created_at", allClearAt).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
-        allMessages = data
-      } else {
-        const { data } = await supabase.from("Messages").select("*").eq('room_id', roomId).order("created_at", { ascending: false }).limit(NUM_MESSAGES)
-        allMessages = data
+      let query = supabase.from("Messages").select("*").eq('room_id', roomId)
+      if (allClearAt) query = query.gt("created_at", allClearAt)
+      const { data: allMessages } = await query.order("created_at", { ascending: false }).limit(NUM_MESSAGES)
+      if (allMessages != null) {
+        receivedMessages.current = new Set()
+        setMessageText(allMessages)
+        allMessages.forEach(e => receivedMessages.current.add(e.id))
       }
     } catch (error) {
       console.error(error)
-    }
-    if (allMessages != null) {
-      receivedMessages.current = new Set()
-      setMessageText(allMessages)
-      allMessages.forEach(e => receivedMessages.current.add(e.id))
     }
   }
 
@@ -270,20 +264,14 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     (async () => {
       console.log('roomDataLoaded')
       getUsersAndCheckEntered()
-      const opt: any = roomInfo?.options || {}
       if (roomInfo) {
-        if (opt.private) {
-        } else {
+        if (!roomOption.private) {
           fetchMessages()
           fetchRealtimeData()
         }
-        if (opt.variables) {
-          setVariableKeys(opt.variables)
-        }
+        setVariableKeys(roomOption.variables)
         setVariables(await getRoomVariable(roomId))
-        if (opt.use_trump) {
-          setUseTrump(opt.use_trump)
-        }
+        setUseTrump(roomOption.use_trump)
         checkEntered()
       } else {
         toast.error('ルームデータを取得できませんでした。')
@@ -304,8 +292,6 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       if (playSound) play()
       if (allClearAt) {
         setMessageText((messageText) => messageText.filter(message => message.created_at > allClearAt))
-      } else {
-        setMessageText((messageText) => messageText)
       }
       setReceivedMessage(false)
     }
@@ -435,7 +421,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
         color: colorCodeToInt(color)
       })
 
-      if (getRoomOption().all_clear && getRoomOption().all_clear == inputText) {
+      if (roomOption.all_clear && roomOption.all_clear == inputText) {
         allClear(roomId)
         setMessageText([])
       }
@@ -446,7 +432,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     setButtonDisable(false)
   }
 
-  const getRoomOption = () => {
+  const roomOption = useMemo<RoomOption>(() => {
     const rd: RoomOption = { private: false, use_trump: false, user_limit: 10, all_clear: "", variables: [] }
     if (roomInfo && roomInfo.options) {
       rd.private = (roomInfo.options as any).private
@@ -458,7 +444,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
       rd.variables = (roomInfo.options as any).variables || []
     }
     return rd
-  }
+  }, [roomInfo])
 
   const onSubmitEnter = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -474,7 +460,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     if (response) {
       if (response.success) {
         localStorage.setItem("userId", response.id)
-        const chk = await checkEntered()
+        await checkEntered()
       } else {
         toast.error(response.reason)
       }
@@ -541,20 +527,20 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
     }
   }
 
-  const setVar = async (op: string, key: string, value: number) => {
+  const startDisableTimer = () => {
     setButtonDisable(true)
     if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
     setVarTimerRef.current = setTimeout(() => {
       setButtonDisable(false)
       setVarTimerRef.current = null
     }, 2 * 1000)
+  }
+
+  const setVar = async (op: string, key: string, value: number) => {
+    startDisableTimer()
     switch (op) {
       case "mod":
-        if (value > 0) {
-          await incrementRoomVariable(roomId, key, value)
-        } else {
-          await decrementRoomVariable(roomId, key, -value)
-        }
+        await modifyRoomVariable(roomId, key, value)
         break
       case "set":
         await setRoomVariable(roomId, key, value)
@@ -565,23 +551,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const drawCard = async () => {
-    setButtonDisable(true)
-    if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
-    setVarTimerRef.current = setTimeout(() => {
-      setButtonDisable(false)
-      setVarTimerRef.current = null
-    }, 2 * 1000)
+    startDisableTimer()
     try {
       await fetch('/api/card', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          roomId: roomId,
-          command: 'drawCard',
-          username: username
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, command: 'drawCard', username }),
       })
     } catch (error) {
       toast.error('カードを引けませんでした。')
@@ -589,23 +564,12 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
   }
 
   const resetDeck = async () => {
-    setButtonDisable(true)
-    if (setVarTimerRef.current) clearTimeout(setVarTimerRef.current)
-    setVarTimerRef.current = setTimeout(() => {
-      setButtonDisable(false)
-      setVarTimerRef.current = null
-    }, 2 * 1000)
+    startDisableTimer()
     try {
       await fetch('/api/card', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          roomId: roomId,
-          command: 'resetDeck',
-          username: username
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, command: 'resetDeck', username }),
       })
     } catch (error) {
       toast.error('デッキのリセットに失敗しました。')
@@ -665,7 +629,7 @@ export default function Chat({ onSetTitle = () => { } }: Prop) {
             </span>
           ))}
           <span className="flex items-end text-xs font-xs">
-            {roomInfo && `(${users.length} / ${getRoomOption().user_limit} 人)`}
+            {roomInfo && `(${users.length} / ${roomOption.user_limit} 人)`}
           </span>
         </div>
 

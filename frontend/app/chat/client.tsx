@@ -1,7 +1,7 @@
 'use client'
 import { Database } from "@/types/supabasetype"
 import { supabase } from '@/utils/supabase/supabase'
-import { intToColorCode, colorCodeToInt } from "@/utils/color/color"
+import { colorCodeToInt } from "@/utils/color/color"
 import { createTrip } from "2ch-trip"
 
 export type RoomInfo = Omit<Database["public"]["Tables"]["Rooms"]["Row"], 'password' | 'owner'>
@@ -31,7 +31,7 @@ const url = process.env.NEXT_PUBLIC_MY_SUPABASE_URL!
 
 export async function getRoomInfo(roomId: number): Promise<{ info: RoomInfo, authenticated: boolean } | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_MY_SUPABASE_URL!}/storage/v1/object/public/rooms/${roomId}.json`, {
+    const res = await fetch(`${url}/storage/v1/object/public/rooms/${roomId}.json`, {
       method: 'GET',
       cache: 'no-store'
     })
@@ -138,7 +138,7 @@ export async function allClear(roomId: number): Promise<void> {
     id: roomId,
     all_clear_at: new Date().toISOString()
   })
-  sendMessage({
+  await sendMessage({
     color: 0,
     name: "system",
     room_id: roomId,

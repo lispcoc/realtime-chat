@@ -15,10 +15,6 @@ export async function setRoomVariable(roomId: number, key: string, value: number
   return vars
 }
 
-export async function incrementRoomVariable(roomId: number, key: string, incrementBy: number): Promise<RoomVariable> {
-  return modifyRoomVariableServer(roomId, key, incrementBy)
-}
-
-export async function decrementRoomVariable(roomId: number, key: string, decrementBy: number): Promise<RoomVariable> {
-  return modifyRoomVariableServer(roomId, key, -decrementBy)
+export async function modifyRoomVariable(roomId: number, key: string, delta: number): Promise<RoomVariable> {
+  return modifyRoomVariableServer(roomId, key, delta)
 }
